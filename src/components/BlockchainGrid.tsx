@@ -30,6 +30,7 @@ export function BlockchainGrid() {
   const animation_ref = useRef<number>(0);
   const blocks_ref = useRef<Block[]>([]);
   const dimensions_ref = useRef({ width: 0, height: 0 });
+  const gradient_cache_ref = useRef<Map<string, CanvasGradient>>(new Map());
 
   const is_in_exclusion_zone = useCallback((rel_x: number, rel_y: number) => {
     const center_x = 0.5;
@@ -51,6 +52,44 @@ export function BlockchainGrid() {
 
     let time = 0;
     let transactions: Transaction[] = [];
+    let frame_count = 0;
+
+    // Detect low-end devices
+    const is_low_end_device =
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) ||
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    // Frame skip logic: on low-end devices, render every 2nd or 3rd frame
+    const frame_skip = is_low_end_device ? 2 : 1;
+
+    // Helper to get or create cached gradients with LRU size limit
+    const gradient_cache = gradient_cache_ref.current;
+    const MAX_CACHE_SIZE = 100;
+
+    const get_or_create_gradient = (
+      key: string,
+      create_fn: () => CanvasGradient
+    ) => {
+      if (gradient_cache.has(key)) {
+        // Move to end (refresh LRU position)
+        const value = gradient_cache.get(key)!;
+        gradient_cache.delete(key);
+        gradient_cache.set(key, value);
+        return value;
+      }
+
+      // Evict oldest if at limit
+      if (gradient_cache.size >= MAX_CACHE_SIZE) {
+        const first_key = gradient_cache.keys().next().value;
+        if (first_key) gradient_cache.delete(first_key);
+      }
+
+      const value = create_fn();
+      gradient_cache.set(key, value);
+      return value;
+    };
 
     const generate_hash = () => {
       const chars = "0123456789abcdef";
@@ -197,10 +236,14 @@ export function BlockchainGrid() {
       from: Block,
       to: Block
     ) => {
-      const gradient = ctx.createLinearGradient(from.x, from.y, to.x, to.y);
-      gradient.addColorStop(0, "rgba(100, 200, 255, 0.12)");
-      gradient.addColorStop(0.5, "rgba(100, 200, 255, 0.06)");
-      gradient.addColorStop(1, "rgba(100, 200, 255, 0.12)");
+      const gradient_key = `chain-${from.x.toFixed(0)}-${from.y.toFixed(0)}-${to.x.toFixed(0)}-${to.y.toFixed(0)}`;
+      const gradient = get_or_create_gradient(gradient_key, () => {
+        const grad = ctx.createLinearGradient(from.x, from.y, to.x, to.y);
+        grad.addColorStop(0, "rgba(100, 200, 255, 0.12)");
+        grad.addColorStop(0.5, "rgba(100, 200, 255, 0.06)");
+        grad.addColorStop(1, "rgba(100, 200, 255, 0.12)");
+        return grad;
+      });
 
       ctx.strokeStyle = gradient;
       ctx.lineWidth = 1;
@@ -220,47 +263,59 @@ export function BlockchainGrid() {
       const x = block.x - block_width / 2;
       const y = block.y - block_height / 2 + Math.sin(time + block.pulse) * 3;
 
-      // Soft circular shadow/glow (zamiast kwadratowego)
+      // Cache shadow gradient (use relative position for stable keys)
       const shadow_radius = Math.max(block_width, block_height) * 1.2;
-      const shadow_gradient = ctx.createRadialGradient(
-        block.x,
-        block.y + 8,
-        0,
-        block.x,
-        block.y + 8,
-        shadow_radius
-      );
-      shadow_gradient.addColorStop(0, "rgba(0, 0, 0, 0.25)");
-      shadow_gradient.addColorStop(0.4, "rgba(0, 0, 0, 0.1)");
-      shadow_gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+      const shadow_key = `shadow-${block.rel_x.toFixed(2)}-${block.rel_y.toFixed(2)}`;
+      const shadow_gradient = get_or_create_gradient(shadow_key, () => {
+        const grad = ctx.createRadialGradient(
+          block.x,
+          block.y + 8,
+          0,
+          block.x,
+          block.y + 8,
+          shadow_radius
+        );
+        grad.addColorStop(0, "rgba(0, 0, 0, 0.25)");
+        grad.addColorStop(0.4, "rgba(0, 0, 0, 0.1)");
+        grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        return grad;
+      });
       ctx.fillStyle = shadow_gradient;
       ctx.beginPath();
       ctx.arc(block.x, block.y + 8, shadow_radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Block glow effect (subtelniejszy)
+      // Block glow effect (subtelniejszy) - only on confirmed blocks
       if (block.confirmed) {
         const glow_intensity = 0.08 + Math.sin(time * 2 + block.pulse) * 0.04;
-        const glow_gradient = ctx.createRadialGradient(
-          block.x,
-          block.y,
-          0,
-          block.x,
-          block.y,
-          block_width * 0.9
-        );
-        glow_gradient.addColorStop(0, `rgba(100, 200, 255, ${glow_intensity})`);
-        glow_gradient.addColorStop(1, "rgba(100, 200, 255, 0)");
+        const glow_key = `glow-${block.rel_x.toFixed(2)}-${block.rel_y.toFixed(2)}`;
+        const glow_gradient = get_or_create_gradient(glow_key, () => {
+          const grad = ctx.createRadialGradient(
+            block.x,
+            block.y,
+            0,
+            block.x,
+            block.y,
+            block_width * 0.9
+          );
+          grad.addColorStop(0, `rgba(100, 200, 255, ${glow_intensity})`);
+          grad.addColorStop(1, "rgba(100, 200, 255, 0)");
+          return grad;
+        });
         ctx.fillStyle = glow_gradient;
         ctx.beginPath();
         ctx.arc(block.x, block.y, block_width * 0.9, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Block background (mniejsza opacity)
-      const bg_gradient = ctx.createLinearGradient(x, y, x, y + block_height);
-      bg_gradient.addColorStop(0, "rgba(20, 30, 50, 0.6)");
-      bg_gradient.addColorStop(1, "rgba(10, 20, 35, 0.7)");
+      // Cache background gradient
+      const bg_key = `bg-${block.rel_x.toFixed(2)}-${block.rel_y.toFixed(2)}`;
+      const bg_gradient = get_or_create_gradient(bg_key, () => {
+        const grad = ctx.createLinearGradient(x, y, x, y + block_height);
+        grad.addColorStop(0, "rgba(20, 30, 50, 0.6)");
+        grad.addColorStop(1, "rgba(10, 20, 35, 0.7)");
+        return grad;
+      });
 
       ctx.fillStyle = bg_gradient;
       ctx.beginPath();
@@ -340,11 +395,12 @@ export function BlockchainGrid() {
           tx.y_offset +
           Math.sin(tx.progress * Math.PI) * -10;
 
-        // Transaction packet glow (subtelniejszy)
+        // Transaction glow gradient - create directly (changes every frame)
         const glow_gradient = ctx.createRadialGradient(x, y, 0, x, y, 12);
         glow_gradient.addColorStop(0, "rgba(100, 200, 255, 0.35)");
         glow_gradient.addColorStop(0.5, "rgba(100, 200, 255, 0.1)");
         glow_gradient.addColorStop(1, "rgba(100, 200, 255, 0)");
+
         ctx.fillStyle = glow_gradient;
         ctx.beginPath();
         ctx.arc(x, y, 12, 0, Math.PI * 2);
@@ -421,10 +477,15 @@ export function BlockchainGrid() {
         const nx = node.x * width;
         const ny = node.y * height + Math.sin(time * 0.4 + node.x * 10) * 8;
 
+        // Optimized nearest block search - skip every other block on low-end
         let nearest_block = blocks[0];
         let min_dist = Infinity;
-        for (const block of blocks) {
-          const dist = Math.hypot(block.x - nx, block.y - ny);
+        const step = is_low_end_device ? 2 : 1;
+        for (let i = 0; i < blocks.length; i += step) {
+          const block = blocks[i];
+          const dx = block.x - nx;
+          const dy = block.y - ny;
+          const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < min_dist) {
             min_dist = dist;
             nearest_block = block;
@@ -463,9 +524,16 @@ export function BlockchainGrid() {
         return;
       }
 
+      // Frame skipping for low-end devices
+      frame_count++;
+      if (frame_count % frame_skip !== 0) {
+        animation_ref.current = requestAnimationFrame(draw);
+        return;
+      }
+
       ctx.clearRect(0, 0, width, height);
 
-      time += 0.016;
+      time += 0.016 * frame_skip;
       const blocks = blocks_ref.current;
 
       draw_network_nodes(ctx, width, height);
@@ -500,6 +568,7 @@ export function BlockchainGrid() {
 
     return () => {
       cancelAnimationFrame(animation_ref.current);
+      gradient_cache_ref.current.clear();
     };
   }, [is_in_exclusion_zone]);
 

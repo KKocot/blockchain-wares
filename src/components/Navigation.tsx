@@ -30,35 +30,41 @@ export function Navigation() {
   const [is_scrolled, set_is_scrolled] = useState(false);
   const [active_section, set_active_section] = useState<string>("");
 
-  // Handle scroll effect for backdrop blur
+  // Combined scroll handler with throttle (performance optimization)
   useEffect(() => {
-    const handle_scroll = () => {
-      set_is_scrolled(window.scrollY > 20);
-    };
+    let ticking = false;
+    const section_ids = nav_items.map((item) => item.href.replace("#", ""));
 
-    window.addEventListener("scroll", handle_scroll);
-    return () => window.removeEventListener("scroll", handle_scroll);
-  }, []);
+    // Use named function stored in ref to ensure same reference in cleanup
+    const handle_scroll_impl = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          // Update backdrop blur state
+          set_is_scrolled(window.scrollY > 20);
 
-  // Track active section based on scroll position
-  useEffect(() => {
-    const handle_scroll = () => {
-      const section_ids = nav_items.map((item) => item.href.replace("#", ""));
-      const scroll_position = window.scrollY + 100;
-
-      for (let i = section_ids.length - 1; i >= 0; i--) {
-        const element = document.getElementById(section_ids[i]);
-        if (element && element.offsetTop <= scroll_position) {
-          set_active_section(`#${section_ids[i]}`);
-          return;
-        }
+          // Update active section
+          const scroll_position = window.scrollY + 100;
+          for (let i = section_ids.length - 1; i >= 0; i--) {
+            const element = document.getElementById(section_ids[i]);
+            if (element && element.offsetTop <= scroll_position) {
+              set_active_section(`#${section_ids[i]}`);
+              ticking = false;
+              return;
+            }
+          }
+          set_active_section("");
+          ticking = false;
+        });
+        ticking = true;
       }
-      set_active_section("");
     };
 
-    handle_scroll();
-    window.addEventListener("scroll", handle_scroll);
-    return () => window.removeEventListener("scroll", handle_scroll);
+    // Initial call
+    handle_scroll_impl();
+
+    // Use passive listener for better scroll performance
+    window.addEventListener("scroll", handle_scroll_impl, { passive: true });
+    return () => window.removeEventListener("scroll", handle_scroll_impl);
   }, []);
 
   // Close menu on navigation

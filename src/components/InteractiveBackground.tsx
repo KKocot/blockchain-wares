@@ -18,6 +18,7 @@ export function InteractiveBackground() {
   const target_mouse_ref = useRef({ x: 0.5, y: 0.5 });
   const grid_ref = useRef<GridPoint[][]>([]);
   const dimensions_ref = useRef({ width: 0, height: 0, cols: 0, rows: 0 });
+  const gradient_cache_ref = useRef<Map<string, CanvasGradient>>(new Map());
 
   useEffect(() => {
     const canvas = canvas_ref.current;
@@ -27,13 +28,52 @@ export function InteractiveBackground() {
     if (!ctx) return;
 
     let time = 0;
+    let frame_count = 0;
 
+    // Detect low-end devices
+    const is_low_end_device =
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) ||
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    // Frame skip: render every 2nd frame on low-end devices
+    const frame_skip = is_low_end_device ? 2 : 1;
+
+    // Increased GRID_SPACING to reduce point count (48-64 instead of 32)
     const calculate_grid_density = (width: number, height: number) => {
-      const base_cols = width < 640 ? 20 : width < 1024 ? 28 : width < 1440 ? 36 : 44;
+      const base_cols = width < 640 ? 15 : width < 1024 ? 20 : width < 1440 ? 26 : 32;
       // Calculate rows based on page height
       const cell_size = width / (base_cols - 1);
       const rows = Math.ceil(height / cell_size) + 1;
       return { cols: base_cols, rows };
+    };
+
+    // Helper to get or create cached gradients with LRU size limit
+    const gradient_cache = gradient_cache_ref.current;
+    const MAX_CACHE_SIZE = 100;
+
+    const get_or_create_gradient = (
+      key: string,
+      create_fn: () => CanvasGradient
+    ) => {
+      if (gradient_cache.has(key)) {
+        // Move to end (refresh LRU position)
+        const value = gradient_cache.get(key)!;
+        gradient_cache.delete(key);
+        gradient_cache.set(key, value);
+        return value;
+      }
+
+      // Evict oldest if at limit
+      if (gradient_cache.size >= MAX_CACHE_SIZE) {
+        const first_key = gradient_cache.keys().next().value;
+        if (first_key) gradient_cache.delete(first_key);
+      }
+
+      const value = create_fn();
+      gradient_cache.set(key, value);
+      return value;
     };
 
     const rebuild_grid = (width: number, height: number) => {
@@ -86,7 +126,13 @@ export function InteractiveBackground() {
       return false;
     };
 
+    // Throttled mouse move handler (max 60fps = 16ms)
+    let last_mouse_update = 0;
     const handle_mouse_move = (e: MouseEvent) => {
+      const now = performance.now();
+      if (now - last_mouse_update < 16) return; // 60fps throttle
+      last_mouse_update = now;
+
       const height = document.documentElement.scrollHeight;
       target_mouse_ref.current = {
         x: e.clientX / window.innerWidth,
@@ -127,8 +173,15 @@ export function InteractiveBackground() {
         return;
       }
 
+      // Frame skipping for low-end devices
+      frame_count++;
+      if (frame_count % frame_skip !== 0) {
+        animation_ref.current = requestAnimationFrame(draw);
+        return;
+      }
+
       ctx.clearRect(0, 0, width, height);
-      time += 0.012;
+      time += 0.012 * frame_skip;
 
       const grid = grid_ref.current;
       if (grid.length === 0) {
@@ -245,7 +298,7 @@ export function InteractiveBackground() {
             const intensity = 1 - dist / 280;
             const alpha = intensity * 0.25 * section_fade;
 
-            // Outer glow
+            // Outer glow gradient - create directly (perspective_y changes every frame)
             const outer_gradient = ctx.createRadialGradient(
               point.x,
               perspective_y,
@@ -257,12 +310,13 @@ export function InteractiveBackground() {
             outer_gradient.addColorStop(0, `rgba(100, 200, 255, ${alpha * 0.6})`);
             outer_gradient.addColorStop(0.5, `rgba(100, 200, 255, ${alpha * 0.2})`);
             outer_gradient.addColorStop(1, "rgba(100, 200, 255, 0)");
+
             ctx.fillStyle = outer_gradient;
             ctx.beginPath();
             ctx.arc(point.x, perspective_y, 16, 0, Math.PI * 2);
             ctx.fill();
 
-            // Inner glow
+            // Inner glow gradient - create directly (perspective_y changes every frame)
             const inner_gradient = ctx.createRadialGradient(
               point.x,
               perspective_y,
@@ -273,6 +327,7 @@ export function InteractiveBackground() {
             );
             inner_gradient.addColorStop(0, `rgba(150, 220, 255, ${alpha})`);
             inner_gradient.addColorStop(1, "rgba(100, 200, 255, 0)");
+
             ctx.fillStyle = inner_gradient;
             ctx.beginPath();
             ctx.arc(point.x, perspective_y, 6, 0, Math.PI * 2);
@@ -294,9 +349,12 @@ export function InteractiveBackground() {
     check_and_resize();
     draw();
 
+    // Named resize handler to ensure same reference in cleanup
+    const handle_resize = () => check_and_resize();
+
     // Event listeners
     window.addEventListener("mousemove", handle_mouse_move);
-    window.addEventListener("resize", () => check_and_resize());
+    window.addEventListener("resize", handle_resize);
 
     // Watch for DOM changes that might affect page height
     const resize_observer = new ResizeObserver(() => {
@@ -306,9 +364,10 @@ export function InteractiveBackground() {
 
     return () => {
       window.removeEventListener("mousemove", handle_mouse_move);
-      window.removeEventListener("resize", () => check_and_resize());
+      window.removeEventListener("resize", handle_resize);
       resize_observer.disconnect();
       cancelAnimationFrame(animation_ref.current);
+      gradient_cache_ref.current.clear();
     };
   }, []);
 

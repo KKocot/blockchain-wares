@@ -86,6 +86,528 @@ body {
     0 16px 40px -8px oklch(62% 0.18 250 / 0.35);
 }
 
+/* About section SVG animations */
+@keyframes scale-pulse-1 {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes scale-pulse-2 {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes scale-pulse-3 {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes scale-pulse-4 {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+@keyframes line-fade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.2; }
+}
+
+@keyframes shield-glow {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes shield-pulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+@keyframes checkmark-draw {
+  0%, 20% { stroke-dashoffset: 20; }
+  40%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes rotate-chip {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes circuit-blink-1 {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes circuit-blink-2 {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes circuit-blink-3 {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes circuit-blink-4 {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes core-pulse {
+  0%, 100% { transform: scale(0.8); }
+  50% { transform: scale(1); }
+}
+
+@keyframes pattern-fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* About section SVG animation classes */
+.scale-node-1 {
+  animation: scale-pulse-1 2s ease-in-out infinite;
+  transform-origin: 16px 8px;
+}
+
+.scale-node-2 {
+  animation: scale-pulse-2 2s ease-in-out 0.3s infinite;
+  transform-origin: 6px 20px;
+}
+
+.scale-node-3 {
+  animation: scale-pulse-3 2s ease-in-out 0.6s infinite;
+  transform-origin: 26px 20px;
+}
+
+.scale-node-4 {
+  animation: scale-pulse-4 2s ease-in-out 0.9s infinite;
+  transform-origin: 16px 26px;
+}
+
+.scale-lines {
+  animation: line-fade 3s ease-in-out infinite;
+}
+
+.shield-glow {
+  animation: shield-glow 2s ease-in-out infinite;
+}
+
+.shield-pulse {
+  animation: shield-pulse 2s ease-out infinite;
+  transform-origin: 16px 16px;
+}
+
+.shield-check {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: checkmark-draw 3.3s ease-in-out infinite;
+}
+
+.chip-rotate {
+  animation: rotate-chip 20s linear infinite;
+  transform-origin: 16px 16px;
+}
+
+.circuit-left {
+  animation: circuit-blink-1 1.5s ease-in-out infinite;
+}
+
+.circuit-right {
+  animation: circuit-blink-2 1.5s ease-in-out 0.5s infinite;
+}
+
+.circuit-top {
+  animation: circuit-blink-3 1.5s ease-in-out 0.25s infinite;
+}
+
+.circuit-bottom {
+  animation: circuit-blink-4 1.5s ease-in-out 0.75s infinite;
+}
+
+.chip-core {
+  animation: core-pulse 2s ease-in-out infinite;
+  transform-origin: 16px 16px;
+}
+
+.chip-pattern {
+  animation: pattern-fade 1s ease-in-out infinite;
+}
+
+/* BlockchainBackground animations */
+@keyframes blockchain-line-draw {
+  from {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.blockchain-line-active {
+  animation: blockchain-line-draw 0.6s ease-out forwards;
+}
+
+.blockchain-block {
+  transition: fill-opacity 0.3s ease, stroke-opacity 0.3s ease, transform 0.3s ease;
+  transform-origin: center;
+}
+
+.blockchain-block-active {
+  fill-opacity: 0.5;
+  stroke-opacity: 0.6;
+  transform: scale(1.15);
+}
+
+.blockchain-block-inactive {
+  fill-opacity: 0.1;
+  stroke-opacity: 0.2;
+  transform: scale(1);
+}
+
+.blockchain-hash-line {
+  transition: stroke-opacity 0.3s ease;
+  stroke-opacity: 0.15;
+}
+
+.blockchain-hash-line-active {
+  stroke-opacity: 0.5;
+}
+
+/* Hero section animations */
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(50px, 30px);
+  }
+  66% {
+    transform: translate(25px, 15px);
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.8s cubic-bezier(0.6, -0.05, 0.01, 0.99) 0.2s both;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s cubic-bezier(0.6, -0.05, 0.01, 0.99) 0.4s both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 10s ease-in-out infinite;
+}
+
+/* Expertise section icon animations */
+
+/* BlockchainIcon animations */
+@keyframes blockchain-glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes blockchain-center-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes blockchain-node-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes blockchain-node-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+@keyframes blockchain-node-tl {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-2px, -2px); }
+}
+
+@keyframes blockchain-node-tr {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(2px, -2px); }
+}
+
+@keyframes blockchain-node-bl {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-2px, 2px); }
+}
+
+@keyframes blockchain-node-br {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(2px, 2px); }
+}
+
+@keyframes blockchain-line-fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes blockchain-packet {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.blockchain-glow { animation: blockchain-glow-pulse 3s ease-in-out infinite; }
+.blockchain-center { animation: blockchain-center-scale 2.5s ease-in-out infinite; transform-origin: 100px 80px; }
+.blockchain-top { animation: blockchain-node-up 2s ease-in-out 0.2s infinite; }
+.blockchain-bottom { animation: blockchain-node-down 2s ease-in-out 1.2s infinite; }
+.blockchain-tl { animation: blockchain-node-tl 2.2s ease-in-out 0.4s infinite; }
+.blockchain-tr { animation: blockchain-node-tr 2.2s ease-in-out 0.6s infinite; }
+.blockchain-bl { animation: blockchain-node-bl 2.2s ease-in-out 0.8s infinite; }
+.blockchain-br { animation: blockchain-node-br 2.2s ease-in-out 1s infinite; }
+.blockchain-line-1 { animation: blockchain-line-fade 1.5s ease-in-out infinite; }
+.blockchain-line-2 { animation: blockchain-line-fade 1.5s ease-in-out 0.2s infinite; }
+.blockchain-line-3 { animation: blockchain-line-fade 1.5s ease-in-out 0.4s infinite; }
+.blockchain-line-4 { animation: blockchain-line-fade 1.5s ease-in-out 0.6s infinite; }
+.blockchain-line-5 { animation: blockchain-line-fade 1.5s ease-in-out 0.8s infinite; }
+.blockchain-line-6 { animation: blockchain-line-fade 1.5s ease-in-out 1s infinite; }
+
+/* BlockchainIcon2 animations */
+@keyframes block-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes chain-link-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes nonce-glow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes mining-blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes mining-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+.block-1 { animation: block-float 2.5s ease-in-out infinite; }
+.block-2 { animation: block-float 2.5s ease-in-out 0.3s infinite; }
+.block-3 { animation: block-float 2.5s ease-in-out 0.6s infinite; }
+.chain-link-1 { animation: chain-link-pulse 1.2s ease-in-out infinite; }
+.chain-link-2 { animation: chain-link-pulse 1.2s ease-in-out 0.4s infinite; }
+.nonce-1 { animation: nonce-glow 1.5s ease-in-out infinite; }
+.nonce-2 { animation: nonce-glow 1.5s ease-in-out 0.3s infinite; }
+.nonce-3 { animation: mining-pulse 0.8s ease-in-out infinite; }
+.mining-icon { animation: mining-blink 2s ease-in-out infinite; }
+
+/* DatabaseIcon animations */
+@keyframes db-glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes db-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes db-layer-fade {
+  0%, 100% { stroke-opacity: 0.3; }
+  50% { stroke-opacity: 0.7; }
+}
+
+@keyframes db-node-left {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-2px); }
+}
+
+@keyframes db-node-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+
+@keyframes db-connection-fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes db-flow-fade {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes db-activity-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 0.4; }
+}
+
+@keyframes db-ring-expand {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes db-status-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.db-glow { animation: db-glow-pulse 3s ease-in-out infinite; }
+.db-cylinder { animation: db-scale 2.5s ease-in-out infinite; }
+.db-layer-1 { animation: db-layer-fade 2s ease-in-out infinite; }
+.db-layer-2 { animation: db-layer-fade 2s ease-in-out 0.5s infinite; }
+.db-node-cluster-left { animation: db-node-left 2.2s ease-in-out 0.3s infinite; }
+.db-node-cluster-right { animation: db-node-right 2.2s ease-in-out 0.5s infinite; }
+.db-graph-line-1 { animation: db-connection-fade 1.5s ease-in-out infinite; }
+.db-graph-line-2 { animation: db-connection-fade 1.5s ease-in-out 0.3s infinite; }
+.db-graph-line-3 { animation: db-connection-fade 2s ease-in-out infinite; }
+.db-graph-line-4 { animation: db-connection-fade 1.5s ease-in-out 0.2s infinite; }
+.db-graph-line-5 { animation: db-connection-fade 1.5s ease-in-out 0.5s infinite; }
+.db-graph-line-6 { animation: db-connection-fade 2s ease-in-out 0.3s infinite; }
+.db-flow-1 { animation: db-flow-fade 1.8s ease-in-out infinite; }
+.db-flow-2 { animation: db-flow-fade 1.8s ease-in-out 0.3s infinite; }
+.db-flow-3 { animation: db-flow-fade 1.8s ease-in-out 0.6s infinite; }
+.db-flow-4 { animation: db-flow-fade 1.8s ease-in-out 0.15s infinite; }
+.db-flow-5 { animation: db-flow-fade 1.8s ease-in-out 0.45s infinite; }
+.db-flow-6 { animation: db-flow-fade 1.8s ease-in-out 0.75s infinite; }
+.db-activity { animation: db-activity-pulse 1.5s ease-in-out infinite; }
+.db-ring { animation: db-ring-expand 1.5s ease-in-out infinite; }
+.db-status { animation: db-status-pulse 1s ease-in-out infinite; }
+
+/* EdaIcon animations */
+@keyframes eda-glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes eda-chip-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+}
+
+@keyframes eda-pin-blink {
+  0%, 100% { fill-opacity: 0.4; }
+  50% { fill-opacity: 0.9; }
+}
+
+@keyframes eda-clock-blink {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.eda-glow { animation: eda-glow-pulse 4s ease-in-out infinite; }
+.eda-chip { animation: eda-chip-pulse 3s ease-in-out infinite; transform-origin: 100px 80px; }
+.eda-clock { animation: eda-clock-blink 0.8s linear infinite; }
+
+/* EngineeringIcon animations */
+@keyframes eng-glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes eng-gear-main {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes eng-gear-tl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes eng-gear-br {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes eng-dash-move {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -12px; }
+}
+
+@keyframes eng-dimension-fade {
+  0% { opacity: 0; }
+  15% { opacity: 0.8; }
+  85% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+@keyframes eng-rod-fade {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes eng-piston-move {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(15px); }
+}
+
+@keyframes eng-point-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.3); }
+}
+
+@keyframes eng-scan-line {
+  0% { x1: 30px; x2: 30px; opacity: 0; }
+  50% { x1: 30px; x2: 170px; opacity: 0.6; }
+  100% { x1: 170px; x2: 170px; opacity: 0; }
+}
+
+.eng-glow { animation: eng-glow-pulse 3s ease-in-out infinite; }
+.eng-gear-main { animation: eng-gear-main 12s linear infinite; transform-origin: 100px 80px; }
+.eng-gear-tl { animation: eng-gear-tl 8s linear infinite; transform-origin: 52px 42px; }
+.eng-gear-br { animation: eng-gear-br 9s linear infinite; transform-origin: 152px 115px; }
+.eng-dash-v { animation: eng-dash-move 2s linear infinite; }
+.eng-dash-h { animation: eng-dash-move 2s linear infinite; }
+.eng-dimension { animation: eng-dimension-fade 4s infinite; }
+.eng-rod { animation: eng-rod-fade 2s ease-in-out infinite; }
+.eng-piston { animation: eng-piston-move 1.5s ease-in-out infinite; }
+.eng-point-1 { animation: eng-point-pulse 1.5s ease-in-out infinite; }
+.eng-point-2 { animation: eng-point-pulse 1.5s ease-in-out 0.3s infinite; }
+.eng-point-3 { animation: eng-point-pulse 1.5s ease-in-out 0.6s infinite; }
+.eng-point-4 { animation: eng-point-pulse 1.5s ease-in-out 0.9s infinite; }
+.eng-scan { animation: eng-scan-line 3s ease-in-out 2s infinite; }
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,

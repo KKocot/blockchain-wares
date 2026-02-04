@@ -1,43 +1,110 @@
-# Astro Starter Kit: Minimal
+# BlockchainWares
 
-```sh
-npm create astro@latest -- --template minimal
+Strona internetowa dla firmy BlockchainWares - software development company specjalizującej się w blockchain, Event-Driven Architecture, engineering i bazach danych.
+
+**Lokalizacja:** Dąbrowa Górnicza, Polska
+
+## Tech Stack
+
+- **Astro 5** - Static Site Generator
+- **React 19** - UI Library
+- **Tailwind CSS 4** - Styling
+- **Framer Motion 12** - Animations
+- **TypeScript** - Type Safety
+
+## Design
+
+Inspiracja: [Landio](https://landio.framer.website)
+
+### Color Palette
+- Background: `#04070d`
+- Text: `#d5dbe6`
+- Accent: `#3b82f6`
+- Muted: `#4b5563`
+
+### Typography
+- Font: Quicksand (Google Fonts)
+
+## Project Structure
+
+```
+src/
+├── components/        # React components
+│   ├── Hero.tsx      # Hero section with animations
+│   └── ui/           # UI components (Button, Card, etc.)
+├── layouts/          # Astro layouts
+│   └── Layout.astro  # Base layout with SEO
+├── pages/            # Astro pages
+│   └── index.astro   # Homepage
+├── lib/              # Utils and helpers
+│   └── utils.ts      # cn() utility
+└── styles/           # Global styles
+    └── global.css    # Tailwind + theme config
+
+public/
+└── assets/
+    └── img/
+        ├── brands/   # Client/partner logos
+        └── icons/    # Custom icons
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Commands
 
-## 🚀 Project Structure
+All commands are run from the root of the project:
 
-Inside of your Astro project, you'll see the following folders and files:
+| Command | Action |
+|---------|--------|
+| `npm install` | Install dependencies |
+| `npm run dev` | Start dev server at `localhost:4321` |
+| `npm run build` | Build production site to `./dist/` |
+| `npm run preview` | Preview build locally |
+| `npx tsc --noEmit` | Type check |
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+## Development
+
+1. Install dependencies:
+```bash
+npm install
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+2. Start development server:
+```bash
+npm run dev
+```
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+3. Open [http://localhost:4321](http://localhost:4321) in your browser
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Building for Production
 
-## 🧞 Commands
+```bash
+npm run build
+```
 
-All commands are run from the root of the project, from a terminal:
+Output will be in `./dist/` directory.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Design Tokens
 
-## 👀 Want to learn more?
+All design tokens are defined in `src/styles/global.css` using CSS variables:
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```css
+--color-background: #04070d
+--color-text: #d5dbe6
+--color-accent: #3b82f6
+--color-accent-hover: #2563eb
+--color-muted: #4b5563
+--color-border: #1f2937
+```
+
+## Conventions
+
+- **Components:** PascalCase.tsx
+- **Utils:** snake_case.ts
+- **TypeScript:** Strict mode, zero `any`
+- **Max file size:** 500 lines
+
+## Resources
+
+- [Astro Documentation](https://docs.astro.build)
+- [React Documentation](https://react.dev)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Framer Motion Documentation](https://www.framer.com/motion/)

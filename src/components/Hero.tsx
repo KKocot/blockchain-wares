@@ -1,7 +1,5 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import type { Transition } from "framer-motion";
-import { useEffect, useState } from "react";
-import { FloatingParticles } from "./FloatingParticles";
 import { AnimatedLogo } from "./AnimatedLogo";
 import { BlockchainGrid } from "./BlockchainGrid";
 
@@ -15,16 +13,11 @@ import { BlockchainGrid } from "./BlockchainGrid";
  * - Parallax effect on scroll
  */
 export function Hero() {
-  const [is_mounted, set_is_mounted] = useState(false);
   const { scrollY } = useScroll();
 
   // Parallax effect - content moves slower than scroll
   const y_parallax = useTransform(scrollY, [0, 500], [0, 150]);
   const opacity_parallax = useTransform(scrollY, [0, 300], [1, 0]);
-
-  useEffect(() => {
-    set_is_mounted(true);
-  }, []);
 
   const spring_transition: Transition = {
     type: "spring",
@@ -89,62 +82,7 @@ export function Hero() {
         />
       </div>
 
-      {/* Floating particles - snow-like effect from sides */}
-      <FloatingParticles count={50} />
 
-      {/* Floating geometric shapes */}
-      {is_mounted && (
-        <>
-          <motion.div
-            className="absolute top-1/4 left-1/4 w-2 h-2 bg-secondary rounded-full blur-sm"
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.div
-            className="absolute top-1/3 right-1/3 w-3 h-3 border border-secondary rounded-sm opacity-20"
-            animate={{
-              rotate: [0, 180, 360],
-              y: [0, 40, 0],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
-          <motion.div
-            className="absolute bottom-1/4 left-1/3 w-4 h-4 bg-secondary rounded-full blur-md opacity-30"
-            animate={{
-              y: [0, -20, 0],
-              x: [0, 20, 0],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.div
-            className="absolute top-1/2 right-1/4 w-1 h-1 bg-base-content rounded-full opacity-50"
-            animate={{
-              y: [0, -50, 0],
-              opacity: [0.2, 0.6, 0.2],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </>
-      )}
 
       {/* Main content */}
       <motion.div

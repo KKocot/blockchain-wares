@@ -11,15 +11,13 @@ import {
   Career,
   Contact,
   Footer,
-  InteractiveBackground,
 } from "../components";
 ---
 
 <Layout>
-  <InteractiveBackground client:load />
   <Navigation client:load />
   <Hero client:load />
-  <About client:load />
+  <About client:visible />
   <Expertise client:idle />
   <OurWorks client:visible />
   <EndUsers client:visible />

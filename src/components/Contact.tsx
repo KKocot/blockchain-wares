@@ -64,50 +64,101 @@ export function Contact() {
     <section
       id="contact"
       ref={section_ref}
-      className="py-20 px-4 md:py-32 bg-base-100"
+      className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={transition}
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Get In Touch</h2>
-          <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Section header */}
+        <div className="text-center mb-12 md:mb-16">
+          <motion.span
+            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
+            transition={transition}
+          >
+            Contact Us
+          </motion.span>
+
+          <motion.h2
+            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.1 }}
+          >
+            Get In{" "}
+            <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
+              Touch
+            </span>
+          </motion.h2>
+
+          <motion.p
+            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.2 }}
+          >
             Have a project in mind? We'd love to hear from you.
-          </p>
-        </motion.div>
+          </motion.p>
+        </div>
 
         {/* Content Grid */}
         <motion.div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
           variants={container_variants}
           initial="hidden"
           animate={is_in_view ? "visible" : "hidden"}
         >
-          <motion.div className="space-y-6" variants={item_variants}>
+          <motion.div
+            className={cn(
+              "group relative p-4 md:p-6 rounded-2xl",
+              "bg-base-200/30 backdrop-blur-sm",
+              "border border-white/5",
+              "shadow-lg shadow-black/20",
+              "transition-all duration-300",
+              "hover:bg-base-200/50 hover:border-secondary/20",
+              "hover:shadow-xl hover:shadow-secondary/10"
+            )}
+            variants={item_variants}
+          >
+            <h3 className={cn(
+              "text-xl md:text-2xl font-bold mb-3",
+              "transition-colors duration-300",
+              "group-hover:text-secondary"
+            )}>
+              Contact Information
+            </h3>
+            <p className="text-sm md:text-base text-base-content/60 leading-relaxed mb-6">
+              Ready to start your next project? Reach out to us and let's
+              discuss how we can help you achieve your goals.
+            </p>
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold mb-6">Contact Information</h3>
-              <p className="text-base-content/70 leading-relaxed mb-8">
-                Ready to start your next project? Reach out to us and let's
-                discuss how we can help you achieve your goals.
-              </p>
-              <div className="space-y-6">
-                {CONTACT_DATA.map((item) => (
-                  <ContactItem key={item.label} {...item} />
-                ))}
-              </div>
+              {CONTACT_DATA.map((item) => (
+                <ContactItem key={item.label} {...item} />
+              ))}
             </div>
-          </motion.div>
 
-          <motion.div variants={item_variants}>
+            {/* Accent line */}
             <div
               className={cn(
-                "h-[400px] rounded-2xl overflow-hidden",
-                "bg-base-300 border border-base-300"
+                "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
+                "bg-secondary transition-all duration-300",
+                "group-hover:h-1/3"
               )}
-            >
+            />
+          </motion.div>
+
+          <motion.div
+            className={cn(
+              "group relative p-4 md:p-6 rounded-2xl",
+              "bg-base-200/30 backdrop-blur-sm",
+              "border border-white/5",
+              "shadow-lg shadow-black/20",
+              "transition-all duration-300",
+              "hover:bg-base-200/50 hover:border-secondary/20",
+              "hover:shadow-xl hover:shadow-secondary/10"
+            )}
+            variants={item_variants}
+          >
+            <div className="h-[350px] rounded-xl overflow-hidden bg-base-100/50">
               <iframe
                 src="https://maps.google.com/maps?width=520&height=400&hl=en&q=Graniczna%2034B/U11%20D%C4%85browa%20G%C3%B3rnicza+(BlockchainWares)&t=&z=15&ie=UTF8&iwloc=B&output=embed"
                 width="100%"
@@ -118,6 +169,15 @@ export function Contact() {
                 title="BlockchainWares Location"
               />
             </div>
+
+            {/* Accent line */}
+            <div
+              className={cn(
+                "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
+                "bg-secondary transition-all duration-300",
+                "group-hover:h-1/3"
+              )}
+            />
           </motion.div>
         </motion.div>
       </div>
@@ -132,29 +192,30 @@ function ContactItem({ label, value, link, icon }: ContactInfo) {
   const content = (
     <div
       className={cn(
-        "group flex items-start gap-4 p-4 rounded-xl",
+        "group/item flex items-start gap-4 p-3 rounded-xl",
+        "bg-base-100/30 border border-white/5",
         "transition-all duration-300",
-        link && "hover:bg-base-300 cursor-pointer hover:scale-[1.02]"
+        link && "hover:bg-base-100/50 hover:border-secondary/20 cursor-pointer"
       )}
     >
       <div
         className={cn(
-          "text-3xl flex-shrink-0",
+          "text-2xl flex-shrink-0",
           "transition-transform duration-300",
-          link && "group-hover:scale-110"
+          link && "group-hover/item:scale-110"
         )}
       >
         {icon}
       </div>
 
       <div className="space-y-1">
-        <p className="text-sm text-base-content/70 font-semibold uppercase tracking-wider">
+        <p className="text-xs text-base-content/50 font-semibold uppercase tracking-wider">
           {label}
         </p>
         <p
           className={cn(
-            "text-base-content leading-relaxed",
-            link && "group-hover:text-secondary transition-colors"
+            "text-sm text-base-content/80 leading-relaxed",
+            link && "group-hover/item:text-secondary transition-colors"
           )}
         >
           {value}

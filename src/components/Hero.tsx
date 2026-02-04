@@ -42,7 +42,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-base-100">
       {/* Animated 3D blockchain grid background */}
       <div className="absolute inset-0">
         <BlockchainGrid />

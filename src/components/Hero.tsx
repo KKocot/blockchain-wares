@@ -3,6 +3,7 @@ import type { Transition } from "framer-motion";
 import { useEffect, useState } from "react";
 import { FloatingParticles } from "./FloatingParticles";
 import { AnimatedLogo } from "./AnimatedLogo";
+import { BlockchainGrid } from "./BlockchainGrid";
 
 /**
  * Hero section component with advanced animations
@@ -49,18 +50,11 @@ export function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
-      {/* Animated gradient background */}
-      <div
-        className="absolute inset-0 bg-base-100"
-        style={{
-          backgroundImage: "url(/assets/img/bg.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
+      {/* Animated 3D blockchain grid background */}
+      <div className="absolute inset-0">
+        <BlockchainGrid />
         <motion.div
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background:
               "radial-gradient(circle at 50% 50%, oklch(71% 0.143 215.221 / 0.15) 0%, transparent 50%)",
@@ -76,7 +70,7 @@ export function Hero() {
           }}
         />
         <motion.div
-          className="absolute top-20 right-20"
+          className="absolute top-20 right-20 pointer-events-none"
           style={{
             background:
               "radial-gradient(circle, oklch(71% 0.143 215.221 / 0.1) 0%, transparent 70%)",

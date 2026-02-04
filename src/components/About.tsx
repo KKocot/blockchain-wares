@@ -2,7 +2,6 @@ import { motion, useInView, useMotionValue, useTransform, animate } from "framer
 import { useRef, useEffect, useState } from "react";
 import type { Transition } from "framer-motion";
 import { cn } from "../lib/utils";
-import { BlockchainBackground } from "./BlockchainBackground";
 
 interface Stat {
   value: number;
@@ -293,28 +292,7 @@ export function About() {
       ref={section_ref}
       className="relative min-h-screen flex items-center py-12 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
-      {/* Background decorations */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Grid pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, oklch(71% 0.143 215.221) 1px, transparent 1px),
-              linear-gradient(to bottom, oklch(71% 0.143 215.221) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
-        />
-        {/* Blockchain network animation */}
-        <BlockchainBackground id="about" />
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 -left-32 w-80 h-80 bg-secondary/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Two-column layout */}
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-center mb-10 md:mb-20">
           {/* Left column - Text content */}

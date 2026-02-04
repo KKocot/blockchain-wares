@@ -20,24 +20,16 @@ interface Transaction {
   y_offset: number;
 }
 
-interface GridPoint {
-  x: number;
-  y: number;
-  base_z: number;
-  z: number;
-}
 
 /**
- * Animated blockchain visualization background using HTML5 Canvas
+ * Animated blockchain visualization - blocks, transactions and network nodes
+ * Grid is handled by InteractiveBackground component
  */
 export function BlockchainGrid() {
   const canvas_ref = useRef<HTMLCanvasElement>(null);
   const animation_ref = useRef<number>(0);
-  const mouse_ref = useRef({ x: 0.5, y: 0.5 });
-  const target_mouse_ref = useRef({ x: 0.5, y: 0.5 });
   const blocks_ref = useRef<Block[]>([]);
-  const grid_ref = useRef<GridPoint[][]>([]);
-  const dimensions_ref = useRef({ width: 0, height: 0, cols: 0, rows: 0 });
+  const dimensions_ref = useRef({ width: 0, height: 0 });
 
   const is_in_exclusion_zone = useCallback((rel_x: number, rel_y: number) => {
     const center_x = 0.5;
@@ -170,7 +162,7 @@ export function BlockchainGrid() {
     };
 
     const setup_canvas = (width: number, height: number) => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -180,13 +172,12 @@ export function BlockchainGrid() {
       const rect = canvas.getBoundingClientRect();
       const prev = dimensions_ref.current;
 
-      // Check if size changed enough to warrant rebuild
       const width_changed = Math.abs(rect.width - prev.width) > 20;
       const height_changed = Math.abs(rect.height - prev.height) > 20;
 
       if (width_changed || height_changed || prev.width === 0) {
         setup_canvas(rect.width, rect.height);
-        rebuild_grid(rect.width, rect.height);
+        dimensions_ref.current = { width: rect.width, height: rect.height };
         rebuild_blocks(rect.width, rect.height);
 
         if (transactions.length === 0) {
@@ -197,134 +188,8 @@ export function BlockchainGrid() {
       return false;
     };
 
-    const calculate_grid_density = (width: number) => {
-      if (width < 640) return { cols: 20, rows: 14 };
-      if (width < 1024) return { cols: 25, rows: 16 };
-      if (width < 1440) return { cols: 30, rows: 20 };
-      return { cols: 40, rows: 24 };
-    };
-
-    const rebuild_grid = (width: number, height: number) => {
-      const density = calculate_grid_density(width);
-      const cols = density.cols;
-      const rows = density.rows;
-
-      dimensions_ref.current = { width, height, cols, rows };
-
-      const grid: GridPoint[][] = [];
-      const cell_width = width / (cols - 1);
-      const cell_height = height / (rows - 1);
-
-      for (let row = 0; row < rows; row++) {
-        const row_points: GridPoint[] = [];
-        for (let col = 0; col < cols; col++) {
-          row_points.push({
-            x: col * cell_width,
-            y: row * cell_height,
-            base_z: 0,
-            z: 0,
-          });
-        }
-        grid.push(row_points);
-      }
-      grid_ref.current = grid;
-    };
-
-    const handle_mouse_move = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      target_mouse_ref.current = {
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
-      };
-    };
-
-    const handle_mouse_leave = () => {
-      target_mouse_ref.current = { x: 0.5, y: 0.5 };
-    };
-
     const lerp = (start: number, end: number, factor: number) => {
       return start + (end - start) * factor;
-    };
-
-    const draw_background_grid = (
-      ctx: CanvasRenderingContext2D,
-      width: number,
-      height: number
-    ) => {
-      const grid = grid_ref.current;
-      if (grid.length === 0) return;
-
-      // Smooth mouse following
-      mouse_ref.current.x = lerp(
-        mouse_ref.current.x,
-        target_mouse_ref.current.x,
-        0.05
-      );
-      mouse_ref.current.y = lerp(
-        mouse_ref.current.y,
-        target_mouse_ref.current.y,
-        0.05
-      );
-
-      const current_rows = grid.length;
-      const current_cols = grid[0]?.length || 0;
-
-      // Update z values with wave animation
-      for (let row = 0; row < current_rows; row++) {
-        for (let col = 0; col < current_cols; col++) {
-          const point = grid[row][col];
-
-          const wave1 = Math.sin(col * 0.2 + time * 0.5) * 8;
-          const wave2 = Math.sin(row * 0.15 + time * 0.4) * 6;
-
-          const mouse_x = mouse_ref.current.x * width;
-          const mouse_y = mouse_ref.current.y * height;
-          const dx = point.x - mouse_x;
-          const dy = point.y - mouse_y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const max_dist = 250;
-          const mouse_influence =
-            dist < max_dist
-              ? Math.sin(dist * 0.025 - time * 1.5) * (1 - dist / max_dist) * 15
-              : 0;
-
-          point.z = wave1 + wave2 + mouse_influence;
-        }
-      }
-
-      // Draw subtle grid
-      ctx.strokeStyle = "rgba(100, 200, 255, 0.04)";
-      ctx.lineWidth = 1;
-
-      for (let row = 0; row < current_rows; row++) {
-        ctx.beginPath();
-        for (let col = 0; col < current_cols; col++) {
-          const point = grid[row][col];
-          const perspective_y = point.y + point.z * 0.3;
-
-          if (col === 0) {
-            ctx.moveTo(point.x, perspective_y);
-          } else {
-            ctx.lineTo(point.x, perspective_y);
-          }
-        }
-        ctx.stroke();
-      }
-
-      for (let col = 0; col < current_cols; col++) {
-        ctx.beginPath();
-        for (let row = 0; row < current_rows; row++) {
-          const point = grid[row][col];
-          const perspective_y = point.y + point.z * 0.3;
-
-          if (row === 0) {
-            ctx.moveTo(point.x, perspective_y);
-          } else {
-            ctx.lineTo(point.x, perspective_y);
-          }
-        }
-        ctx.stroke();
-      }
     };
 
     const draw_chain_connection = (
@@ -603,7 +468,6 @@ export function BlockchainGrid() {
       time += 0.016;
       const blocks = blocks_ref.current;
 
-      draw_background_grid(ctx, width, height);
       draw_network_nodes(ctx, width, height);
 
       const drawn_connections = new Set<string>();
@@ -633,12 +497,8 @@ export function BlockchainGrid() {
     };
 
     draw();
-    canvas.addEventListener("mousemove", handle_mouse_move);
-    canvas.addEventListener("mouseleave", handle_mouse_leave);
 
     return () => {
-      canvas.removeEventListener("mousemove", handle_mouse_move);
-      canvas.removeEventListener("mouseleave", handle_mouse_leave);
       cancelAnimationFrame(animation_ref.current);
     };
   }, [is_in_exclusion_zone]);

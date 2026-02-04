@@ -144,26 +144,6 @@ export function InteractiveBackground() {
       return start + (end - start) * factor;
     };
 
-    // Calculate fade opacity based on Y position (section boundaries)
-    const get_section_fade = (y: number, height: number): number => {
-      const viewport_height = window.innerHeight;
-      const section_index = y / viewport_height;
-      const position_in_section = section_index % 1;
-
-      // Fade near section boundaries (top 10% and bottom 10%)
-      const fade_zone = 0.12;
-
-      if (position_in_section < fade_zone) {
-        // Fade in at top of section
-        return 0.4 + (position_in_section / fade_zone) * 0.6;
-      } else if (position_in_section > (1 - fade_zone)) {
-        // Fade out at bottom of section
-        return 0.4 + ((1 - position_in_section) / fade_zone) * 0.6;
-      }
-
-      return 1;
-    };
-
     const draw = () => {
       check_and_resize();
 
@@ -228,16 +208,12 @@ export function InteractiveBackground() {
         }
       }
 
-      // Draw grid with section fading
+      // Draw grid - continuous lines without gaps
+      ctx.strokeStyle = "rgba(100, 200, 255, 0.06)";
+      ctx.lineWidth = 1;
+
+      // Horizontal lines
       for (let row = 0; row < rows; row++) {
-        const point_y = grid[row][0].y;
-        const section_fade = get_section_fade(point_y, height);
-        const base_alpha = 0.06 * section_fade;
-
-        ctx.strokeStyle = `rgba(100, 200, 255, ${base_alpha})`;
-        ctx.lineWidth = 1;
-
-        // Horizontal line
         ctx.beginPath();
         for (let col = 0; col < cols; col++) {
           const point = grid[row][col];
@@ -252,34 +228,19 @@ export function InteractiveBackground() {
         ctx.stroke();
       }
 
-      // Vertical lines with fading
+      // Vertical lines
       for (let col = 0; col < cols; col++) {
         ctx.beginPath();
-        let last_alpha = 0;
-
         for (let row = 0; row < rows; row++) {
           const point = grid[row][col];
           const perspective_y = point.y + point.z * 0.35;
-          const section_fade = get_section_fade(point.y, height);
-          const current_alpha = 0.06 * section_fade;
 
           if (row === 0) {
             ctx.moveTo(point.x, perspective_y);
-            last_alpha = current_alpha;
           } else {
-            // If alpha changed significantly, end current path and start new
-            if (Math.abs(current_alpha - last_alpha) > 0.01) {
-              ctx.strokeStyle = `rgba(100, 200, 255, ${last_alpha})`;
-              ctx.stroke();
-              ctx.beginPath();
-              ctx.moveTo(point.x, perspective_y);
-            } else {
-              ctx.lineTo(point.x, perspective_y);
-            }
-            last_alpha = current_alpha;
+            ctx.lineTo(point.x, perspective_y);
           }
         }
-        ctx.strokeStyle = `rgba(100, 200, 255, ${last_alpha})`;
         ctx.stroke();
       }
 
@@ -294,9 +255,8 @@ export function InteractiveBackground() {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < 280) {
-            const section_fade = get_section_fade(point.y, height);
             const intensity = 1 - dist / 280;
-            const alpha = intensity * 0.25 * section_fade;
+            const alpha = intensity * 0.25;
 
             // Outer glow gradient - create directly (perspective_y changes every frame)
             const outer_gradient = ctx.createRadialGradient(

@@ -36,8 +36,8 @@ export function BlockchainGrid() {
   const mouse_ref = useRef({ x: 0.5, y: 0.5 });
   const target_mouse_ref = useRef({ x: 0.5, y: 0.5 });
   const blocks_ref = useRef<Block[]>([]);
-  const initialized_ref = useRef(false);
-  const resize_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const grid_ref = useRef<GridPoint[][]>([]);
+  const dimensions_ref = useRef({ width: 0, height: 0, cols: 0, rows: 0 });
 
   const is_in_exclusion_zone = useCallback((rel_x: number, rel_y: number) => {
     const center_x = 0.5;
@@ -57,9 +57,6 @@ export function BlockchainGrid() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let grid: GridPoint[][] = [];
-    const cols = 30;
-    const rows = 20;
     let time = 0;
     let transactions: Transaction[] = [];
 
@@ -72,63 +69,78 @@ export function BlockchainGrid() {
       return hash;
     };
 
-    const init_blocks = (width: number, height: number) => {
-      if (initialized_ref.current && blocks_ref.current.length > 0) {
-        for (const block of blocks_ref.current) {
-          block.x = block.rel_x * width;
-          block.y = block.rel_y * height;
-        }
-        return;
-      }
+    const calculate_block_count = (width: number) => {
+      if (width < 640) return 6;
+      if (width < 1024) return 8;
+      if (width < 1440) return 12;
+      return 16;
+    };
 
-      blocks_ref.current = [];
-      const block_count = 10;
+    const rebuild_blocks = (width: number, height: number) => {
+      const target_count = calculate_block_count(width);
+      const current_count = blocks_ref.current.length;
       const padding_x = 0.08;
       const padding_y = 0.1;
-      const min_rel_distance = 0.15;
+      const min_rel_distance = 0.12;
 
-      const positions: { rel_x: number; rel_y: number }[] = [];
+      // Update existing block positions
+      for (const block of blocks_ref.current) {
+        block.x = block.rel_x * width;
+        block.y = block.rel_y * height;
+      }
 
-      for (let i = 0; i < block_count; i++) {
-        let attempts = 0;
-        let rel_x: number, rel_y: number;
+      // Add new blocks if needed
+      if (current_count < target_count) {
+        const existing_positions = blocks_ref.current.map((b) => ({
+          rel_x: b.rel_x,
+          rel_y: b.rel_y,
+        }));
 
-        do {
-          rel_x = padding_x + Math.random() * (1 - padding_x * 2);
-          rel_y = padding_y + Math.random() * (1 - padding_y * 2);
-          attempts++;
-        } while (
-          attempts < 100 &&
-          (is_in_exclusion_zone(rel_x, rel_y) ||
-            positions.some(
-              (p) => Math.hypot(p.rel_x - rel_x, p.rel_y - rel_y) < min_rel_distance
-            ))
-        );
+        const last_hash =
+          blocks_ref.current.length > 0
+            ? blocks_ref.current[blocks_ref.current.length - 1].hash
+            : "0x00000000";
+        let prev_hash = last_hash;
 
-        if (attempts < 100) {
-          positions.push({ rel_x, rel_y });
+        for (let i = current_count; i < target_count; i++) {
+          let attempts = 0;
+          let rel_x: number, rel_y: number;
+
+          do {
+            rel_x = padding_x + Math.random() * (1 - padding_x * 2);
+            rel_y = padding_y + Math.random() * (1 - padding_y * 2);
+            attempts++;
+          } while (
+            attempts < 100 &&
+            (is_in_exclusion_zone(rel_x, rel_y) ||
+              existing_positions.some(
+                (p) => Math.hypot(p.rel_x - rel_x, p.rel_y - rel_y) < min_rel_distance
+              ))
+          );
+
+          if (attempts < 100) {
+            existing_positions.push({ rel_x, rel_y });
+            const hash = generate_hash();
+            blocks_ref.current.push({
+              x: rel_x * width,
+              y: rel_y * height,
+              rel_x,
+              rel_y,
+              hash,
+              prev_hash,
+              confirmed: Math.random() > 0.3,
+              pulse: Math.random() * Math.PI * 2,
+              data_lines: 2 + Math.floor(Math.random() * 3),
+            });
+            prev_hash = hash;
+          }
         }
       }
 
-      let prev_hash = "0x00000000";
-
-      for (let i = 0; i < positions.length; i++) {
-        const hash = generate_hash();
-        blocks_ref.current.push({
-          x: positions[i].rel_x * width,
-          y: positions[i].rel_y * height,
-          rel_x: positions[i].rel_x,
-          rel_y: positions[i].rel_y,
-          hash: hash,
-          prev_hash: prev_hash,
-          confirmed: Math.random() > 0.3,
-          pulse: Math.random() * Math.PI * 2,
-          data_lines: 2 + Math.floor(Math.random() * 3),
-        });
-        prev_hash = hash;
+      // Remove excess blocks if needed (when shrinking)
+      if (current_count > target_count) {
+        blocks_ref.current = blocks_ref.current.slice(0, target_count);
       }
-
-      initialized_ref.current = true;
     };
 
     const init_transactions = () => {
@@ -157,34 +169,49 @@ export function BlockchainGrid() {
       });
     };
 
-    const do_resize = () => {
+    const setup_canvas = (width: number, height: number) => {
       const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const check_and_resize = () => {
       const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      init_grid(rect.width, rect.height);
-      init_blocks(rect.width, rect.height);
-      if (transactions.length === 0) {
-        init_transactions();
+      const prev = dimensions_ref.current;
+
+      // Check if size changed enough to warrant rebuild
+      const width_changed = Math.abs(rect.width - prev.width) > 20;
+      const height_changed = Math.abs(rect.height - prev.height) > 20;
+
+      if (width_changed || height_changed || prev.width === 0) {
+        setup_canvas(rect.width, rect.height);
+        rebuild_grid(rect.width, rect.height);
+        rebuild_blocks(rect.width, rect.height);
+
+        if (transactions.length === 0) {
+          init_transactions();
+        }
+        return true;
       }
+      return false;
     };
 
-    const resize_canvas = () => {
-      if (resize_timeout_ref.current) {
-        clearTimeout(resize_timeout_ref.current);
-      }
-      resize_timeout_ref.current = setTimeout(do_resize, 150);
+    const calculate_grid_density = (width: number) => {
+      if (width < 640) return { cols: 20, rows: 14 };
+      if (width < 1024) return { cols: 25, rows: 16 };
+      if (width < 1440) return { cols: 30, rows: 20 };
+      return { cols: 40, rows: 24 };
     };
 
-    const initial_resize = () => {
-      do_resize();
-    };
+    const rebuild_grid = (width: number, height: number) => {
+      const density = calculate_grid_density(width);
+      const cols = density.cols;
+      const rows = density.rows;
 
-    const init_grid = (width: number, height: number) => {
-      grid = [];
+      dimensions_ref.current = { width, height, cols, rows };
+
+      const grid: GridPoint[][] = [];
       const cell_width = width / (cols - 1);
       const cell_height = height / (rows - 1);
 
@@ -200,6 +227,7 @@ export function BlockchainGrid() {
         }
         grid.push(row_points);
       }
+      grid_ref.current = grid;
     };
 
     const handle_mouse_move = (e: MouseEvent) => {
@@ -223,6 +251,9 @@ export function BlockchainGrid() {
       width: number,
       height: number
     ) => {
+      const grid = grid_ref.current;
+      if (grid.length === 0) return;
+
       // Smooth mouse following
       mouse_ref.current.x = lerp(
         mouse_ref.current.x,
@@ -235,9 +266,12 @@ export function BlockchainGrid() {
         0.05
       );
 
+      const current_rows = grid.length;
+      const current_cols = grid[0]?.length || 0;
+
       // Update z values with wave animation
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
+      for (let row = 0; row < current_rows; row++) {
+        for (let col = 0; col < current_cols; col++) {
           const point = grid[row][col];
 
           const wave1 = Math.sin(col * 0.2 + time * 0.5) * 8;
@@ -262,9 +296,9 @@ export function BlockchainGrid() {
       ctx.strokeStyle = "rgba(100, 200, 255, 0.04)";
       ctx.lineWidth = 1;
 
-      for (let row = 0; row < rows; row++) {
+      for (let row = 0; row < current_rows; row++) {
         ctx.beginPath();
-        for (let col = 0; col < cols; col++) {
+        for (let col = 0; col < current_cols; col++) {
           const point = grid[row][col];
           const perspective_y = point.y + point.z * 0.3;
 
@@ -277,9 +311,9 @@ export function BlockchainGrid() {
         ctx.stroke();
       }
 
-      for (let col = 0; col < cols; col++) {
+      for (let col = 0; col < current_cols; col++) {
         ctx.beginPath();
-        for (let row = 0; row < rows; row++) {
+        for (let row = 0; row < current_rows; row++) {
           const point = grid[row][col];
           const perspective_y = point.y + point.z * 0.3;
 
@@ -488,12 +522,31 @@ export function BlockchainGrid() {
       const blocks = blocks_ref.current;
       if (blocks.length === 0) return;
 
-      const nodes = [
+      // More nodes on larger screens
+      const base_nodes = [
         { x: 0.08, y: 0.12 },
         { x: 0.92, y: 0.18 },
         { x: 0.04, y: 0.85 },
         { x: 0.96, y: 0.78 },
       ];
+
+      const extra_nodes =
+        width >= 1024
+          ? [
+              { x: 0.15, y: 0.5 },
+              { x: 0.85, y: 0.45 },
+            ]
+          : [];
+
+      const wide_nodes =
+        width >= 1440
+          ? [
+              { x: 0.02, y: 0.35 },
+              { x: 0.98, y: 0.65 },
+            ]
+          : [];
+
+      const nodes = [...base_nodes, ...extra_nodes, ...wide_nodes];
 
       ctx.strokeStyle = "rgba(100, 200, 255, 0.04)";
       ctx.lineWidth = 1;
@@ -537,14 +590,21 @@ export function BlockchainGrid() {
     };
 
     const draw = () => {
-      const rect = canvas.getBoundingClientRect();
-      ctx.clearRect(0, 0, rect.width, rect.height);
+      check_and_resize();
+
+      const { width, height } = dimensions_ref.current;
+      if (width === 0 || height === 0) {
+        animation_ref.current = requestAnimationFrame(draw);
+        return;
+      }
+
+      ctx.clearRect(0, 0, width, height);
 
       time += 0.016;
       const blocks = blocks_ref.current;
 
-      draw_background_grid(ctx, rect.width, rect.height);
-      draw_network_nodes(ctx, rect.width, rect.height);
+      draw_background_grid(ctx, width, height);
+      draw_network_nodes(ctx, width, height);
 
       const drawn_connections = new Set<string>();
       for (let i = 0; i < blocks.length; i++) {
@@ -572,20 +632,14 @@ export function BlockchainGrid() {
       animation_ref.current = requestAnimationFrame(draw);
     };
 
-    initial_resize();
-    window.addEventListener("resize", resize_canvas);
+    draw();
     canvas.addEventListener("mousemove", handle_mouse_move);
     canvas.addEventListener("mouseleave", handle_mouse_leave);
-    draw();
 
     return () => {
-      window.removeEventListener("resize", resize_canvas);
       canvas.removeEventListener("mousemove", handle_mouse_move);
       canvas.removeEventListener("mouseleave", handle_mouse_leave);
       cancelAnimationFrame(animation_ref.current);
-      if (resize_timeout_ref.current) {
-        clearTimeout(resize_timeout_ref.current);
-      }
     };
   }, [is_in_exclusion_zone]);
 

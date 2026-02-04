@@ -6,6 +6,23 @@ interface GridPoint {
   z: number;
 }
 
+interface EnergyPulse {
+  // Direction: 0 = right, 1 = down
+  direction: number;
+  // Fixed row or column (depending on direction)
+  fixed_index: number;
+  // Current position along the line (in grid units)
+  position: number;
+  // Speed (grid units per frame)
+  speed: number;
+  // How many grid units to travel total
+  travel_distance: number;
+  // How far we've traveled (0 to travel_distance)
+  traveled: number;
+  // Base intensity
+  intensity: number;
+}
+
 /**
  * Global interactive grid background
  * Absolute position - scrolls with page content
@@ -19,6 +36,7 @@ export function InteractiveBackground() {
   const grid_ref = useRef<GridPoint[][]>([]);
   const dimensions_ref = useRef({ width: 0, height: 0, cols: 0, rows: 0 });
   const gradient_cache_ref = useRef<Map<string, CanvasGradient>>(new Map());
+  const pulses_ref = useRef<EnergyPulse[]>([]);
 
   useEffect(() => {
     const canvas = canvas_ref.current;
@@ -74,6 +92,212 @@ export function InteractiveBackground() {
       const value = create_fn();
       gradient_cache.set(key, value);
       return value;
+    };
+
+    // Spawn a new energy pulse - starts somewhere on grid, travels a few cells, fades out
+    const spawn_pulse = () => {
+      const { cols, rows } = dimensions_ref.current;
+      if (cols === 0 || rows === 0) return;
+
+      // Get visible viewport rows
+      const scroll_y = window.scrollY;
+      const viewport_height = window.innerHeight;
+      const cell_height = dimensions_ref.current.height / (rows - 1);
+      const visible_start_row = Math.max(0, Math.floor(scroll_y / cell_height));
+      const visible_end_row = Math.min(rows - 1, Math.ceil((scroll_y + viewport_height) / cell_height));
+
+      // Mostly horizontal (0), occasionally vertical (1)
+      const direction = Math.random() < 0.75 ? 0 : 1;
+      let fixed_index: number;
+      let position: number;
+
+      if (direction === 0) {
+        // Horizontal - pick random visible row, start from left side
+        fixed_index = visible_start_row + Math.floor(Math.random() * (visible_end_row - visible_start_row + 1));
+        position = Math.floor(Math.random() * (cols * 0.3)); // Start in left 30%
+      } else {
+        // Vertical - pick random column, start from top of visible area
+        fixed_index = Math.floor(Math.random() * cols);
+        position = visible_start_row + Math.floor(Math.random() * 3);
+      }
+
+      pulses_ref.current.push({
+        direction,
+        fixed_index,
+        position,
+        speed: 0.025 + Math.random() * 0.025, // Slow: 0.025-0.05 per frame
+        travel_distance: 5 + Math.floor(Math.random() * 6), // Travel 5-10 cells
+        traveled: 0,
+        intensity: 0.7 + Math.random() * 0.3,
+      });
+    };
+
+    // Update and draw energy pulses
+    const update_and_draw_pulses = (ctx: CanvasRenderingContext2D) => {
+      const grid = grid_ref.current;
+      const { cols, rows, width, height } = dimensions_ref.current;
+      if (grid.length === 0) return;
+
+      const pulses = pulses_ref.current;
+
+      // Spawn new pulses occasionally (roughly every 2-3 seconds)
+      if (Math.random() < 0.006) {
+        spawn_pulse();
+      }
+
+      // Limit max pulses
+      const max_pulses = is_low_end_device ? 3 : 5;
+      while (pulses.length > max_pulses) {
+        pulses.shift();
+      }
+
+      const cell_width = width / (cols - 1);
+      const cell_height_px = height / (rows - 1);
+
+      // Update and draw each pulse
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const pulse = pulses[i];
+
+        // Update position
+        pulse.position += pulse.speed;
+        pulse.traveled += pulse.speed;
+
+        // Remove if traveled full distance
+        if (pulse.traveled >= pulse.travel_distance) {
+          pulses.splice(i, 1);
+          continue;
+        }
+
+        // Draw the pulse
+        draw_pulse_line(ctx, pulse, grid, cols, rows, cell_width, cell_height_px);
+      }
+    };
+
+    const draw_pulse_line = (
+      ctx: CanvasRenderingContext2D,
+      pulse: EnergyPulse,
+      grid: GridPoint[][],
+      cols: number,
+      rows: number,
+      cell_width: number,
+      cell_height_px: number
+    ) => {
+      const is_horizontal = pulse.direction === 0;
+
+      // Calculate fade based on travel progress (fade in at start, fade out at end)
+      const progress = pulse.traveled / pulse.travel_distance;
+      let fade = 1;
+      if (progress < 0.15) {
+        fade = progress / 0.15; // Fade in during first 15%
+      } else if (progress > 0.6) {
+        fade = 1 - (progress - 0.6) / 0.4; // Fade out during last 40%
+      }
+
+      const alpha = pulse.intensity * fade;
+      if (alpha < 0.02) return;
+
+      // Trail length (shorter as it fades)
+      const trail_length = 3 * fade;
+
+      // Get the fixed grid line index
+      const fixed_idx = Math.round(pulse.fixed_index);
+
+      if (is_horizontal) {
+        // Horizontal pulse along a row
+        if (fixed_idx < 0 || fixed_idx >= rows) return;
+        const row = grid[fixed_idx];
+        if (!row) return;
+
+        const head_col = pulse.position;
+        const tail_col = Math.max(0, head_col - trail_length);
+
+        // Get Y position with wave effect
+        const sample_col = Math.max(0, Math.min(cols - 1, Math.round(head_col)));
+        const point = row[sample_col];
+        if (!point) return;
+        const y = point.y + point.z * 0.35;
+
+        const x1 = tail_col * cell_width;
+        const x2 = head_col * cell_width;
+
+        if (x2 <= x1 || x1 < 0) return;
+
+        // Gradient from tail to head
+        const gradient = ctx.createLinearGradient(x1, y, x2, y);
+        gradient.addColorStop(0, `rgba(80, 160, 255, 0)`);
+        gradient.addColorStop(0.5, `rgba(100, 190, 255, ${alpha * 0.3})`);
+        gradient.addColorStop(0.85, `rgba(130, 210, 255, ${alpha * 0.6})`);
+        gradient.addColorStop(1, `rgba(170, 230, 255, ${alpha})`);
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+
+        // Small glow at head
+        const glow = ctx.createRadialGradient(x2, y, 0, x2, y, 10);
+        glow.addColorStop(0, `rgba(170, 230, 255, ${alpha * 0.5})`);
+        glow.addColorStop(0.5, `rgba(120, 200, 255, ${alpha * 0.2})`);
+        glow.addColorStop(1, "rgba(100, 180, 255, 0)");
+
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(x2, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+      } else {
+        // Vertical pulse along a column
+        if (fixed_idx < 0 || fixed_idx >= cols) return;
+
+        const head_row = pulse.position;
+        const tail_row = Math.max(0, head_row - trail_length);
+
+        // Get positions
+        const head_row_idx = Math.max(0, Math.min(rows - 1, Math.round(head_row)));
+        const tail_row_idx = Math.max(0, Math.min(rows - 1, Math.round(tail_row)));
+
+        const head_point = grid[head_row_idx]?.[fixed_idx];
+        const tail_point = grid[tail_row_idx]?.[fixed_idx];
+        if (!head_point || !tail_point) return;
+
+        const x = head_point.x;
+        const y1 = tail_point.y + tail_point.z * 0.35;
+        const y2 = head_point.y + head_point.z * 0.35;
+
+        if (y2 <= y1) return;
+
+        // Gradient from tail to head
+        const gradient = ctx.createLinearGradient(x, y1, x, y2);
+        gradient.addColorStop(0, `rgba(80, 160, 255, 0)`);
+        gradient.addColorStop(0.5, `rgba(100, 190, 255, ${alpha * 0.3})`);
+        gradient.addColorStop(0.85, `rgba(130, 210, 255, ${alpha * 0.6})`);
+        gradient.addColorStop(1, `rgba(170, 230, 255, ${alpha})`);
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(x, y1);
+        ctx.lineTo(x, y2);
+        ctx.stroke();
+
+        // Small glow at head
+        const glow = ctx.createRadialGradient(x, y2, 0, x, y2, 10);
+        glow.addColorStop(0, `rgba(170, 230, 255, ${alpha * 0.5})`);
+        glow.addColorStop(0.5, `rgba(120, 200, 255, ${alpha * 0.2})`);
+        glow.addColorStop(1, "rgba(100, 180, 255, 0)");
+
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(x, y2, 10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.lineWidth = 1;
+      ctx.lineCap = "butt";
     };
 
     const rebuild_grid = (width: number, height: number) => {
@@ -243,6 +467,9 @@ export function InteractiveBackground() {
         }
         ctx.stroke();
       }
+
+      // Draw energy pulses (animated lines running along grid)
+      update_and_draw_pulses(ctx);
 
       // Draw intersection highlights near mouse
       for (let row = 0; row < rows; row++) {

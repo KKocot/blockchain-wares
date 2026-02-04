@@ -1,7 +1,4 @@
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
 import { cn } from "../lib/utils";
-import type { Transition } from "framer-motion";
 import { BlockchainIcon, EdaIcon, EngineeringIcon, DatabaseIcon } from "./icons";
 
 interface Project {
@@ -126,63 +123,43 @@ const SECTIONS: ProjectSection[] = [
  * - Hover effects on project cards
  */
 export function OurWorks() {
-  const section_ref = useRef<HTMLDivElement>(null);
-  const is_in_view = useInView(section_ref, { once: true, amount: 0.05 });
-
-  const transition: Transition = {
-    duration: 0.5,
-    ease: [0.6, -0.05, 0.01, 0.99] as [number, number, number, number],
-  };
-
   return (
     <section
       id="works"
-      ref={section_ref}
       className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
       <div className="max-w-6xl mx-auto w-full">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
-          <motion.span
+          <span
             className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
-            initial={{ opacity: 0, y: -10 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
-            transition={transition}
           >
             Portfolio
-          </motion.span>
+          </span>
 
-          <motion.h2
+          <h2
             className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ ...transition, delay: 0.1 }}
           >
             Our{" "}
             <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
               Works
             </span>
-          </motion.h2>
+          </h2>
 
-          <motion.p
+          <p
             className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ ...transition, delay: 0.2 }}
           >
             Explore our portfolio of cutting-edge projects across blockchain,
             EDA, engineering, and database technologies.
-          </motion.p>
+          </p>
         </div>
 
         {/* Project sections */}
         <div className="space-y-12 md:space-y-16">
-          {SECTIONS.map((section, section_index) => (
+          {SECTIONS.map((section) => (
             <ProjectSectionBlock
               key={section.id}
               section={section}
-              delay={section_index * 0.15}
-              transition={transition}
             />
           ))}
         </div>
@@ -193,37 +170,11 @@ export function OurWorks() {
 
 interface ProjectSectionBlockProps {
   section: ProjectSection;
-  delay: number;
-  transition: Transition;
 }
 
-function ProjectSectionBlock({ section, delay, transition }: ProjectSectionBlockProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const is_in_view = useInView(ref, { once: true, amount: 0.2 });
-
-  const container_variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: delay,
-      },
-    },
-  };
-
-  const card_variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition,
-    },
-  };
-
+function ProjectSectionBlock({ section }: ProjectSectionBlockProps) {
   return (
-    <motion.div
-      ref={ref}
+    <div
       className={cn(
         "group/section relative p-4 md:p-6 rounded-2xl",
         "bg-base-200/30 backdrop-blur-sm",
@@ -233,9 +184,6 @@ function ProjectSectionBlock({ section, delay, transition }: ProjectSectionBlock
         "hover:bg-base-200/50 hover:border-secondary/20",
         "hover:shadow-card-hover"
       )}
-      initial={{ opacity: 0, y: 30 }}
-      animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ ...transition, delay }}
     >
       {/* Section header */}
       <div className="flex items-start gap-5 mb-6">
@@ -258,21 +206,21 @@ function ProjectSectionBlock({ section, delay, transition }: ProjectSectionBlock
       </div>
 
       {/* Projects grid */}
-      <motion.div
+      <div
         className={cn(
           "grid gap-4",
           section.projects.length === 3
             ? "grid-cols-1 md:grid-cols-3"
             : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
         )}
-        variants={container_variants}
-        initial="hidden"
-        animate={is_in_view ? "visible" : "hidden"}
       >
         {section.projects.map((project) => (
-          <ProjectCard key={project.title} {...project} variants={card_variants} />
+          <ProjectCard
+            key={project.title}
+            {...project}
+          />
         ))}
-      </motion.div>
+      </div>
 
       {/* Accent line */}
       <div
@@ -282,24 +230,15 @@ function ProjectSectionBlock({ section, delay, transition }: ProjectSectionBlock
           "group-hover/section:h-1/3"
         )}
       />
-    </motion.div>
+    </div>
   );
 }
 
-interface ProjectCardProps extends Project {
-  variants: {
-    hidden: { opacity: number; y: number };
-    visible: {
-      opacity: number;
-      y: number;
-      transition: Transition;
-    };
-  };
-}
+interface ProjectCardProps extends Project {}
 
-function ProjectCard({ title, description, url, variants }: ProjectCardProps) {
+function ProjectCard({ title, description, url }: ProjectCardProps) {
   return (
-    <motion.article
+    <article
       className={cn(
         "group relative p-4 rounded-xl h-full flex flex-col",
         "bg-base-100/50 border border-white/5",
@@ -309,7 +248,6 @@ function ProjectCard({ title, description, url, variants }: ProjectCardProps) {
         "hover:shadow-blue-md",
         "hover:-translate-y-1"
       )}
-      variants={variants}
     >
       <div className="relative z-10 flex flex-col h-full">
         <h4 className="text-base font-bold mb-2 group-hover:text-secondary transition-colors">
@@ -350,6 +288,6 @@ function ProjectCard({ title, description, url, variants }: ProjectCardProps) {
           </a>
         )}
       </div>
-    </motion.article>
+    </article>
   );
 }

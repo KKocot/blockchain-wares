@@ -1,7 +1,4 @@
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
 import { cn } from "../lib/utils";
-import type { Transition } from "framer-motion";
 import { BlockchainIcon, DatabaseIcon, EdaIcon, EngineeringIcon } from "./icons";
 
 interface ExpertiseItem {
@@ -38,74 +35,50 @@ const EXPERTISE_ITEMS: ExpertiseItem[] = [
 ];
 
 export function Expertise() {
-  const section_ref = useRef<HTMLDivElement>(null);
-  const is_in_view = useInView(section_ref, { once: true, amount: 0.2 });
-
-  const transition: Transition = {
-    duration: 0.6,
-    ease: [0.6, -0.05, 0.01, 0.99] as [number, number, number, number],
-  };
-
   return (
     <section
       id="expertise"
-      ref={section_ref}
       className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
       <div className="max-w-6xl mx-auto w-full">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
-          <motion.span
+          <span
             className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
-            initial={{ opacity: 0, y: -10 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
-            transition={transition}
           >
             What We Do
-          </motion.span>
+          </span>
 
-          <motion.h2
+          <h2
             className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ ...transition, delay: 0.1 }}
           >
             Our{" "}
             <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
               Expertise
             </span>
-          </motion.h2>
+          </h2>
 
-          <motion.p
+          <p
             className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ ...transition, delay: 0.2 }}
           >
             Delivering cutting-edge solutions across multiple technology domains
             with deep knowledge and years of hands-on experience.
-          </motion.p>
+          </p>
         </div>
 
         {/* Lista */}
         <div className="space-y-6 md:space-y-8">
-          {EXPERTISE_ITEMS.map((item, index) => (
+          {EXPERTISE_ITEMS.map((item) => (
             <ExpertiseCard
               key={item.title}
               {...item}
-              index={index}
-              is_in_view={is_in_view}
-              transition={transition}
             />
           ))}
         </div>
 
         {/* CTA Button */}
-        <motion.div
+        <div
           className="mt-12 md:mt-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ ...transition, delay: 0.6 }}
         >
           <a
             href="#works"
@@ -133,28 +106,21 @@ export function Expertise() {
               />
             </svg>
           </a>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
 }
 
-interface ExpertiseCardProps extends ExpertiseItem {
-  index: number;
-  is_in_view: boolean;
-  transition: Transition;
-}
+interface ExpertiseCardProps extends ExpertiseItem {}
 
 function ExpertiseCard({
   title,
   description,
   icon,
-  index,
-  is_in_view,
-  transition,
 }: ExpertiseCardProps) {
   return (
-    <motion.div
+    <div
       className={cn(
         "group relative p-4 md:p-6 rounded-2xl",
         "bg-base-200/30 backdrop-blur-sm",
@@ -165,9 +131,6 @@ function ExpertiseCard({
         "hover:shadow-card-hover",
         "hover:-translate-y-1"
       )}
-      initial={{ opacity: 0, y: 30 }}
-      animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ ...transition, delay: 0.2 + index * 0.1 }}
     >
       {/* Header: Icon + Title/Description */}
       <div className="flex items-start gap-5">
@@ -198,6 +161,6 @@ function ExpertiseCard({
           "group-hover:h-1/3"
         )}
       />
-    </motion.div>
+    </div>
   );
 }

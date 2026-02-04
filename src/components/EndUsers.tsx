@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { cn } from "../lib/utils";
 
 /**
  * EndUsers section component
@@ -28,11 +28,6 @@ export function EndUsers() {
 
   const duplicated_users = [...end_users, ...end_users];
 
-  const fade_in_up = {
-    initial: { opacity: 0, y: 30 },
-    animate: { opacity: 1, y: 0 },
-  };
-
   return (
     <section
       id="end-users"
@@ -48,39 +43,19 @@ export function EndUsers() {
 
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          className="text-center mb-16"
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
-            {...fade_in_up}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
             Trusted By{" "}
             <span className="text-secondary">Industry Leaders</span>
-          </motion.h2>
-          <motion.p
-            className="text-base md:text-lg text-base-content/70 max-w-2xl mx-auto"
-            {...fade_in_up}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          </h2>
+          <p className="text-base md:text-lg text-base-content/70 max-w-2xl mx-auto">
             Our EDA tools and software solutions have been deployed by Fortune
             500 companies, government agencies, and technology pioneers worldwide
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
 
         {/* Infinite scroll carousel */}
-        <motion.div
-          className="relative"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
+        <div className="relative">
           {/* Gradient overlays */}
           <div className="absolute left-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-r from-base-100 to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-l from-base-100 to-transparent z-10" />
@@ -126,20 +101,14 @@ export function EndUsers() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Footer note */}
-        <motion.div
-          className="text-center mt-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
+        <div className="text-center mt-12">
           <p className="text-sm text-base-content/70 italic">
             Legacy clients from our EDA tools era (1990s-2000s)
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

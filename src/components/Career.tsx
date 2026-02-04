@@ -1,8 +1,5 @@
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui";
-import type { Transition } from "framer-motion";
 
 interface JobPosition {
   title: string;
@@ -29,102 +26,52 @@ const JOB_POSITIONS: JobPosition[] = [
 
 /**
  * Career section component
- * Displays job openings with scroll-triggered animations
+ * Displays job openings
  */
 export function Career() {
-  const section_ref = useRef<HTMLDivElement>(null);
-  const is_in_view = useInView(section_ref, { once: true, amount: 0.2 });
-
-  const transition: Transition = {
-    duration: 0.5,
-    ease: [0.6, -0.05, 0.01, 0.99] as [number, number, number, number],
-  };
-
-  const container_variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.12,
-      },
-    },
-  };
-
-  const card_variants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition,
-    },
-  };
 
   return (
     <section
       id="career"
-      ref={section_ref}
       className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
       <div className="max-w-6xl mx-auto w-full">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
-          <motion.span
-            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
-            initial={{ opacity: 0, y: -10 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
-            transition={transition}
-          >
+          <span className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4">
             We're Hiring
-          </motion.span>
+          </span>
 
-          <motion.h2
-            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ ...transition, delay: 0.1 }}
-          >
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg">
             Join Our{" "}
             <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
               Team
             </span>
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ ...transition, delay: 0.2 }}
-          >
+          <p className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto">
             We're constantly looking for ambitious developers willing to take on
             tough cases in productive environment. At the moment we have opened
             positions for:
-          </motion.p>
+          </p>
         </div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          variants={container_variants}
-          initial="hidden"
-          animate={is_in_view ? "visible" : "hidden"}
-        >
-          {JOB_POSITIONS.map((position) => (
-            <JobPositionCard key={position.title} {...position} variants={card_variants} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {JOB_POSITIONS.map((position, index) => (
+            <JobPositionCard
+              key={position.title}
+              {...position}
+              index={index}
+            />
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
 }
 
 interface JobPositionCardProps extends JobPosition {
-  variants: {
-    hidden: { opacity: number; y: number };
-    visible: {
-      opacity: number;
-      y: number;
-      transition: Transition;
-    };
-  };
+  index: number;
 }
 
 /**
@@ -133,7 +80,7 @@ interface JobPositionCardProps extends JobPosition {
 function JobPositionCard({
   title,
   description,
-  variants,
+  index,
 }: JobPositionCardProps) {
   const handle_apply = () => {
     const contact_section = document.getElementById("contact");
@@ -145,7 +92,7 @@ function JobPositionCard({
   };
 
   return (
-    <motion.div
+    <div
       className={cn(
         "group relative flex flex-col p-6 md:p-8 rounded-2xl",
         "bg-base-200/30 backdrop-blur-sm",
@@ -156,7 +103,6 @@ function JobPositionCard({
         "hover:shadow-card-hover",
         "hover:-translate-y-1"
       )}
-      variants={variants}
     >
       <div className="relative z-10 flex-1">
         <h3 className={cn(
@@ -191,6 +137,6 @@ function JobPositionCard({
           "group-hover:h-1/3"
         )}
       />
-    </motion.div>
+    </div>
   );
 }

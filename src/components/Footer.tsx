@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 interface NavItem {
   label: string;
   href: string;
@@ -26,14 +24,12 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div className="space-y-4">
-            <motion.a
+            <a
               href="#"
-              className="inline-block text-xl font-bold text-base-content hover:text-secondary transition-colors"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="inline-block text-xl font-bold text-base-content hover:text-secondary transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
             >
               BlockchainWares
-            </motion.a>
+            </a>
             <p className="text-sm text-base-content/70 max-w-xs">
               Software development company specializing in blockchain, EDA, and
               engineering solutions.
@@ -47,14 +43,12 @@ export function Footer() {
             <ul className="space-y-2">
               {nav_items.map((item) => (
                 <li key={item.href}>
-                  <motion.a
+                  <a
                     href={item.href}
-                    className="text-sm text-base-content/70 hover:text-secondary transition-colors inline-block"
-                    whileHover={{ x: 2 }}
-                    transition={{ duration: 0.2 }}
+                    className="text-sm text-base-content/70 hover:text-secondary transition-all duration-150 inline-block hover:translate-x-0.5"
                   >
                     {item.label}
-                  </motion.a>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -64,17 +58,15 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-base-content uppercase tracking-wider">
               Connect
             </h3>
-            <motion.a
+            <a
               href={LINKEDIN_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 text-sm text-base-content/70 hover:text-secondary transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="inline-flex items-center space-x-2 text-sm text-base-content/70 hover:text-secondary transition-all duration-150 hover:scale-[1.05] active:scale-[0.95]"
             >
               <LinkedInIcon />
               <span>LinkedIn</span>
-            </motion.a>
+            </a>
           </div>
         </div>
 
@@ -85,15 +77,13 @@ export function Footer() {
             Copyright © {current_year} BlockchainWares
           </p>
 
-          <motion.a
+          <a
             href="#"
-            className="inline-flex items-center justify-center gap-2 text-sm font-medium text-base-content/70 hover:text-secondary transition-colors mx-auto md:mx-0"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center justify-center gap-2 text-sm font-medium text-base-content/70 hover:text-secondary transition-all duration-150 mx-auto md:mx-0 hover:-translate-y-0.5 active:scale-[0.95]"
           >
             <ArrowUpIcon />
             <span>Back to top</span>
-          </motion.a>
+          </a>
         </div>
       </div>
     </footer>

@@ -1,21 +1,15 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 
 /**
  * EndUsers section component
  * Features:
  * - Industry leaders who used EDA tools
- * - Infinite scroll carousel (marquee effect)
+ * - Infinite scroll carousel (CSS animation - more performant)
  * - Pause on hover
  * - Gradient fade edges
  * - Responsive layout
  */
 export function EndUsers() {
-  const [is_mounted, set_is_mounted] = useState(false);
-
-  useEffect(() => {
-    set_is_mounted(true);
-  }, []);
 
   const end_users = [
     "AT&T",
@@ -93,29 +87,30 @@ export function EndUsers() {
 
           {/* Carousel container */}
           <div className="overflow-hidden">
-            <motion.div
-              className="flex gap-8 md:gap-12"
-              animate={
-                is_mounted
-                  ? {
-                      x: [0, -50 + "%"],
-                    }
-                  : {}
-              }
-              transition={{
-                x: {
-                  duration: 30,
-                  repeat: Infinity,
-                  ease: "linear",
-                },
-              }}
-              whileHover={{
-                animationPlayState: "paused",
-              }}
-              style={{
-                width: "fit-content",
-              }}
-            >
+            <style>
+              {`
+                @keyframes marquee-scroll {
+                  0% { transform: translateX(0); }
+                  100% { transform: translateX(-50%); }
+                }
+
+                .marquee-container {
+                  animation: marquee-scroll 30s linear infinite;
+                  width: fit-content;
+                }
+
+                .marquee-container:hover {
+                  animation-play-state: paused;
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                  .marquee-container {
+                    animation: none;
+                  }
+                }
+              `}
+            </style>
+            <div className="marquee-container flex gap-8 md:gap-12">
               {/* Using index as key is acceptable here for carousel duplication */}
               {duplicated_users.map((company, index) => (
                 <div
@@ -129,7 +124,7 @@ export function EndUsers() {
                   </div>
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </motion.div>
 

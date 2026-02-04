@@ -31,54 +31,64 @@ export function Team() {
     },
   };
 
-  const fade_in_up = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { ...transition, delay: 0.2 },
-    },
-  };
-
   return (
     <section
       id="team"
       ref={section_ref}
-      className="py-20 px-4 md:py-32 bg-base-100"
+      className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
-      <div className="max-w-5xl mx-auto">
-        <motion.div
-          className="text-center mb-16"
-          initial="hidden"
-          animate={is_in_view ? "visible" : "hidden"}
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition,
-            },
-          }}
-        >
-          <h2 className="text-4xl md:text-5xl font-bold">Our Team</h2>
-        </motion.div>
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Section header */}
+        <div className="text-center mb-12 md:mb-16">
+          <motion.span
+            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
+            transition={transition}
+          >
+            Who We Are
+          </motion.span>
+
+          <motion.h2
+            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.1 }}
+          >
+            Our{" "}
+            <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
+              Team
+            </span>
+          </motion.h2>
+
+          <motion.p
+            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.2 }}
+          >
+            A dedicated team of engineers and developers passionate about
+            building cutting-edge solutions in blockchain technology and
+            high-performance software.
+          </motion.p>
+        </div>
 
         <motion.div
-          className="relative"
+          className={cn(
+            "group relative p-4 md:p-6 rounded-2xl",
+            "bg-base-200/30 backdrop-blur-sm",
+            "border border-white/5",
+            "shadow-lg shadow-black/20",
+            "transition-all duration-300",
+            "hover:bg-base-200/50 hover:border-secondary/20",
+            "hover:shadow-xl hover:shadow-secondary/10"
+          )}
           initial="hidden"
           animate={is_in_view ? "visible" : "hidden"}
           variants={fade_in_scale}
         >
-          <div
-            className={cn(
-              "group relative overflow-hidden rounded-3xl",
-              "border-2 border-base-300",
-              "transition-all duration-500",
-              "hover:border-secondary/60",
-              "hover:shadow-2xl hover:shadow-secondary/30"
-            )}
-          >
-            <div className="relative aspect-video md:aspect-[16/9] lg:aspect-[21/9] overflow-hidden bg-base-300">
+          <div className="relative overflow-hidden rounded-xl">
+            <div className="relative aspect-video md:aspect-[16/9] lg:aspect-[21/9] overflow-hidden bg-base-100/50">
               <img
                 src="/assets/img/team.jpeg"
                 alt="BlockchainWares Team"
@@ -102,41 +112,26 @@ export function Team() {
                 className={cn(
                   "hidden absolute inset-0",
                   "items-center justify-center",
-                  "bg-gradient-to-br from-base-300 to-base-200"
+                  "bg-base-100/50"
                 )}
               >
                 <div className="text-center px-4">
-                  <div className="text-6xl mb-4 opacity-30">👥</div>
                   <p className="text-base-content/70 text-lg">
                     Team photo coming soon
                   </p>
                 </div>
               </div>
             </div>
-
-            <div
-              className={cn(
-                "absolute inset-0 rounded-3xl opacity-0",
-                "bg-gradient-to-br from-secondary/5 via-transparent to-secondary/5",
-                "transition-opacity duration-500",
-                "group-hover:opacity-100",
-                "pointer-events-none"
-              )}
-            />
           </div>
-        </motion.div>
 
-        <motion.div
-          className="text-center mt-8"
-          initial="hidden"
-          animate={is_in_view ? "visible" : "hidden"}
-          variants={fade_in_up}
-        >
-          <p className="text-base-content/70 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-            A dedicated team of engineers and developers passionate about
-            building cutting-edge solutions in blockchain technology and
-            high-performance software.
-          </p>
+          {/* Accent line */}
+          <div
+            className={cn(
+              "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
+              "bg-secondary transition-all duration-300",
+              "group-hover:h-1/3"
+            )}
+          />
         </motion.div>
       </div>
     </section>

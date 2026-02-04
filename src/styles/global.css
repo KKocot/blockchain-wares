@@ -58,6 +58,34 @@ body {
   color: white;
 }
 
+/* Custom blue/navy shadow utilities */
+:root {
+  --shadow-blue-sm: 0 2px 8px -2px oklch(62% 0.18 250 / 0.25);
+  --shadow-blue-md: 0 4px 16px -4px oklch(62% 0.18 250 / 0.35);
+  --shadow-blue-lg: 0 8px 32px -8px oklch(62% 0.18 250 / 0.4);
+  --shadow-blue-xl: 0 16px 48px -12px oklch(62% 0.18 250 / 0.45);
+  --shadow-blue-glow: 0 0 30px oklch(62% 0.18 250 / 0.3);
+}
+
+.shadow-blue-sm { box-shadow: var(--shadow-blue-sm); }
+.shadow-blue-md { box-shadow: var(--shadow-blue-md); }
+.shadow-blue-lg { box-shadow: var(--shadow-blue-lg); }
+.shadow-blue-xl { box-shadow: var(--shadow-blue-xl); }
+.shadow-blue-glow { box-shadow: var(--shadow-blue-glow); }
+
+/* Combined shadow for cards (base + blue accent) */
+.shadow-card {
+  box-shadow:
+    0 4px 6px -1px oklch(0% 0 0 / 0.2),
+    0 8px 24px -4px oklch(62% 0.18 250 / 0.25);
+}
+
+.shadow-card-hover {
+  box-shadow:
+    0 8px 16px -4px oklch(0% 0 0 / 0.25),
+    0 16px 40px -8px oklch(62% 0.18 250 / 0.35);
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -112,10 +112,10 @@ export function Contact() {
               "group relative p-4 md:p-6 rounded-2xl",
               "bg-base-200/30 backdrop-blur-sm",
               "border border-white/5",
-              "shadow-lg shadow-black/20",
+              "shadow-card",
               "transition-all duration-300",
               "hover:bg-base-200/50 hover:border-secondary/20",
-              "hover:shadow-xl hover:shadow-secondary/10"
+              "hover:shadow-card-hover"
             )}
             variants={item_variants}
           >
@@ -151,10 +151,10 @@ export function Contact() {
               "group relative p-4 md:p-6 rounded-2xl",
               "bg-base-200/30 backdrop-blur-sm",
               "border border-white/5",
-              "shadow-lg shadow-black/20",
+              "shadow-card",
               "transition-all duration-300",
               "hover:bg-base-200/50 hover:border-secondary/20",
-              "hover:shadow-xl hover:shadow-secondary/10"
+              "hover:shadow-card-hover"
             )}
             variants={item_variants}
           >
@@ -194,8 +194,9 @@ function ContactItem({ label, value, link, icon }: ContactInfo) {
       className={cn(
         "group/item flex items-start gap-4 p-3 rounded-xl",
         "bg-base-100/30 border border-white/5",
+        "shadow-blue-sm",
         "transition-all duration-300",
-        link && "hover:bg-base-100/50 hover:border-secondary/20 cursor-pointer"
+        link && "hover:bg-base-100/50 hover:border-secondary/20 hover:shadow-blue-md cursor-pointer"
       )}
     >
       <div

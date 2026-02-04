@@ -150,10 +150,10 @@ function JobPositionCard({
         "group relative flex flex-col p-6 md:p-8 rounded-2xl",
         "bg-base-200/30 backdrop-blur-sm",
         "border border-white/5",
-        "shadow-lg shadow-black/20",
+        "shadow-card",
         "transition-all duration-300",
         "hover:bg-base-200/50 hover:border-secondary/20",
-        "hover:shadow-xl hover:shadow-secondary/10",
+        "hover:shadow-card-hover",
         "hover:-translate-y-1"
       )}
       variants={variants}

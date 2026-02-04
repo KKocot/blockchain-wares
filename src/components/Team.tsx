@@ -78,10 +78,10 @@ export function Team() {
             "group relative p-4 md:p-6 rounded-2xl",
             "bg-base-200/30 backdrop-blur-sm",
             "border border-white/5",
-            "shadow-lg shadow-black/20",
+            "shadow-card",
             "transition-all duration-300",
             "hover:bg-base-200/50 hover:border-secondary/20",
-            "hover:shadow-xl hover:shadow-secondary/10"
+            "hover:shadow-card-hover"
           )}
           initial="hidden"
           animate={is_in_view ? "visible" : "hidden"}

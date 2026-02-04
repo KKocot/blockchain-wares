@@ -92,9 +92,9 @@ export function Navigation() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-colors duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         is_scrolled
-          ? "bg-base-100/80 backdrop-blur-md border-b border-base-300"
+          ? "bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-blue-md"
           : "bg-transparent",
       )}
     >
@@ -124,10 +124,11 @@ export function Navigation() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-sm font-medium transition-all duration-200 py-1 border-b-2",
+                  "relative text-sm font-medium py-1 transition-colors duration-200",
+                  "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:bg-secondary after:transition-all after:duration-300",
                   active_section === item.href
-                    ? "text-secondary border-secondary"
-                    : "text-base-content hover:text-secondary border-transparent"
+                    ? "text-secondary after:w-full"
+                    : "text-base-content hover:text-secondary after:w-0 hover:after:w-full"
                 )}
               >
                 {item.label}

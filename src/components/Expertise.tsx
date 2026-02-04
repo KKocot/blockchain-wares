@@ -112,9 +112,9 @@ export function Expertise() {
             className={cn(
               "inline-flex items-center gap-2 px-6 py-3 rounded-full",
               "bg-secondary text-secondary-content font-medium",
-              "shadow-lg shadow-secondary/30",
+              "shadow-blue-lg",
               "transition-all duration-300",
-              "hover:bg-secondary/90 hover:gap-3 hover:shadow-xl hover:shadow-secondary/40",
+              "hover:bg-secondary/90 hover:gap-3 hover:shadow-blue-xl",
               "focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 focus:ring-offset-base-100"
             )}
           >
@@ -159,10 +159,10 @@ function ExpertiseCard({
         "group relative p-4 md:p-6 rounded-2xl",
         "bg-base-200/30 backdrop-blur-sm",
         "border border-white/5",
-        "shadow-lg shadow-black/20",
+        "shadow-card",
         "transition-all duration-300",
         "hover:bg-base-200/50 hover:border-secondary/20",
-        "hover:shadow-xl hover:shadow-secondary/10",
+        "hover:shadow-card-hover",
         "hover:-translate-y-1"
       )}
       initial={{ opacity: 0, y: 30 }}

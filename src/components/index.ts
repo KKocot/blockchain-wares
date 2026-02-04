@@ -8,7 +8,6 @@ export { OurWorks } from "./OurWorks";
 export { EndUsers } from "./EndUsers";
 export { Team } from "./Team";
 export { Career } from "./Career";
-export { Services } from "./Services";
 export { Contact } from "./Contact";
 export { Footer } from "./Footer";
 export * from "./ui";

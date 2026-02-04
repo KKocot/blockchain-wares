@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { cn } from "../../lib/utils";
 import type { MouseEvent, ReactNode } from "react";
 
@@ -13,7 +12,7 @@ interface ButtonProps {
 }
 
 /**
- * Button component with Framer Motion animations
+ * Button component with CSS transitions
  * Supports multiple variants and sizes using DaisyUI theme
  */
 export function Button({
@@ -26,7 +25,7 @@ export function Button({
   type = "button",
 }: ButtonProps) {
   const base_styles =
-    "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary disabled:pointer-events-none disabled:opacity-50";
+    "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary disabled:pointer-events-none disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]";
 
   const variant_styles = {
     primary: "bg-primary text-primary-content hover:bg-primary/90 shadow-blue-sm hover:shadow-blue-md",
@@ -42,12 +41,10 @@ export function Button({
   };
 
   return (
-    <motion.button
+    <button
       type={type}
       disabled={disabled}
       onClick={onClick}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
       className={cn(
         base_styles,
         variant_styles[variant],
@@ -56,6 +53,6 @@ export function Button({
       )}
     >
       {children}
-    </motion.button>
+    </button>
   );
 }

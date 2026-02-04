@@ -1,5 +1,7 @@
 export { Hero } from "./Hero";
 export { About } from "./About";
+export { AnimatedGrid } from "./AnimatedGrid";
+export { InteractiveBackground } from "./InteractiveBackground";
 export { AnimatedLogo } from "./AnimatedLogo";
 export { Navigation } from "./Navigation";
 export { Expertise } from "./Expertise";

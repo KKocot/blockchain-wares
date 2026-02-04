@@ -63,24 +63,43 @@ export function Career() {
     <section
       id="career"
       ref={section_ref}
-      className="py-20 px-4 md:py-32 bg-base-100"
+      className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={transition}
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Join Our Team
-          </h2>
-          <p className="text-lg text-base-content/70 max-w-3xl mx-auto leading-relaxed">
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Section header */}
+        <div className="text-center mb-12 md:mb-16">
+          <motion.span
+            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
+            transition={transition}
+          >
+            We're Hiring
+          </motion.span>
+
+          <motion.h2
+            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.1 }}
+          >
+            Join Our{" "}
+            <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
+              Team
+            </span>
+          </motion.h2>
+
+          <motion.p
+            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.2 }}
+          >
             We're constantly looking for ambitious developers willing to take on
             tough cases in productive environment. At the moment we have opened
             positions for:
-          </p>
-        </motion.div>
+          </motion.p>
+        </div>
 
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
@@ -128,20 +147,27 @@ function JobPositionCard({
   return (
     <motion.div
       className={cn(
-        "group relative flex flex-col p-8 rounded-2xl",
-        "bg-base-300 border border-base-300",
+        "group relative flex flex-col p-6 md:p-8 rounded-2xl",
+        "bg-base-200/30 backdrop-blur-sm",
+        "border border-white/5",
+        "shadow-lg shadow-black/20",
         "transition-all duration-300",
-        "hover:scale-[1.03] hover:shadow-xl hover:shadow-secondary/20",
-        "hover:border-secondary/50"
+        "hover:bg-base-200/50 hover:border-secondary/20",
+        "hover:shadow-xl hover:shadow-secondary/10",
+        "hover:-translate-y-1"
       )}
       variants={variants}
-      whileHover={{ scale: 1.03 }}
-      transition={{ duration: 0.2 }}
     >
       <div className="relative z-10 flex-1">
-        <h3 className="text-2xl font-bold mb-4">{title}</h3>
+        <h3 className={cn(
+          "text-xl md:text-2xl font-bold mb-3",
+          "transition-colors duration-300",
+          "group-hover:text-secondary"
+        )}>
+          {title}
+        </h3>
 
-        <p className="text-base-content/70 leading-relaxed mb-6">
+        <p className="text-sm md:text-base text-base-content/60 leading-relaxed mb-6">
           {description}
         </p>
       </div>
@@ -157,13 +183,12 @@ function JobPositionCard({
         </Button>
       </div>
 
+      {/* Accent line */}
       <div
         className={cn(
-          "absolute inset-0 rounded-2xl opacity-0",
-          "bg-gradient-to-br from-secondary/5 to-transparent",
-          "transition-opacity duration-300",
-          "group-hover:opacity-100",
-          "pointer-events-none"
+          "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
+          "bg-secondary transition-all duration-300",
+          "group-hover:h-1/3"
         )}
       />
     </motion.div>

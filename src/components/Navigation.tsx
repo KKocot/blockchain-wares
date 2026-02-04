@@ -16,18 +16,19 @@ const nav_items: NavItem[] = [
   { label: "Contact", href: "#contact" },
 ];
 
-
 /**
  * Responsive navigation component with sticky behavior and mobile menu
  * Features:
  * - Desktop: horizontal menu with logo, links, LinkedIn icon, and CTA
  * - Mobile: hamburger menu with animated drawer
  * - Backdrop blur on scroll
+ * - Active section highlighting via Intersection Observer
  * - Framer Motion animations
  */
 export function Navigation() {
   const [is_open, set_is_open] = useState(false);
   const [is_scrolled, set_is_scrolled] = useState(false);
+  const [active_section, set_active_section] = useState<string>("");
 
   // Handle scroll effect for backdrop blur
   useEffect(() => {
@@ -35,6 +36,27 @@ export function Navigation() {
       set_is_scrolled(window.scrollY > 20);
     };
 
+    window.addEventListener("scroll", handle_scroll);
+    return () => window.removeEventListener("scroll", handle_scroll);
+  }, []);
+
+  // Track active section based on scroll position
+  useEffect(() => {
+    const handle_scroll = () => {
+      const section_ids = nav_items.map((item) => item.href.replace("#", ""));
+      const scroll_position = window.scrollY + 100;
+
+      for (let i = section_ids.length - 1; i >= 0; i--) {
+        const element = document.getElementById(section_ids[i]);
+        if (element && element.offsetTop <= scroll_position) {
+          set_active_section(`#${section_ids[i]}`);
+          return;
+        }
+      }
+      set_active_section("");
+    };
+
+    handle_scroll();
     window.addEventListener("scroll", handle_scroll);
     return () => window.removeEventListener("scroll", handle_scroll);
   }, []);
@@ -90,17 +112,20 @@ export function Navigation() {
           </motion.a>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             {nav_items.map((item) => (
-              <motion.a
+              <a
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-base-content hover:text-secondary transition-colors"
-                whileHover={{ y: -2 }}
-                transition={{ duration: 0.2 }}
+                className={cn(
+                  "text-sm font-medium transition-all duration-200 py-1 border-b-2",
+                  active_section === item.href
+                    ? "text-secondary border-secondary"
+                    : "text-base-content hover:text-secondary border-transparent"
+                )}
               >
                 {item.label}
-              </motion.a>
+              </a>
             ))}
           </div>
 
@@ -166,7 +191,12 @@ export function Navigation() {
                       key={item.href}
                       href={item.href}
                       onClick={handle_nav_click}
-                      className="block text-lg font-medium text-base-content hover:text-secondary transition-colors py-2"
+                      className={cn(
+                        "block text-lg font-medium transition-colors py-2 border-l-2",
+                        active_section === item.href
+                          ? "text-secondary border-secondary pl-3"
+                          : "text-base-content hover:text-secondary border-transparent pl-3"
+                      )}
                       variants={{
                         open: { opacity: 1, x: 0 },
                         closed: { opacity: 0, x: 20 },

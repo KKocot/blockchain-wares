@@ -2,6 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "../lib/utils";
 import type { Transition } from "framer-motion";
+import { BlockchainIcon, EdaIcon, EngineeringIcon, DatabaseIcon } from "./icons";
 
 interface Project {
   title: string;
@@ -13,6 +14,8 @@ interface ProjectSection {
   id: string;
   title: string;
   subtitle: string;
+  description: string;
+  icon: React.ReactNode;
   projects: Project[];
 }
 
@@ -21,6 +24,9 @@ const SECTIONS: ProjectSection[] = [
     id: "blockchain",
     title: "Blockchain & Crypto",
     subtitle: "Decentralized solutions powering the future of finance and social media",
+    description:
+      "Experience dating back to 2014 with Keyhotee. Specializing in Hive blockchain with custom framework handling thousands of transactions per second.",
+    icon: <BlockchainIcon className="w-12 h-12" />,
     projects: [
       {
         title: "Hive Blockchain",
@@ -50,6 +56,9 @@ const SECTIONS: ProjectSection[] = [
     id: "eda-engineering",
     title: "EDA & Engineering",
     subtitle: "Electronic design automation tools and simulation software",
+    description:
+      "Over a dozen years developing HDL compiler, simulation and advanced debugging tools for large scale System Verilog models. Development of CAD & CAE software used at design and verification processes at biggest engineering companies worldwide.",
+    icon: <EdaIcon className="w-12 h-12" />,
     projects: [
       {
         title: "SynaptiCAD - Verilogger",
@@ -80,6 +89,9 @@ const SECTIONS: ProjectSection[] = [
     id: "data-systems",
     title: "Data Systems",
     subtitle: "Database solutions and data center infrastructure management",
+    description:
+      "Experienced in RDBMS and modern non-SQL databases like RocksDB and Neo4J, offering critical write throughput and efficient object traversal.",
+    icon: <DatabaseIcon className="w-12 h-12" />,
     projects: [
       {
         title: "RDBMS - WSMS",
@@ -126,25 +138,45 @@ export function OurWorks() {
     <section
       id="works"
       ref={section_ref}
-      className="py-20 px-4 md:py-32 bg-base-100"
+      className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto">
-        {/* Main heading */}
-        <motion.div
-          className="text-center mb-16 md:mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={transition}
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Works</h2>
-          <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Section header */}
+        <div className="text-center mb-12 md:mb-16">
+          <motion.span
+            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
+            transition={transition}
+          >
+            Portfolio
+          </motion.span>
+
+          <motion.h2
+            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.1 }}
+          >
+            Our{" "}
+            <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
+              Works
+            </span>
+          </motion.h2>
+
+          <motion.p
+            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ ...transition, delay: 0.2 }}
+          >
             Explore our portfolio of cutting-edge projects across blockchain,
-            EDA, engineering, and database technologies
-          </p>
-        </motion.div>
+            EDA, engineering, and database technologies.
+          </motion.p>
+        </div>
 
         {/* Project sections */}
-        <div className="space-y-20 md:space-y-28">
+        <div className="space-y-12 md:space-y-16">
           {SECTIONS.map((section, section_index) => (
             <ProjectSectionBlock
               key={section.id}
@@ -190,22 +222,45 @@ function ProjectSectionBlock({ section, delay, transition }: ProjectSectionBlock
   };
 
   return (
-    <div ref={ref}>
+    <motion.div
+      ref={ref}
+      className={cn(
+        "group/section relative p-4 md:p-6 rounded-2xl",
+        "bg-base-200/30 backdrop-blur-sm",
+        "border border-white/5",
+        "shadow-lg shadow-black/20",
+        "transition-all duration-300",
+        "hover:bg-base-200/50 hover:border-secondary/20",
+        "hover:shadow-xl hover:shadow-secondary/10"
+      )}
+      initial={{ opacity: 0, y: 30 }}
+      animate={is_in_view ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ ...transition, delay }}
+    >
       {/* Section header */}
-      <motion.div
-        className="mb-8"
-        initial={{ opacity: 0, x: -20 }}
-        animate={is_in_view ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-        transition={{ ...transition, delay }}
-      >
-        <h3 className="text-2xl md:text-3xl font-bold mb-2">{section.title}</h3>
-        <p className="text-base-content/60">{section.subtitle}</p>
-      </motion.div>
+      <div className="flex items-start gap-5 mb-6">
+        <div className="flex-shrink-0 text-secondary transition-transform duration-300 group-hover/section:scale-105">
+          {section.icon}
+        </div>
+        <div className="pt-1">
+          <h3 className={cn(
+            "text-xl md:text-2xl font-bold mb-2",
+            "transition-colors duration-300",
+            "group-hover/section:text-secondary"
+          )}>
+            {section.title}
+          </h3>
+          <p className="text-sm text-base-content/60 mb-2">{section.subtitle}</p>
+          <p className="text-sm md:text-base text-base-content/60 leading-relaxed">
+            {section.description}
+          </p>
+        </div>
+      </div>
 
       {/* Projects grid */}
       <motion.div
         className={cn(
-          "grid gap-6",
+          "grid gap-4",
           section.projects.length === 3
             ? "grid-cols-1 md:grid-cols-3"
             : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
@@ -218,7 +273,16 @@ function ProjectSectionBlock({ section, delay, transition }: ProjectSectionBlock
           <ProjectCard key={project.title} {...project} variants={card_variants} />
         ))}
       </motion.div>
-    </div>
+
+      {/* Accent line */}
+      <div
+        className={cn(
+          "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
+          "bg-secondary transition-all duration-300",
+          "group-hover/section:h-1/3"
+        )}
+      />
+    </motion.div>
   );
 }
 
@@ -237,22 +301,21 @@ function ProjectCard({ title, description, url, variants }: ProjectCardProps) {
   return (
     <motion.article
       className={cn(
-        "group relative p-6 rounded-2xl h-full flex flex-col",
-        "bg-base-300 border border-base-300",
+        "group relative p-4 rounded-xl h-full flex flex-col",
+        "bg-base-100/50 border border-white/5",
         "transition-all duration-300",
-        "hover:shadow-xl hover:shadow-secondary/20",
-        "hover:border-secondary/50"
+        "hover:bg-base-100/70 hover:border-secondary/20",
+        "hover:shadow-lg hover:shadow-secondary/10",
+        "hover:-translate-y-1"
       )}
       variants={variants}
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
     >
       <div className="relative z-10 flex flex-col h-full">
-        <h4 className="text-lg font-bold mb-3 group-hover:text-secondary transition-colors">
+        <h4 className="text-base font-bold mb-2 group-hover:text-secondary transition-colors">
           {title}
         </h4>
 
-        <p className="text-sm text-base-content/70 leading-relaxed mb-4 flex-grow">
+        <p className="text-sm text-base-content/60 leading-relaxed mb-3 flex-grow">
           {description}
         </p>
 
@@ -263,9 +326,8 @@ function ProjectCard({ title, description, url, variants }: ProjectCardProps) {
             rel="noopener noreferrer"
             className={cn(
               "inline-flex items-center gap-2 text-sm font-medium",
-              "text-secondary hover:text-secondary/90",
-              "transition-all duration-300",
-              "group-hover:gap-3"
+              "text-secondary hover:text-secondary/80",
+              "transition-all duration-300"
             )}
             aria-label={`Learn more about ${title}`}
           >
@@ -287,16 +349,6 @@ function ProjectCard({ title, description, url, variants }: ProjectCardProps) {
           </a>
         )}
       </div>
-
-      <div
-        className={cn(
-          "absolute inset-0 rounded-2xl opacity-0",
-          "bg-gradient-to-br from-secondary/5 to-transparent",
-          "transition-opacity duration-300",
-          "group-hover:opacity-100",
-          "pointer-events-none"
-        )}
-      />
     </motion.article>
   );
 }

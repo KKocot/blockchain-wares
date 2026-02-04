@@ -1,12 +1,10 @@
-import { motion } from "framer-motion";
-
 interface DatabaseIconProps {
   className?: string;
 }
 
 export function DatabaseIcon({ className }: DatabaseIconProps) {
   return (
-    <motion.svg
+    <svg
       className={className}
       viewBox="0 0 200 160"
       fill="none"
@@ -24,20 +22,16 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
         </linearGradient>
       </defs>
 
-      <motion.circle
+      <circle
         cx="100"
         cy="80"
         r="70"
         fill="url(#db-glow)"
-        animate={{ opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="db-glow"
       />
 
       {/* Main database cylinder (center) */}
-      <motion.g
-        animate={{ scale: [1, 1.02, 1] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-      >
+      <g className="db-cylinder">
         {/* Cylinder body */}
         <rect
           x="70"
@@ -61,7 +55,7 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
           strokeWidth="2"
         />
         {/* Middle layer line */}
-        <motion.ellipse
+        <ellipse
           cx="100"
           cy="75"
           rx="30"
@@ -69,12 +63,10 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
-          strokeOpacity="0.5"
-          animate={{ strokeOpacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="db-layer-1"
         />
         {/* Bottom layer line */}
-        <motion.ellipse
+        <ellipse
           cx="100"
           cy="95"
           rx="30"
@@ -82,9 +74,7 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
-          strokeOpacity="0.5"
-          animate={{ strokeOpacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          className="db-layer-2"
         />
         {/* Bottom ellipse */}
         <ellipse
@@ -97,13 +87,10 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
           stroke="currentColor"
           strokeWidth="2"
         />
-      </motion.g>
+      </g>
 
       {/* Graph nodes (Neo4J style) - left cluster */}
-      <motion.g
-        animate={{ x: [0, -2, 0] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-      >
+      <g className="db-node-cluster-left">
         {/* Node 1 */}
         <circle
           cx="28"
@@ -141,38 +128,32 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
         <circle cx="32" cy="115" r="4" fill="currentColor" fillOpacity="0.6" />
 
         {/* Graph connections */}
-        <motion.line
+        <line
           x1="28" y1="55" x2="22" y2="70"
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="db-graph-line-1"
         />
-        <motion.line
+        <line
           x1="22" y1="90" x2="32" y2="105"
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          className="db-graph-line-2"
         />
-        <motion.line
+        <line
           x1="35" y1="50" x2="38" y2="108"
           stroke="currentColor"
           strokeWidth="1"
           strokeLinecap="round"
           strokeDasharray="3 3"
-          animate={{ opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="db-graph-line-3"
         />
-      </motion.g>
+      </g>
 
       {/* Graph nodes - right cluster */}
-      <motion.g
-        animate={{ x: [0, 2, 0] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-      >
+      <g className="db-node-cluster-right">
         {/* Node 4 */}
         <circle
           cx="172"
@@ -210,185 +191,103 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
         <circle cx="168" cy="115" r="4" fill="currentColor" fillOpacity="0.6" />
 
         {/* Graph connections */}
-        <motion.line
+        <line
           x1="172" y1="55" x2="178" y2="70"
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+          className="db-graph-line-4"
         />
-        <motion.line
+        <line
           x1="178" y1="90" x2="168" y2="105"
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          className="db-graph-line-5"
         />
-        <motion.line
+        <line
           x1="165" y1="50" x2="162" y2="108"
           stroke="currentColor"
           strokeWidth="1"
           strokeLinecap="round"
           strokeDasharray="3 3"
-          animate={{ opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          className="db-graph-line-6"
         />
-      </motion.g>
+      </g>
 
       {/* Data flow lines - left to center (write throughput) */}
-      <motion.line
+      <line
         x1="38" y1="45" x2="70" y2="60"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{ opacity: [0.2, 0.6, 0.2] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+        className="db-flow-1"
       />
-      <motion.line
+      <line
         x1="32" y1="80" x2="70" y2="80"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{ opacity: [0.2, 0.6, 0.2] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        className="db-flow-2"
       />
-      <motion.line
+      <line
         x1="42" y1="115" x2="70" y2="100"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{ opacity: [0.2, 0.6, 0.2] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+        className="db-flow-3"
       />
 
       {/* Data flow lines - center to right */}
-      <motion.line
+      <line
         x1="130" y1="60" x2="162" y2="45"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{ opacity: [0.2, 0.6, 0.2] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.15 }}
+        className="db-flow-4"
       />
-      <motion.line
+      <line
         x1="130" y1="80" x2="168" y2="80"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{ opacity: [0.2, 0.6, 0.2] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.45 }}
+        className="db-flow-5"
       />
-      <motion.line
+      <line
         x1="130" y1="100" x2="158" y2="115"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{ opacity: [0.2, 0.6, 0.2] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.75 }}
-      />
-
-      {/* Animated data packets - flowing into database (write throughput) */}
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [38, 70],
-          cy: [45, 60],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [32, 70],
-          cy: [80, 80],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: 0.4 }}
-      />
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [42, 70],
-          cy: [115, 100],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: 0.8 }}
-      />
-
-      {/* Animated data packets - flowing out (traversal) */}
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [130, 162],
-          cy: [60, 45],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: 0.2 }}
-      />
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [130, 168],
-          cy: [80, 80],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: 0.6 }}
-      />
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [130, 158],
-          cy: [100, 115],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: 1.0 }}
+        className="db-flow-6"
       />
 
       {/* Top indicator - pulsing dot showing activity */}
-      <motion.circle
+      <circle
         cx="100"
         cy="30"
         r="5"
         fill="currentColor"
         fillOpacity="0.8"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.8, 0.4, 0.8]
-        }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        className="db-activity"
       />
-      <motion.circle
+      <circle
         cx="100"
         cy="30"
         r="8"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
-        animate={{
-          scale: [1, 1.5, 1],
-          opacity: [0.5, 0, 0.5]
-        }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        className="db-ring"
       />
 
       {/* Connection from top indicator to database */}
-      <motion.line
+      <line
         x1="100" y1="38" x2="100" y2="45"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        animate={{ opacity: [0.3, 0.8, 0.3] }}
-        transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+        className="db-status"
       />
-    </motion.svg>
+    </svg>
   );
 }

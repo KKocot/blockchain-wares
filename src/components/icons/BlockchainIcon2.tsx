@@ -1,22 +1,17 @@
-import { motion } from "framer-motion";
-
 interface BlockchainIcon2Props {
   className?: string;
 }
 
 export function BlockchainIcon2({ className }: BlockchainIcon2Props) {
   return (
-    <motion.svg
+    <svg
       className={className}
       viewBox="0 0 200 140"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       {/* Block 1 */}
-      <motion.g
-        animate={{ y: [0, -3, 0] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-      >
+      <g className="block-1">
         <rect
           x="8"
           y="30"
@@ -58,45 +53,29 @@ export function BlockchainIcon2({ className }: BlockchainIcon2Props) {
           opacity="0.3"
         />
         {/* Nonce indicator */}
-        <motion.circle
+        <circle
           cx="45"
           cy="100"
           r="4"
           fill="currentColor"
           fillOpacity="0.6"
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="nonce-1"
         />
-      </motion.g>
+      </g>
 
       {/* Chain link 1 */}
-      <motion.g>
-        <motion.path
+      <g>
+        <path
           d="M58 70H75"
           stroke="currentColor"
           strokeWidth="3"
           strokeLinecap="round"
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+          className="chain-link-1"
         />
-        <motion.circle
-          cx="66"
-          cy="70"
-          r="3"
-          fill="currentColor"
-          animate={{
-            cx: [58, 75],
-            opacity: [0, 1, 0],
-          }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        />
-      </motion.g>
+      </g>
 
       {/* Block 2 */}
-      <motion.g
-        animate={{ y: [0, -3, 0] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-      >
+      <g className="block-2">
         <rect
           x="75"
           y="30"
@@ -138,45 +117,29 @@ export function BlockchainIcon2({ className }: BlockchainIcon2Props) {
           opacity="0.3"
         />
         {/* Nonce indicator */}
-        <motion.circle
+        <circle
           cx="112"
           cy="100"
           r="4"
           fill="currentColor"
           fillOpacity="0.6"
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          className="nonce-2"
         />
-      </motion.g>
+      </g>
 
       {/* Chain link 2 */}
-      <motion.g>
-        <motion.path
+      <g>
+        <path
           d="M125 70H142"
           stroke="currentColor"
           strokeWidth="3"
           strokeLinecap="round"
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+          className="chain-link-2"
         />
-        <motion.circle
-          cx="133"
-          cy="70"
-          r="3"
-          fill="currentColor"
-          animate={{
-            cx: [125, 142],
-            opacity: [0, 1, 0],
-          }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear", delay: 0.5 }}
-        />
-      </motion.g>
+      </g>
 
       {/* Block 3 */}
-      <motion.g
-        animate={{ y: [0, -3, 0] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-      >
+      <g className="block-3">
         <rect
           x="142"
           y="30"
@@ -218,25 +181,18 @@ export function BlockchainIcon2({ className }: BlockchainIcon2Props) {
           opacity="0.3"
         />
         {/* Nonce indicator - mining animation */}
-        <motion.circle
+        <circle
           cx="179"
           cy="100"
           r="4"
           fill="currentColor"
           fillOpacity="0.6"
-          animate={{
-            opacity: [0.3, 1, 0.3],
-            scale: [1, 1.3, 1]
-          }}
-          transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+          className="nonce-3"
         />
-      </motion.g>
+      </g>
 
       {/* Mining/verification indicator on last block */}
-      <motion.g
-        animate={{ opacity: [0, 1, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      >
+      <g className="mining-icon">
         <path
           d="M167 15L167 25"
           stroke="currentColor"
@@ -249,7 +205,7 @@ export function BlockchainIcon2({ className }: BlockchainIcon2Props) {
           strokeWidth="2"
           strokeLinecap="round"
         />
-      </motion.g>
-    </motion.svg>
+      </g>
+    </svg>
   );
 }

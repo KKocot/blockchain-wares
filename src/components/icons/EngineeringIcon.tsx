@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 interface EngineeringIconProps {
   className?: string;
 }
@@ -34,7 +32,7 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
   };
 
   return (
-    <motion.svg
+    <svg
       className={className}
       viewBox="0 0 200 160"
       fill="none"
@@ -53,21 +51,16 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
       </defs>
 
       {/* Background glow */}
-      <motion.circle
+      <circle
         cx="100"
         cy="80"
         r="70"
         fill="url(#eng-glow)"
-        animate={{ opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="eng-glow"
       />
 
       {/* Main large gear - center */}
-      <motion.g
-        animate={{ rotate: 360 }}
-        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-        style={{ transformOrigin: "100px 80px" }}
-      >
+      <g className="eng-gear-main">
         <path
           d={create_gear(100, 80, 32, 42, 12)}
           fill="url(#eng-shine)"
@@ -108,14 +101,10 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
             />
           );
         })}
-      </motion.g>
+      </g>
 
       {/* Top-left gear */}
-      <motion.g
-        animate={{ rotate: -360 }}
-        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-        style={{ transformOrigin: "52px 42px" }}
-      >
+      <g className="eng-gear-tl">
         <path
           d={create_gear(52, 42, 18, 26, 8)}
           fill="currentColor"
@@ -125,14 +114,10 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
         />
         <circle cx="52" cy="42" r="12" fill="currentColor" fillOpacity="0.05" stroke="currentColor" strokeWidth="1" />
         <circle cx="52" cy="42" r="5" fill="currentColor" fillOpacity="0.3" />
-      </motion.g>
+      </g>
 
       {/* Bottom-right gear */}
-      <motion.g
-        animate={{ rotate: -360 }}
-        transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
-        style={{ transformOrigin: "152px 115px" }}
-      >
+      <g className="eng-gear-br">
         <path
           d={create_gear(152, 115, 16, 22, 8)}
           fill="currentColor"
@@ -142,12 +127,12 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
         />
         <circle cx="152" cy="115" r="10" fill="currentColor" fillOpacity="0.05" stroke="currentColor" strokeWidth="1" />
         <circle cx="152" cy="115" r="4" fill="currentColor" fillOpacity="0.3" />
-      </motion.g>
+      </g>
 
       {/* Technical drawing - cross section view */}
       <g>
         {/* Vertical cross-section line */}
-        <motion.line
+        <line
           x1="100"
           y1="25"
           x2="100"
@@ -156,11 +141,10 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
           strokeWidth="0.5"
           strokeDasharray="4 2"
           strokeOpacity="0.3"
-          animate={{ strokeDashoffset: [0, -12] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="eng-dash-v"
         />
         {/* Horizontal cross-section line */}
-        <motion.line
+        <line
           x1="30"
           y1="80"
           x2="170"
@@ -169,17 +153,12 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
           strokeWidth="0.5"
           strokeDasharray="4 2"
           strokeOpacity="0.3"
-          animate={{ strokeDashoffset: [0, -12] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="eng-dash-h"
         />
       </g>
 
       {/* Dimension arrows and measurements */}
-      <motion.g
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 0.8, 0.8, 0] }}
-        transition={{ duration: 4, repeat: Infinity, times: [0, 0.15, 0.85, 1] }}
-      >
+      <g className="eng-dimension">
         {/* Top dimension */}
         <line x1="58" y1="20" x2="142" y2="20" stroke="currentColor" strokeWidth="1" strokeOpacity="0.5" />
         <path d="M58 20 L63 17 L63 23 Z" fill="currentColor" fillOpacity="0.5" />
@@ -190,13 +169,10 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
         <line x1="175" y1="42" x2="175" y2="115" stroke="currentColor" strokeWidth="1" strokeOpacity="0.5" />
         <path d="M175 42 L172 47 L178 47 Z" fill="currentColor" fillOpacity="0.5" />
         <path d="M175 115 L172 110 L178 110 Z" fill="currentColor" fillOpacity="0.5" />
-      </motion.g>
+      </g>
 
       {/* Connecting rods / linkages */}
-      <motion.g
-        animate={{ opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      >
+      <g className="eng-rod">
         {/* Rod from center to top-left gear */}
         <line
           x1="72"
@@ -219,7 +195,7 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
           strokeLinecap="round"
           strokeOpacity="0.3"
         />
-      </motion.g>
+      </g>
 
       {/* Piston animation on left side */}
       <g>
@@ -234,7 +210,7 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
           stroke="currentColor"
           strokeWidth="1"
         />
-        <motion.rect
+        <rect
           x="20"
           y="65"
           width="8"
@@ -242,43 +218,26 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
           rx="1"
           fill="currentColor"
           fillOpacity="0.4"
-          animate={{ y: [65, 80, 65] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Piston rod */}
-        <motion.line
-          x1="24"
-          y1="80"
-          x2="24"
-          y2="55"
-          stroke="currentColor"
-          strokeWidth="2"
-          animate={{ y1: [80, 95, 80], y2: [55, 70, 55] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="eng-piston"
         />
       </g>
 
-      {/* Data flow particles */}
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [52, 76, 100],
-          cy: [42, 61, 80],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.circle
-        r="3"
-        fill="currentColor"
-        animate={{
-          cx: [100, 126, 152],
-          cy: [80, 97, 115],
-          opacity: [0, 1, 0],
-        }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      />
+      {/* Rotation indicators on main gear */}
+      {[0, 90, 180, 270].map((angle, i) => {
+        const rad = (angle * Math.PI) / 180;
+        const x = 100 + 50 * Math.cos(rad);
+        const y = 80 + 50 * Math.sin(rad);
+        return (
+          <circle
+            key={angle}
+            cx={x}
+            cy={y}
+            r="2"
+            fill="currentColor"
+            className={`eng-point-${i + 1}`}
+          />
+        );
+      })}
 
       {/* Blueprint corner markers */}
       <g stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4">
@@ -289,54 +248,16 @@ export function EngineeringIcon({ className }: EngineeringIconProps) {
       </g>
 
       {/* Scanning/verification line */}
-      <motion.line
+      <line
         x1="30"
         y1="80"
-        x2="170"
+        x2="30"
         y2="80"
         stroke="currentColor"
         strokeWidth="2"
         strokeOpacity="0.6"
-        initial={{ x1: 30, x2: 30 }}
-        animate={{
-          x1: [30, 30, 170],
-          x2: [30, 170, 170],
-          opacity: [0, 0.6, 0],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          times: [0, 0.5, 1],
-          ease: "easeInOut",
-          delay: 2,
-        }}
+        className="eng-scan"
       />
-
-      {/* Rotation indicators on main gear */}
-      {[0, 90, 180, 270].map((angle, i) => {
-        const rad = (angle * Math.PI) / 180;
-        const x = 100 + 50 * Math.cos(rad);
-        const y = 80 + 50 * Math.sin(rad);
-        return (
-          <motion.circle
-            key={angle}
-            cx={x}
-            cy={y}
-            r="2"
-            fill="currentColor"
-            animate={{
-              opacity: [0.3, 0.8, 0.3],
-              scale: [1, 1.3, 1],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.3,
-            }}
-          />
-        );
-      })}
-    </motion.svg>
+    </svg>
   );
 }

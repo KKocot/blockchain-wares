@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface BlockNode {
@@ -122,7 +121,7 @@ export function BlockchainBackground({ id = "default" }: BlockchainBackgroundPro
               strokeWidth="0.3"
             />
             {is_active && (
-              <motion.line
+              <line
                 x1={from_node.x}
                 y1={from_node.y}
                 x2={to_node.x}
@@ -130,9 +129,9 @@ export function BlockchainBackground({ id = "default" }: BlockchainBackgroundPro
                 stroke={`url(#${active_gradient_id})`}
                 strokeWidth="0.6"
                 filter={`url(#${glow_filter_id})`}
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                strokeDasharray="100"
+                strokeDashoffset="100"
+                className="blockchain-line-active"
               />
             )}
           </g>
@@ -146,24 +145,17 @@ export function BlockchainBackground({ id = "default" }: BlockchainBackgroundPro
         return (
           <g key={node.id}>
             {/* Block shape (rounded rectangle) */}
-            <motion.rect
+            <rect
               x={node.x - 2}
               y={node.y - 1.5}
               width="4"
               height="3"
               rx="0.5"
               fill="oklch(71% 0.143 215.221)"
-              fillOpacity={is_active ? 0.5 : 0.1}
               stroke="oklch(71% 0.143 215.221)"
               strokeWidth="0.2"
-              strokeOpacity={is_active ? 0.6 : 0.2}
               filter={is_active ? `url(#${glow_filter_id})` : undefined}
-              animate={{
-                fillOpacity: is_active ? 0.5 : 0.1,
-                strokeOpacity: is_active ? 0.6 : 0.2,
-                scale: is_active ? 1.15 : 1,
-              }}
-              transition={{ duration: 0.3 }}
+              className={`blockchain-block ${is_active ? "blockchain-block-active" : "blockchain-block-inactive"}`}
               style={{ transformOrigin: `${node.x}px ${node.y}px` }}
             />
             {/* Hash lines inside block */}
@@ -174,7 +166,7 @@ export function BlockchainBackground({ id = "default" }: BlockchainBackgroundPro
               y2={node.y - 0.5}
               stroke="oklch(71% 0.143 215.221)"
               strokeWidth="0.15"
-              strokeOpacity={is_active ? 0.5 : 0.15}
+              className={`blockchain-hash-line ${is_active ? "blockchain-hash-line-active" : ""}`}
             />
             <line
               x1={node.x - 1.2}
@@ -183,7 +175,7 @@ export function BlockchainBackground({ id = "default" }: BlockchainBackgroundPro
               y2={node.y + 0.5}
               stroke="oklch(71% 0.143 215.221)"
               strokeWidth="0.15"
-              strokeOpacity={is_active ? 0.5 : 0.15}
+              className={`blockchain-hash-line ${is_active ? "blockchain-hash-line-active" : ""}`}
             />
           </g>
         );

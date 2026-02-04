@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 
@@ -23,7 +22,7 @@ const nav_items: NavItem[] = [
  * - Mobile: hamburger menu with animated drawer
  * - Backdrop blur on scroll
  * - Active section highlighting via Intersection Observer
- * - Framer Motion animations
+ * - CSS-based animations (no external animation library)
  */
 export function Navigation() {
   const [is_open, set_is_open] = useState(false);
@@ -87,12 +86,9 @@ export function Navigation() {
   }, [is_open]);
 
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+    <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out",
         is_scrolled
           ? "bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-blue-md"
           : "bg-transparent",
@@ -101,11 +97,9 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <motion.a
+          <a
             href="#"
-            className="flex items-center gap-2"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-2 transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
           >
             <img
               src="/assets/img/blockchainwares.svg"
@@ -115,7 +109,7 @@ export function Navigation() {
             <span className="text-xl font-bold text-base-content">
               BlockchainWares
             </span>
-          </motion.a>
+          </a>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
@@ -139,7 +133,7 @@ export function Navigation() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => set_is_open(!is_open)}
-            className="md:hidden p-2 text-base-content hover:text-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg"
+            className="md:hidden p-2 text-base-content hover:text-secondary transition-all duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg"
             aria-label={is_open ? "Close menu" : "Open menu"}
             aria-expanded={is_open}
           >
@@ -149,27 +143,24 @@ export function Navigation() {
       </div>
 
       {/* Mobile Menu Drawer */}
-      <AnimatePresence>
-        {is_open && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-              onClick={() => set_is_open(false)}
-            />
+      <>
+        {/* Backdrop */}
+        <div
+          className={cn(
+            "fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300",
+            is_open ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+          onClick={() => set_is_open(false)}
+        />
 
-            {/* Drawer */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 w-full sm:w-80 bg-base-100 border-l border-base-300 z-50 overflow-y-auto"
-            >
+        {/* Drawer */}
+        <div
+          className={cn(
+            "fixed top-0 right-0 bottom-0 w-full sm:w-80 bg-base-100 border-l border-base-300 z-50 overflow-y-auto",
+            "transform transition-transform duration-300 ease-out",
+            is_open ? "translate-x-0" : "translate-x-full"
+          )}
+        >
               <div className="p-6">
                 {/* Close Button */}
                 <div className="flex justify-end mb-8">
@@ -183,18 +174,9 @@ export function Navigation() {
                 </div>
 
                 {/* Mobile Nav Items */}
-                <motion.div
-                  className="space-y-4"
-                  variants={{
-                    open: {
-                      transition: { staggerChildren: 0.07, delayChildren: 0.1 },
-                    },
-                  }}
-                  initial="closed"
-                  animate="open"
-                >
-                  {nav_items.map((item, index) => (
-                    <motion.a
+                <div className="space-y-4">
+                  {nav_items.map((item) => (
+                    <a
                       key={item.href}
                       href={item.href}
                       onClick={handle_nav_click}
@@ -204,29 +186,41 @@ export function Navigation() {
                           ? "text-secondary border-secondary pl-3"
                           : "text-base-content hover:text-secondary border-transparent pl-3"
                       )}
-                      variants={{
-                        open: { opacity: 1, x: 0 },
-                        closed: { opacity: 0, x: 20 },
-                      }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
                       {item.label}
-                    </motion.a>
+                    </a>
                   ))}
-                </motion.div>
+                </div>
               </div>
-            </motion.div>
+            </div>
           </>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+    </nav>
   );
 }
 
 /**
- * Animated hamburger menu icon
+ * Simple hamburger menu icon (no animation)
  */
 function HamburgerIcon({ is_open }: { is_open: boolean }) {
+  if (is_open) {
+    return (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    );
+  }
+
   return (
     <svg
       width="24"
@@ -239,32 +233,9 @@ function HamburgerIcon({ is_open }: { is_open: boolean }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <motion.line
-        x1="3"
-        y1="6"
-        x2="21"
-        y2="6"
-        animate={is_open ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
-        transition={{ duration: 0.2 }}
-        style={{ originX: "50%", originY: "50%" }}
-      />
-      <motion.line
-        x1="3"
-        y1="12"
-        x2="21"
-        y2="12"
-        animate={is_open ? { opacity: 0 } : { opacity: 1 }}
-        transition={{ duration: 0.2 }}
-      />
-      <motion.line
-        x1="3"
-        y1="18"
-        x2="21"
-        y2="18"
-        animate={is_open ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
-        transition={{ duration: 0.2 }}
-        style={{ originX: "50%", originY: "50%" }}
-      />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   );
 }

@@ -218,9 +218,9 @@ function StatCard({ stat, index, is_in_view }: { stat: Stat; index: number; is_i
         "shadow-lg shadow-black/20",
         "transition-all duration-300",
         "hover:bg-base-200/50 hover:border-secondary/20",
-        "hover:shadow-xl hover:shadow-secondary/10"
+        "hover:shadow-xl"
       )}>
-        <div className="text-2xl md:text-4xl lg:text-5xl font-bold text-secondary mb-1 md:mb-2 drop-shadow-[0_0_20px_rgba(56,189,248,0.25)]">
+        <div className="text-2xl md:text-4xl lg:text-5xl font-bold text-secondary mb-1 md:mb-2">
           {display_value}{stat.suffix}
         </div>
         <div className="text-[10px] md:text-sm text-base-content/60 uppercase tracking-wider">
@@ -242,9 +242,9 @@ export function About() {
   return (
     <section
       id="about"
-      className="relative min-h-screen flex items-center py-12 md:py-24 lg:py-32 px-4 overflow-hidden"
+      className="relative min-h-screen flex items-center py-12 md:py-24 lg:py-32 px-4"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="relative z-10 max-w-6xl mx-auto">
         {/* Two-column layout */}
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-center mb-10 md:mb-20">
           {/* Left column - Text content */}
@@ -259,7 +259,7 @@ export function About() {
               className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
             >
               Software Development{" "}
-              <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">Done Right</span>
+              <span className="text-secondary">Done Right</span>
             </h2>
 
             <p
@@ -284,9 +284,9 @@ export function About() {
                 className={cn(
                   "inline-flex items-center gap-2 px-6 py-3 rounded-full",
                   "bg-secondary text-secondary-content font-medium",
-                  "shadow-lg shadow-secondary/30",
+                  "shadow-lg",
                   "transition-all duration-300",
-                  "hover:bg-secondary/90 hover:gap-3 hover:shadow-xl hover:shadow-secondary/40",
+                  "hover:bg-secondary/90 hover:gap-3 hover:shadow-xl",
                   "focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 focus:ring-offset-base-100"
                 )}
               >
@@ -309,7 +309,7 @@ export function About() {
                   "border border-white/5",
                   "shadow-lg shadow-black/20",
                   "hover:bg-base-200/50 hover:border-secondary/20",
-                  "hover:shadow-xl hover:shadow-secondary/10",
+                  "hover:shadow-xl",
                   "hover:translate-x-2",
                   "transition-all duration-300"
                 )}
@@ -319,10 +319,10 @@ export function About() {
                     "flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-lg md:rounded-xl",
                     "bg-secondary/10 text-secondary",
                     "flex items-center justify-center",
-                    "shadow-md shadow-secondary/20",
+                    "shadow-md",
                     "transition-all duration-300",
                     "group-hover:bg-secondary group-hover:text-secondary-content",
-                    "group-hover:shadow-lg group-hover:shadow-secondary/40"
+                    "group-hover:shadow-lg"
                   )}>
                     {prop.icon}
                   </div>

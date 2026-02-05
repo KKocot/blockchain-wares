@@ -38,9 +38,9 @@ export function Expertise() {
   return (
     <section
       id="expertise"
-      className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
+      className="relative py-16 md:py-24 lg:py-32 px-4"
     >
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="relative z-10 max-w-6xl mx-auto w-full">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
           <span
@@ -53,7 +53,7 @@ export function Expertise() {
             className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
           >
             Our{" "}
-            <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
+            <span className="text-secondary">
               Expertise
             </span>
           </h2>
@@ -85,9 +85,9 @@ export function Expertise() {
             className={cn(
               "inline-flex items-center gap-2 px-6 py-3 rounded-full",
               "bg-secondary text-secondary-content font-medium",
-              "shadow-blue-lg",
+              "shadow-lg",
               "transition-all duration-300",
-              "hover:bg-secondary/90 hover:gap-3 hover:shadow-blue-xl",
+              "hover:bg-secondary/90 hover:gap-3 hover:shadow-xl",
               "focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 focus:ring-offset-base-100"
             )}
           >

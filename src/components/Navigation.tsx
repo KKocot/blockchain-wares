@@ -90,7 +90,7 @@ export function Navigation() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out",
         is_scrolled
-          ? "bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-blue-md"
+          ? "bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-md"
           : "bg-transparent",
       )}
     >

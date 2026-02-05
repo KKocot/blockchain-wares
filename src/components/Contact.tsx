@@ -33,9 +33,9 @@ export function Contact() {
   return (
     <section
       id="contact"
-      className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
+      className="relative py-16 md:py-24 lg:py-32 px-4"
     >
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="max-w-6xl mx-auto w-full relative z-10">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
           <span className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4">
@@ -44,7 +44,7 @@ export function Contact() {
 
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg">
             Get In{" "}
-            <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
+            <span className="text-secondary">
               Touch
             </span>
           </h2>
@@ -141,9 +141,9 @@ function ContactItem({ label, value, link, icon }: ContactInfo) {
       className={cn(
         "group/item flex items-start gap-4 p-3 rounded-xl",
         "bg-base-100/30 border border-white/5",
-        "shadow-blue-sm",
+        "shadow-sm",
         "transition-all duration-300",
-        link && "hover:bg-base-100/50 hover:border-secondary/20 hover:shadow-blue-md cursor-pointer"
+        link && "hover:bg-base-100/50 hover:border-secondary/20 hover:shadow-md cursor-pointer"
       )}
     >
       <div

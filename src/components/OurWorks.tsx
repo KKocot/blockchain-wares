@@ -126,9 +126,9 @@ export function OurWorks() {
   return (
     <section
       id="works"
-      className="relative py-16 md:py-24 lg:py-32 px-4 overflow-hidden"
+      className="relative py-16 md:py-24 lg:py-32 px-4"
     >
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="relative z-10 max-w-6xl mx-auto w-full">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
           <span
@@ -141,7 +141,7 @@ export function OurWorks() {
             className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
           >
             Our{" "}
-            <span className="text-secondary drop-shadow-[0_0_30px_rgba(56,189,248,0.3)]">
+            <span className="text-secondary">
               Works
             </span>
           </h2>
@@ -242,10 +242,10 @@ function ProjectCard({ title, description, url }: ProjectCardProps) {
       className={cn(
         "group relative p-4 rounded-xl h-full flex flex-col",
         "bg-base-100/50 border border-white/5",
-        "shadow-blue-sm",
+        "shadow-sm",
         "transition-all duration-300",
         "hover:bg-base-100/70 hover:border-secondary/20",
-        "hover:shadow-blue-md",
+        "hover:shadow-md",
         "hover:-translate-y-1"
       )}
     >

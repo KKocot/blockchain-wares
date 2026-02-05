@@ -17,12 +17,59 @@ import {
 <Layout>
   <Navigation client:load />
   <Hero client:load />
-  <About client:visible />
-  <Expertise client:idle />
-  <OurWorks client:visible />
-  <EndUsers client:visible />
-  <Team client:visible />
-  <Career client:visible />
-  <Contact client:visible />
-  <Footer />
+
+  <div class="relative">
+    <div class="absolute inset-0 pointer-events-none" style="z-index: 0;">
+      <div
+        class="absolute w-[800px] h-[800px] md:w-[1200px] md:h-[1200px]"
+        style="top: 0; left: 15%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.15) 0%, transparent 60%);"
+      ></div>
+
+      <div
+        class="absolute w-[800px] h-[800px] md:w-[1200px] md:h-[1200px]"
+        style="top: 800px; right: 10%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.12) 0%, transparent 60%);"
+      ></div>
+
+      <div
+        class="absolute w-[900px] h-[900px] md:w-[1300px] md:h-[1300px]"
+        style="top: 1800px; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.15) 0%, transparent 60%);"
+      ></div>
+
+      <div
+        class="absolute w-[800px] h-[800px] md:w-[1200px] md:h-[1200px]"
+        style="top: 3000px; left: 10%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.12) 0%, transparent 60%);"
+      ></div>
+
+      <div
+        class="absolute w-[800px] h-[800px] md:w-[1200px] md:h-[1200px]"
+        style="top: 4000px; right: 15%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.15) 0%, transparent 60%);"
+      ></div>
+
+      <div
+        class="absolute w-[900px] h-[900px] md:w-[1300px] md:h-[1300px]"
+        style="top: 5000px; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(65% 0.15 280 / 0.12) 0%, transparent 60%);"
+      ></div>
+
+      <div
+        class="absolute w-[800px] h-[800px] md:w-[1200px] md:h-[1200px]"
+        style="top: 6000px; left: 20%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.15) 0%, transparent 60%);"
+      ></div>
+
+      <div
+        class="absolute w-[900px] h-[900px] md:w-[1300px] md:h-[1300px]"
+        style="top: 7000px; right: 15%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.12) 0%, transparent 60%);"
+      ></div>
+    </div>
+
+    <div class="relative" style="z-index: 1;">
+      <About client:visible />
+      <Expertise client:idle />
+      <OurWorks client:visible />
+      <EndUsers client:visible />
+      <Team client:visible />
+      <Career client:visible />
+      <Contact client:visible />
+      <Footer />
+    </div>
+  </div>
 </Layout>

@@ -1,0 +1,32 @@
+services:
+  blockchainwares:
+    build: .
+    container_name: blockchainwares
+    restart: unless-stopped
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      # HTTP router → redirect to HTTPS
+      - "traefik.http.routers.blockchainwares-http.rule=Host(`blockchainwares.com.pl`) || Host(`www.blockchainwares.com.pl`)"
+      - "traefik.http.routers.blockchainwares-http.entrypoints=web"
+      - "traefik.http.routers.blockchainwares-http.middlewares=https-redirect@docker"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
+      # HTTPS router
+      - "traefik.http.routers.blockchainwares.rule=Host(`blockchainwares.com.pl`) || Host(`www.blockchainwares.com.pl`)"
+      - "traefik.http.routers.blockchainwares.tls=true"
+      - "traefik.http.routers.blockchainwares.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.blockchainwares.entrypoints=websecure"
+      - "traefik.http.services.blockchainwares.loadbalancer.server.port=80"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

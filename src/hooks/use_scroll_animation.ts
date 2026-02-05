@@ -21,6 +21,12 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>(
     const element = ref.current;
     if (!element) return;
 
+    // Fallback for browsers without IntersectionObserver (IE11, older browsers)
+    if (!('IntersectionObserver' in window)) {
+      set_is_visible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -36,6 +42,17 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>(
     );
 
     observer.observe(element);
+
+    // Check if element is already in view on mount (fixes Astro client:visible issue)
+    const rect = element.getBoundingClientRect();
+    const is_in_viewport = rect.top < window.innerHeight && rect.bottom > 0;
+    if (is_in_viewport) {
+      set_is_visible(true);
+      if (triggerOnce) {
+        observer.disconnect();
+      }
+    }
+
     return () => observer.disconnect();
   }, [threshold, rootMargin, triggerOnce]);
 

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0c0f1c"/>
+      <stop offset="50%" style="stop-color:#161d2e"/>
+      <stop offset="100%" style="stop-color:#1f2838"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.05">
+    <defs>
+      <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+        <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#4EB4FF" stroke-width="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="1200" height="630" fill="url(#grid)"/>
+  </g>
+
+  <!-- Company Logo (centered, scaled) -->
+  <g transform="translate(340, 120) scale(1.3)">
+    <!-- Top block -->
+    <path d="M279.821,53.892 L280.041,161.35 L187.324,215.471 L95.222,161.992 L95,53.697 L187.324,0 L279.821,53.892 Z M124,55.4245884 L187.82302,94.1626305 L251.646039,55.4245884 L187.753367,18 L124,55.4245884 Z M194.410644,185.257007 L259.870283,149.353672 L258.233664,74.7122942 L193.876683,111.332677 L194.410644,185.257007 Z M110.548129,74.7122942 L108.91151,149.353672 L174.371148,185.257007 L174.835456,111.212035 L110.548129,74.7122942 Z" fill="#FFFFFF" filter="url(#glow)"/>
+
+    <!-- Bottom left block -->
+    <path d="M184.821,218.892 L185.041,326.35 L92.324,380.471 L0.222,326.992 L0,218.697 L92.324,165 L184.821,218.892 Z M29,220.424588 L92.8230196,259.162631 L156.646039,220.424588 L92.7533667,183 L29,220.424588 Z M99.4106443,350.257007 L164.870283,314.353672 L163.233664,239.712294 L98.8766834,276.332677 L99.4106443,350.257007 Z M15.5481286,239.712294 L13.9115098,314.353672 L79.3711482,350.257007 L79.8354562,276.212035 L15.5481286,239.712294 Z" fill="#FFFFFF" filter="url(#glow)"/>
+
+    <!-- Bottom right block -->
+    <path d="M374.821,218.892 L375.041,326.35 L282.324,380.471 L190.222,326.992 L190,218.697 L282.324,165 L374.821,218.892 Z M219,220.424588 L282.82302,259.162631 L346.646039,220.424588 L282.753367,183 L219,220.424588 Z M289.410644,350.257007 L354.870283,314.353672 L353.233664,239.712294 L288.876683,276.332677 L289.410644,350.257007 Z M205.548129,239.712294 L203.91151,314.353672 L269.371148,350.257007 L269.835456,276.212035 L205.548129,239.712294 Z" fill="#FFFFFF" filter="url(#glow)"/>
+  </g>
+
+  <!-- Company Name -->
+  <text x="600" y="520" text-anchor="middle" fill="#FFFFFF" font-family="Quicksand, sans-serif" font-size="58" font-weight="700" letter-spacing="0.02em">
+    BlockchainWares
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="570" text-anchor="middle" fill="#4EB4FF" font-family="Quicksand, sans-serif" font-size="24" font-weight="500">
+    Blockchain • EDA • Engineering • Databases
+  </text>
+</svg>

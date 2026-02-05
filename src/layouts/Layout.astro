@@ -32,12 +32,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="pl_PL" />
-    <meta property="og:image" content="/assets/img/og-image.jpg" />
+    <meta property="og:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.svg" />
     <meta property="og:site_name" content="BlockchainWares" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/assets/img/og-image.jpg" />
+    <meta name="twitter:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.svg" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -49,6 +49,28 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg" />
+
+    <!-- Additional meta tags -->
+    <meta name="theme-color" content="#4EB4FF" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "BlockchainWares",
+        "url": "https://www.blockchainwares.com.pl",
+        "logo": "https://www.blockchainwares.com.pl/assets/img/blockchainwares.svg",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Dabrowa Gornicza",
+          "addressCountry": "PL"
+        }
+      }
+    </script>
   </head>
   <body class="bg-base-100">
     <slot />

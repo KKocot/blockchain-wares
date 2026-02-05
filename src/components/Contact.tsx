@@ -1,4 +1,6 @@
 import { cn } from "../lib/utils";
+import { CometEffect } from "./ui";
+import { useScrollAnimation } from "../hooks";
 
 interface ContactInfo {
   label: string;
@@ -29,27 +31,41 @@ const CONTACT_DATA: ContactInfo[] = [
  * - Google Maps embed
  */
 export function Contact() {
+  const { ref, is_visible } = useScrollAnimation<HTMLElement>();
 
   return (
     <section
+      ref={ref}
       id="contact"
       className="relative py-16 md:py-24 lg:py-32 px-4"
     >
       <div className="max-w-6xl mx-auto w-full relative z-10">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
-          <span className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4">
+          <span className={cn(
+            "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
+            "fade-up",
+            is_visible && "is-visible"
+          )}>
             Contact Us
           </span>
 
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg">
+          <h2 className={cn(
+            "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
+            "fade-up stagger-1",
+            is_visible && "is-visible"
+          )}>
             Get In{" "}
             <span className="text-secondary">
               Touch
             </span>
           </h2>
 
-          <p className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto">
+          <p className={cn(
+            "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+            "fade-up stagger-2",
+            is_visible && "is-visible"
+          )}>
             Have a project in mind? We'd love to hear from you.
           </p>
         </div>
@@ -64,9 +80,12 @@ export function Contact() {
               "shadow-card",
               "transition-all duration-300",
               "hover:bg-base-200/50 hover:border-secondary/20",
-              "hover:shadow-card-hover"
+              "hover:shadow-card-hover",
+              "fade-left stagger-3",
+              is_visible && "is-visible"
             )}
           >
+            <CometEffect />
             <h3 className={cn(
               "text-xl md:text-2xl font-bold mb-3",
               "transition-colors duration-300",
@@ -102,10 +121,13 @@ export function Contact() {
               "shadow-card",
               "transition-all duration-300",
               "hover:bg-base-200/50 hover:border-secondary/20",
-              "hover:shadow-card-hover"
+              "hover:shadow-card-hover",
+              "fade-right stagger-4",
+              is_visible && "is-visible"
             )}
           >
-            <div className="h-[350px] rounded-xl overflow-hidden bg-base-100/50">
+            <CometEffect />
+            <div className="h-[350px] rounded-xl overflow-hidden bg-base-100/50 relative z-10">
               <iframe
                 src="https://maps.google.com/maps?width=520&height=400&hl=en&q=Graniczna%2034B/U11%20D%C4%85browa%20G%C3%B3rnicza+(BlockchainWares)&t=&z=15&ie=UTF8&iwloc=B&output=embed"
                 width="100%"

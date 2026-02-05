@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { cn } from "../lib/utils";
+import { useScrollAnimation } from "../hooks";
 
 interface Stat {
   value: number;
@@ -210,7 +211,12 @@ function StatCard({ stat, index, is_in_view }: { stat: Stat; index: number; is_i
   const display_value = useAnimatedCounter(stat.value, is_in_view);
 
   return (
-    <div className="relative group">
+    <div className={cn(
+      "relative group",
+      "scale-in",
+      `stagger-${index + 1}`,
+      is_in_view && "is-visible"
+    )}>
       <div className={cn(
         "relative z-10 p-4 md:p-6 rounded-xl md:rounded-2xl",
         "bg-base-200/30 backdrop-blur-sm",
@@ -237,10 +243,12 @@ function StatCard({ stat, index, is_in_view }: { stat: Stat; index: number; is_i
 }
 
 export function About() {
-  const [is_in_view] = useState(true);
+  const { ref: section_ref, is_visible: section_visible } = useScrollAnimation<HTMLElement>();
+  const { ref: stats_ref, is_visible: stats_visible } = useScrollAnimation<HTMLDivElement>();
 
   return (
     <section
+      ref={section_ref}
       id="about"
       className="relative min-h-screen flex items-center py-12 md:py-24 lg:py-32 px-4"
     >
@@ -250,20 +258,32 @@ export function About() {
           {/* Left column - Text content */}
           <div>
             <span
-              className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+              className={cn(
+                "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
+                "fade-up",
+                section_visible && "is-visible"
+              )}
             >
               About Us
             </span>
 
             <h2
-              className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+              className={cn(
+                "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
+                "fade-up stagger-1",
+                section_visible && "is-visible"
+              )}
             >
               Software Development{" "}
               <span className="text-secondary">Done Right</span>
             </h2>
 
             <p
-              className="text-base md:text-lg text-base-content/70 leading-relaxed mb-4 md:mb-6"
+              className={cn(
+                "text-base md:text-lg text-base-content/70 leading-relaxed mb-4 md:mb-6",
+                "fade-up stagger-2",
+                section_visible && "is-visible"
+              )}
             >
               We are a software development company based in Dabrowa Gornicza, Poland.
               We specialize in building complete products, complex frameworks, and
@@ -271,14 +291,18 @@ export function About() {
             </p>
 
             <p
-              className="text-sm md:text-base text-base-content/60 leading-relaxed mb-6 md:mb-8"
+              className={cn(
+                "text-sm md:text-base text-base-content/60 leading-relaxed mb-6 md:mb-8",
+                "fade-up stagger-3",
+                section_visible && "is-visible"
+              )}
             >
               From blockchain solutions to database optimization, we tackle the most
               demanding engineering challenges with precision and expertise.
             </p>
 
             {/* CTA Button */}
-            <div>
+            <div className={cn("fade-up stagger-4", section_visible && "is-visible")}>
               <a
                 href="#expertise"
                 className={cn(
@@ -300,7 +324,7 @@ export function About() {
 
           {/* Right column - Value propositions */}
           <div className="space-y-3 md:space-y-4">
-            {VALUE_PROPS.map((prop) => (
+            {VALUE_PROPS.map((prop, index) => (
               <div
                 key={prop.title}
                 className={cn(
@@ -311,7 +335,10 @@ export function About() {
                   "hover:bg-base-200/50 hover:border-secondary/20",
                   "hover:shadow-xl",
                   "hover:translate-x-2",
-                  "transition-all duration-300"
+                  "transition-all duration-300",
+                  "fade-right",
+                  `stagger-${index + 1}`,
+                  section_visible && "is-visible"
                 )}
               >
                 <div className="flex items-start gap-3 md:gap-4">
@@ -347,7 +374,7 @@ export function About() {
         </div>
 
         {/* Stats section */}
-        <div className="relative">
+        <div ref={stats_ref} className="relative">
           {/* Divider line - hidden on mobile */}
           <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-secondary/30 to-transparent" />
 
@@ -358,7 +385,7 @@ export function About() {
                   key={stat.label}
                   stat={stat}
                   index={index}
-                  is_in_view={is_in_view}
+                  is_in_view={stats_visible}
                 />
               ))}
             </div>

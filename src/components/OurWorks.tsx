@@ -1,5 +1,7 @@
 import { cn } from "../lib/utils";
 import { BlockchainIcon, EdaIcon, EngineeringIcon, DatabaseIcon } from "./icons";
+import { CometEffect } from "./ui";
+import { useScrollAnimation } from "../hooks";
 
 interface Project {
   title: string;
@@ -123,8 +125,11 @@ const SECTIONS: ProjectSection[] = [
  * - Hover effects on project cards
  */
 export function OurWorks() {
+  const { ref, is_visible } = useScrollAnimation<HTMLElement>();
+
   return (
     <section
+      ref={ref}
       id="works"
       className="relative py-16 md:py-24 lg:py-32 px-4"
     >
@@ -132,13 +137,21 @@ export function OurWorks() {
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
           <span
-            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+            className={cn(
+              "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
+              "fade-up",
+              is_visible && "is-visible"
+            )}
           >
             Portfolio
           </span>
 
           <h2
-            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+            className={cn(
+              "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
+              "fade-up stagger-1",
+              is_visible && "is-visible"
+            )}
           >
             Our{" "}
             <span className="text-secondary">
@@ -147,7 +160,11 @@ export function OurWorks() {
           </h2>
 
           <p
-            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
+            className={cn(
+              "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+              "fade-up stagger-2",
+              is_visible && "is-visible"
+            )}
           >
             Explore our portfolio of cutting-edge projects across blockchain,
             EDA, engineering, and database technologies.
@@ -185,8 +202,10 @@ function ProjectSectionBlock({ section }: ProjectSectionBlockProps) {
         "hover:shadow-card-hover"
       )}
     >
+      <CometEffect />
+
       {/* Section header */}
-      <div className="flex items-start gap-5 mb-6">
+      <div className="flex items-start gap-5 mb-6 relative z-10">
         <div className="flex-shrink-0 text-secondary transition-transform duration-300 group-hover/section:scale-105">
           {section.icon}
         </div>
@@ -208,7 +227,7 @@ function ProjectSectionBlock({ section }: ProjectSectionBlockProps) {
       {/* Projects grid */}
       <div
         className={cn(
-          "grid gap-4",
+          "grid gap-4 relative z-10",
           section.projects.length === 3
             ? "grid-cols-1 md:grid-cols-3"
             : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
@@ -249,6 +268,7 @@ function ProjectCard({ title, description, url }: ProjectCardProps) {
         "hover:-translate-y-1"
       )}
     >
+      <CometEffect />
       <div className="relative z-10 flex flex-col h-full">
         <h4 className="text-base font-bold mb-2 group-hover:text-secondary transition-colors">
           {title}

@@ -1,5 +1,7 @@
 import { cn } from "../lib/utils";
 import { BlockchainIcon, DatabaseIcon, EdaIcon, EngineeringIcon } from "./icons";
+import { CometEffect } from "./ui";
+import { useScrollAnimation } from "../hooks";
 
 interface ExpertiseItem {
   title: string;
@@ -35,8 +37,11 @@ const EXPERTISE_ITEMS: ExpertiseItem[] = [
 ];
 
 export function Expertise() {
+  const { ref, is_visible } = useScrollAnimation<HTMLElement>();
+
   return (
     <section
+      ref={ref}
       id="expertise"
       className="relative py-16 md:py-24 lg:py-32 px-4"
     >
@@ -44,13 +49,21 @@ export function Expertise() {
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
           <span
-            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+            className={cn(
+              "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
+              "fade-up",
+              is_visible && "is-visible"
+            )}
           >
             What We Do
           </span>
 
           <h2
-            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+            className={cn(
+              "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
+              "fade-up stagger-1",
+              is_visible && "is-visible"
+            )}
           >
             Our{" "}
             <span className="text-secondary">
@@ -59,7 +72,11 @@ export function Expertise() {
           </h2>
 
           <p
-            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
+            className={cn(
+              "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+              "fade-up stagger-2",
+              is_visible && "is-visible"
+            )}
           >
             Delivering cutting-edge solutions across multiple technology domains
             with deep knowledge and years of hands-on experience.
@@ -68,10 +85,12 @@ export function Expertise() {
 
         {/* Lista */}
         <div className="space-y-6 md:space-y-8">
-          {EXPERTISE_ITEMS.map((item) => (
+          {EXPERTISE_ITEMS.map((item, index) => (
             <ExpertiseCard
               key={item.title}
               {...item}
+              index={index}
+              is_visible={is_visible}
             />
           ))}
         </div>
@@ -112,12 +131,17 @@ export function Expertise() {
   );
 }
 
-interface ExpertiseCardProps extends ExpertiseItem {}
+interface ExpertiseCardProps extends ExpertiseItem {
+  index: number;
+  is_visible: boolean;
+}
 
 function ExpertiseCard({
   title,
   description,
   icon,
+  index,
+  is_visible,
 }: ExpertiseCardProps) {
   return (
     <div
@@ -129,11 +153,16 @@ function ExpertiseCard({
         "transition-all duration-300",
         "hover:bg-base-200/50 hover:border-secondary/20",
         "hover:shadow-card-hover",
-        "hover:-translate-y-1"
+        "hover:-translate-y-1",
+        "fade-up",
+        `stagger-${Math.min(index + 3, 6)}`,
+        is_visible && "is-visible"
       )}
     >
+      <CometEffect />
+
       {/* Header: Icon + Title/Description */}
-      <div className="flex items-start gap-5">
+      <div className="flex items-start gap-5 relative z-10">
         <div className="flex-shrink-0 text-secondary transition-transform duration-300 group-hover:scale-105">
           {icon}
         </div>

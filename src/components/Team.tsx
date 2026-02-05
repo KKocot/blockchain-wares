@@ -1,4 +1,6 @@
 import { cn } from "../lib/utils";
+import { CometEffect } from "./ui";
+import { useScrollAnimation } from "../hooks";
 
 /**
  * Team section component
@@ -11,8 +13,11 @@ import { cn } from "../lib/utils";
  * - Scroll-triggered fade-in and scale animations (CSS-based)
  */
 export function Team() {
+  const { ref, is_visible } = useScrollAnimation<HTMLElement>();
+
   return (
     <section
+      ref={ref}
       id="team"
       className="relative py-16 md:py-24 lg:py-32 px-4"
     >
@@ -20,13 +25,21 @@ export function Team() {
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
           <span
-            className="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+            className={cn(
+              "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
+              "fade-up",
+              is_visible && "is-visible"
+            )}
           >
             Who We Are
           </span>
 
           <h2
-            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+            className={cn(
+              "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
+              "fade-up stagger-1",
+              is_visible && "is-visible"
+            )}
           >
             Our{" "}
             <span className="text-secondary">
@@ -35,7 +48,11 @@ export function Team() {
           </h2>
 
           <p
-            className="text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto"
+            className={cn(
+              "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+              "fade-up stagger-2",
+              is_visible && "is-visible"
+            )}
           >
             A dedicated team of engineers and developers passionate about
             building cutting-edge solutions in blockchain technology and
@@ -51,10 +68,13 @@ export function Team() {
             "shadow-card",
             "transition-all duration-300",
             "hover:bg-base-200/50 hover:border-secondary/20",
-            "hover:shadow-card-hover"
+            "hover:shadow-card-hover",
+            "scale-in stagger-3",
+            is_visible && "is-visible"
           )}
         >
-          <div className="relative overflow-hidden rounded-xl">
+          <CometEffect />
+          <div className="relative overflow-hidden rounded-xl z-10">
             <div className="relative aspect-video md:aspect-[16/9] lg:aspect-[21/9] overflow-hidden bg-base-100/50">
               <picture>
                 <source srcSet="/assets/img/team.webp" type="image/webp" />

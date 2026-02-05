@@ -41,8 +41,16 @@ export function Navigation() {
           // Update backdrop blur state
           set_is_scrolled(window.scrollY > 20);
 
-          // Update active section
-          const scroll_position = window.scrollY + 100;
+          // Update active section - only if scrolled past hero
+          const scroll_position = window.scrollY + 150;
+          const hero_height = window.innerHeight * 0.7;
+
+          if (scroll_position < hero_height) {
+            set_active_section("");
+            ticking = false;
+            return;
+          }
+
           for (let i = section_ids.length - 1; i >= 0; i--) {
             const element = document.getElementById(section_ids[i]);
             if (element && element.offsetTop <= scroll_position) {
@@ -90,7 +98,7 @@ export function Navigation() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out",
         is_scrolled
-          ? "bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-md"
+          ? "bg-base-100/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
           : "bg-transparent",
       )}
     >
@@ -113,21 +121,42 @@ export function Navigation() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
-            {nav_items.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "relative text-sm font-medium py-1 transition-colors duration-200",
-                  "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:bg-secondary after:transition-all after:duration-300",
-                  active_section === item.href
-                    ? "text-secondary after:w-full"
-                    : "text-base-content hover:text-secondary after:w-0 hover:after:w-full"
-                )}
-              >
-                {item.label}
-              </a>
-            ))}
+            {nav_items.map((item) => {
+              const is_active = active_section === item.href;
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "relative text-sm font-semibold px-4 py-2 rounded-full transition-all duration-300",
+                    is_active
+                      ? "text-white"
+                      : "text-neutral-400 hover:text-white"
+                  )}
+                >
+                  {/* Glow blob behind active link */}
+                  <span
+                    className={cn(
+                      "absolute inset-0 rounded-full bg-secondary/20 blur-md transition-all duration-500",
+                      is_active
+                        ? "opacity-100 scale-110"
+                        : "opacity-0 scale-75"
+                    )}
+                  />
+                  {/* Subtle background pill */}
+                  <span
+                    className={cn(
+                      "absolute inset-0 rounded-full transition-all duration-300",
+                      is_active
+                        ? "bg-secondary/30"
+                        : "bg-transparent hover:bg-white/5"
+                    )}
+                  />
+                  {/* Text */}
+                  <span className="relative z-10">{item.label}</span>
+                </a>
+              );
+            })}
           </div>
 
           {/* Mobile Menu Button */}

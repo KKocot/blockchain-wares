@@ -608,6 +608,365 @@ body {
 .eng-point-4 { animation: eng-point-pulse 1.5s ease-in-out 0.9s infinite; }
 .eng-scan { animation: eng-scan-line 3s ease-in-out 2s infinite; }
 
+/* Comet/Electron animations for cards */
+@keyframes comet-fly-right {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(calc(100cqw + var(--comet-length, 50px)));
+    opacity: 0;
+  }
+}
+
+@keyframes comet-fly-left {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(calc(-100cqw - var(--comet-length, 50px)));
+    opacity: 0;
+  }
+}
+
+@keyframes comet-fly-down {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(calc(100cqh + var(--comet-length, 50px)));
+    opacity: 0;
+  }
+}
+
+@keyframes comet-fly-up {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(calc(-100cqh - var(--comet-length, 50px)));
+    opacity: 0;
+  }
+}
+
+.comet-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 10;
+  container-type: size;
+}
+
+.comet {
+  position: absolute;
+  border-radius: 2px;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* Horizontal comets (top/bottom edges) */
+.comet-h {
+  width: var(--comet-length, 50px);
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    oklch(71% 0.143 215.221 / 0.2) 10%,
+    oklch(71% 0.143 215.221 / 0.6) 50%,
+    oklch(80% 0.12 215.221) 90%,
+    oklch(90% 0.08 215.221) 100%
+  );
+}
+
+.comet-h::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: oklch(95% 0.05 215.221);
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px 2px oklch(71% 0.143 215.221),
+    0 0 12px 3px oklch(71% 0.143 215.221 / 0.5);
+}
+
+/* Vertical comets (left/right edges) */
+.comet-v {
+  width: 2px;
+  height: var(--comet-length, 50px);
+  background: linear-gradient(180deg,
+    transparent 0%,
+    oklch(71% 0.143 215.221 / 0.2) 10%,
+    oklch(71% 0.143 215.221 / 0.6) 50%,
+    oklch(80% 0.12 215.221) 90%,
+    oklch(90% 0.08 215.221) 100%
+  );
+}
+
+.comet-v::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: oklch(95% 0.05 215.221);
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px 2px oklch(71% 0.143 215.221),
+    0 0 12px 3px oklch(71% 0.143 215.221 / 0.5);
+}
+
+/* Top edge - flies left to right */
+.comet-top {
+  top: 0;
+  left: calc(-1 * var(--comet-length, 50px) + var(--comet-offset, 0%) * 0.2);
+  animation: comet-fly-right var(--comet-duration, 3000ms) ease-out forwards;
+}
+
+/* Bottom edge - flies right to left */
+.comet-bottom {
+  bottom: 0;
+  right: calc(-1 * var(--comet-length, 50px) + var(--comet-offset, 0%) * 0.2);
+  background: linear-gradient(270deg,
+    transparent 0%,
+    oklch(71% 0.143 215.221 / 0.2) 10%,
+    oklch(71% 0.143 215.221 / 0.6) 50%,
+    oklch(80% 0.12 215.221) 90%,
+    oklch(90% 0.08 215.221) 100%
+  );
+  animation: comet-fly-left var(--comet-duration, 3000ms) ease-out forwards;
+}
+
+.comet-bottom::after {
+  right: auto;
+  left: 0;
+}
+
+/* Left edge - flies top to bottom */
+.comet-left {
+  left: 0;
+  top: calc(-1 * var(--comet-length, 50px) + var(--comet-offset, 0%) * 0.2);
+  animation: comet-fly-down var(--comet-duration, 3000ms) ease-out forwards;
+}
+
+/* Right edge - flies bottom to top */
+.comet-right {
+  right: 0;
+  bottom: calc(-1 * var(--comet-length, 50px) + var(--comet-offset, 0%) * 0.2);
+  background: linear-gradient(0deg,
+    transparent 0%,
+    oklch(71% 0.143 215.221 / 0.2) 10%,
+    oklch(71% 0.143 215.221 / 0.6) 50%,
+    oklch(80% 0.12 215.221) 90%,
+    oklch(90% 0.08 215.221) 100%
+  );
+  animation: comet-fly-up var(--comet-duration, 3000ms) ease-out forwards;
+}
+
+.comet-right::after {
+  bottom: auto;
+  top: 0;
+}
+
+/* ============================================
+   SCROLL-TRIGGERED ANIMATIONS
+   ============================================ */
+
+/* Base animation classes - elements start invisible */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade in from different directions */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-down {
+  opacity: 0;
+  transform: translateY(-30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.fade-down.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.fade-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.fade-right {
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.fade-right.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Scale animations */
+.scale-in {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scale-in.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delays for children */
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
+
+/* Hero specific animations - always visible, just animated on load */
+.hero-fade-in {
+  animation: hero-fade 0.8s ease-out forwards;
+}
+
+.hero-fade-in-delayed {
+  animation: hero-fade 0.8s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Section headers - subtle entrance */
+.section-header {
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.section-header.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card hover lift effect enhancement */
+.card-lift {
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+
+.card-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Subtle text shimmer for headings */
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    currentColor 0%,
+    oklch(71% 0.143 215.221) 50%,
+    currentColor 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: text-shimmer 3s linear infinite;
+  animation-play-state: paused;
+}
+
+.text-shimmer:hover {
+  animation-play-state: running;
+}
+
+/* Subtle pulse for interactive elements */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.pulse-subtle:hover {
+  animation: subtle-pulse 2s ease-in-out infinite;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -616,5 +975,16 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .animate-on-scroll,
+  .fade-up,
+  .fade-down,
+  .fade-left,
+  .fade-right,
+  .scale-in,
+  .section-header {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

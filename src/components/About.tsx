@@ -9,9 +9,9 @@ interface Stat {
 }
 
 const STATS: Stat[] = [
-  { value: 15, suffix: "+", label: "Years of Experience" },
-  { value: 50, suffix: "+", label: "Projects Delivered" },
-  { value: 20, suffix: "+", label: "Expert Developers" },
+  { value: 10, suffix: "+", label: "Years of Experience" },
+  { value: 30, suffix: "+", label: "Projects Delivered" },
+  { value: 25, suffix: "+", label: "Engineers" },
 ];
 
 interface ValueProp {
@@ -167,7 +167,7 @@ const VALUE_PROPS: ValueProp[] = [
   },
   {
     title: "Deep Expertise",
-    description: "Specialists in blockchain, EDA, databases, and complex engineering challenges.",
+    description: "25+ engineers including security specialists in blockchain, EDA, databases, and complex engineering challenges.",
     icon: <ExpertiseIcon />,
   },
 ];

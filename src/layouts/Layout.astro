@@ -8,14 +8,14 @@ interface Props {
 
 const {
   title = "BlockchainWares - Software Development Company",
-  description = "Specjalizujemy się w technologii blockchain, Event-Driven Architecture, engineering i bazach danych. Dąbrowa Górnicza, Polska.",
+  description = "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software. Based in Dabrowa Gornicza, Poland.",
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="pl" data-theme="blockchainwares">
+<html lang="en" data-theme="blockchainwares">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -31,7 +31,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.svg" />
     <meta property="og:site_name" content="BlockchainWares" />
 
@@ -57,13 +57,20 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:image:height" content="630" />
 
     <!-- Schema.org JSON-LD -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "BlockchainWares",
         "url": "https://www.blockchainwares.com.pl",
         "logo": "https://www.blockchainwares.com.pl/assets/img/blockchainwares.svg",
+        "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software. Based in Dabrowa Gornicza, Poland.",
+        "foundingDate": "2013",
+        "numberOfEmployees": {
+          "@type": "QuantitativeValue",
+          "value": 25
+        },
+        "email": "contact@blockchainwares.pl",
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Dabrowa Gornicza",

@@ -719,6 +719,168 @@ body {
 .eng-point-4 { animation: eng-point-pulse 1.5s ease-in-out 0.9s infinite; }
 .eng-scan { animation: eng-scan-line 3s ease-in-out 2s infinite; }
 
+/* FrontendIcon animations */
+@keyframes frontend-glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+@keyframes frontend-window-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+@keyframes frontend-node-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes frontend-link-fade {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.45; }
+}
+@keyframes frontend-comp-pulse {
+  0%, 100% { fill-opacity: 0.06; }
+  50% { fill-opacity: 0.12; }
+}
+
+.frontend-glow { animation: frontend-glow-pulse 3s ease-in-out infinite; }
+.frontend-window { animation: frontend-window-scale 2.5s ease-in-out infinite; transform-origin: 100px 64px; }
+.frontend-node-0 { animation: frontend-node-float 2s ease-in-out infinite; }
+.frontend-node-1 { animation: frontend-node-float 2s ease-in-out 0.3s infinite; }
+.frontend-node-2 { animation: frontend-node-float 2s ease-in-out 0.6s infinite; }
+.frontend-node-3 { animation: frontend-node-float 2s ease-in-out 0.9s infinite; }
+.frontend-node-4 { animation: frontend-node-float 2s ease-in-out 1.2s infinite; }
+.frontend-link-0 { animation: frontend-link-fade 1.5s ease-in-out infinite; }
+.frontend-link-1 { animation: frontend-link-fade 1.5s ease-in-out 0.25s infinite; }
+.frontend-link-2 { animation: frontend-link-fade 1.5s ease-in-out 0.5s infinite; }
+.frontend-link-3 { animation: frontend-link-fade 1.5s ease-in-out 0.75s infinite; }
+.frontend-link-4 { animation: frontend-link-fade 1.5s ease-in-out 1s infinite; }
+.frontend-comp-0 { animation: frontend-comp-pulse 3s ease-in-out infinite; }
+.frontend-comp-1 { animation: frontend-comp-pulse 3s ease-in-out 0.5s infinite; }
+.frontend-comp-2 { animation: frontend-comp-pulse 3s ease-in-out 1s infinite; }
+.frontend-comp-3 { animation: frontend-comp-pulse 3s ease-in-out 1.5s infinite; }
+
+/* PythonIcon animations */
+@keyframes python-glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+@keyframes python-terminal-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+}
+@keyframes python-snake-sway {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+@keyframes python-gear-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes python-progress-pulse {
+  0%, 100% { fill-opacity: 0.15; }
+  50% { fill-opacity: 0.5; }
+}
+
+.python-glow { animation: python-glow-pulse 4s ease-in-out infinite; }
+.python-terminal { animation: python-terminal-scale 3s ease-in-out infinite; transform-origin: 39px 75px; }
+.python-snake-1 { animation: python-snake-sway 2s ease-in-out infinite; }
+.python-snake-2 { animation: python-snake-sway 2s ease-in-out 0.5s infinite; }
+.python-gear-0 { animation: python-gear-spin 10s linear infinite; transform-origin: 168px 52px; }
+.python-gear-1 { animation: python-gear-spin 8s linear infinite reverse; transform-origin: 180px 78px; }
+.python-gear-2 { animation: python-gear-spin 12s linear infinite; transform-origin: 164px 98px; }
+.python-progress-0 { animation: python-progress-pulse 1.5s ease-in-out infinite; }
+.python-progress-1 { animation: python-progress-pulse 1.5s ease-in-out 0.2s infinite; }
+.python-progress-2 { animation: python-progress-pulse 1.5s ease-in-out 0.4s infinite; }
+.python-progress-3 { animation: python-progress-pulse 1.5s ease-in-out 0.6s infinite; }
+.python-progress-4 { animation: python-progress-pulse 1.5s ease-in-out 0.8s infinite; }
+
+/* SecurityIcon animations */
+@keyframes security-glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+@keyframes security-shield-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+@keyframes security-key-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+@keyframes security-node-fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+@keyframes security-root-expand {
+  0% { transform: scale(1); opacity: 0.05; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes security-hash-blink {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.4; }
+}
+
+.security-glow { animation: security-glow-pulse 3s ease-in-out infinite; }
+.security-shield { animation: security-shield-scale 2.5s ease-in-out infinite; transform-origin: 100px 104px; }
+.security-key { animation: security-key-pulse 2s ease-in-out infinite; }
+.security-node-0 { animation: security-node-fade 1.8s ease-in-out infinite; }
+.security-node-1 { animation: security-node-fade 1.8s ease-in-out 0.15s infinite; }
+.security-node-2 { animation: security-node-fade 1.8s ease-in-out 0.3s infinite; }
+.security-node-3 { animation: security-node-fade 1.8s ease-in-out 0.15s infinite; }
+.security-node-4 { animation: security-node-fade 1.8s ease-in-out 0.3s infinite; }
+.security-node-5 { animation: security-node-fade 1.8s ease-in-out 0.3s infinite; }
+.security-node-6 { animation: security-node-fade 1.8s ease-in-out 0.3s infinite; }
+.security-node-7 { animation: security-node-fade 1.8s ease-in-out 0.45s infinite; }
+.security-node-8 { animation: security-node-fade 1.8s ease-in-out 0.45s infinite; }
+.security-node-9 { animation: security-node-fade 1.8s ease-in-out 0.45s infinite; }
+.security-node-10 { animation: security-node-fade 1.8s ease-in-out 0.45s infinite; }
+.security-node-11 { animation: security-node-fade 1.8s ease-in-out 0.45s infinite; }
+.security-node-12 { animation: security-node-fade 1.8s ease-in-out 0.45s infinite; }
+.security-root-glow { animation: security-root-expand 1.5s ease-in-out infinite; transform-origin: 100px 14px; }
+.security-hash-0 { animation: security-hash-blink 2s ease-in-out infinite; }
+.security-hash-1 { animation: security-hash-blink 2s ease-in-out 0.3s infinite; }
+.security-hash-2 { animation: security-hash-blink 2s ease-in-out 0.6s infinite; }
+.security-hash-3 { animation: security-hash-blink 2s ease-in-out 0.9s infinite; }
+
+/* DevOpsIcon animations */
+@keyframes devops-glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+@keyframes devops-loop-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+@keyframes devops-stage-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@keyframes devops-container-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes devops-cloud-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes devops-deploy-fade {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.35; }
+}
+
+.devops-glow { animation: devops-glow-pulse 3.5s ease-in-out infinite; }
+.devops-loop { animation: devops-loop-scale 3s ease-in-out infinite; transform-origin: 100px 68px; }
+.devops-stage-0 { animation: devops-stage-pulse 1.8s ease-in-out infinite; transform-origin: 152px 68px; }
+.devops-stage-1 { animation: devops-stage-pulse 1.8s ease-in-out 0.3s infinite; transform-origin: 118px 47px; }
+.devops-stage-2 { animation: devops-stage-pulse 1.8s ease-in-out 0.6s infinite; transform-origin: 82px 47px; }
+.devops-stage-3 { animation: devops-stage-pulse 1.8s ease-in-out 0.9s infinite; transform-origin: 48px 68px; }
+.devops-stage-4 { animation: devops-stage-pulse 1.8s ease-in-out 1.2s infinite; transform-origin: 82px 89px; }
+.devops-stage-5 { animation: devops-stage-pulse 1.8s ease-in-out 1.5s infinite; transform-origin: 118px 89px; }
+.devops-container-0 { animation: devops-container-float 2.2s ease-in-out infinite; }
+.devops-container-1 { animation: devops-container-float 2.2s ease-in-out 0.4s infinite; }
+.devops-container-2 { animation: devops-container-float 2.2s ease-in-out 0.8s infinite; }
+.devops-cloud { animation: devops-cloud-float 3s ease-in-out infinite; }
+.devops-deploy-arrows { animation: devops-deploy-fade 2s ease-in-out infinite; }
+
 /* Comet/Electron animations for cards */
 @keyframes comet-fly-right {
   0% {

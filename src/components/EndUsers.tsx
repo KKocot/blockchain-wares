@@ -1,5 +1,3 @@
-import { cn } from "../lib/utils";
-
 /**
  * EndUsers section component
  * Features:
@@ -14,6 +12,7 @@ export function EndUsers() {
   const end_users = [
     "AT&T",
     "Atmel",
+    "BlockTrades",
     "Fujitsu",
     "Hewlett-Packard",
     "IBM Corporation",
@@ -21,7 +20,10 @@ export function EndUsers() {
     "Lexmark International Inc.",
     "Motorola",
     "NASA",
+    "Peerplays",
+    "Phoenix Integration",
     "Phoenix Technologies",
+    "Prointegra",
     "Texas Instruments",
     "US Government",
   ];
@@ -106,7 +108,7 @@ export function EndUsers() {
         {/* Footer note */}
         <div className="text-center mt-12">
           <p className="text-sm text-base-content/70 italic">
-            Legacy clients from our EDA tools era (1990s-2000s)
+            Clients from our EDA tools era and blockchain ecosystem
           </p>
         </div>
       </div>

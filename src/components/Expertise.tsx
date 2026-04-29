@@ -1,5 +1,14 @@
 import { cn } from "../lib/utils";
-import { BlockchainIcon, DatabaseIcon, EdaIcon, EngineeringIcon } from "./icons";
+import {
+  BlockchainIcon,
+  DatabaseIcon,
+  DevOpsIcon,
+  EdaIcon,
+  EngineeringIcon,
+  FrontendIcon,
+  PythonIcon,
+  SecurityIcon,
+} from "./icons";
 import { CometEffect } from "./ui";
 import { useScrollAnimation } from "../hooks";
 
@@ -33,6 +42,30 @@ const EXPERTISE_ITEMS: ExpertiseItem[] = [
     description:
       "We are experienced in developing solutions based on both traditional RDBMS and modern high performance oriented non-SQL databases like RocksDB and Neo4J offering critical write throughput and most efficient object traversal, very useful at solving complex social network analysis problems.",
     icon: <DatabaseIcon className="w-48 h-48 md:w-60 md:h-60" />,
+  },
+  {
+    title: "Modern Frontend",
+    description:
+      "We build production-grade web applications using Next.js, Nuxt, Vue 3, and React with TypeScript. Our teams manage large Turborepo monorepos with 15+ internal packages, deliver Playwright E2E test suites across multiple browser engines, and integrate component libraries such as Radix UI and Reka UI.",
+    icon: <FrontendIcon className="w-48 h-48 md:w-60 md:h-60" />,
+  },
+  {
+    title: "Python & Automation",
+    description:
+      "From CLI and TUI wallets powered by Textual and Typer to Cython bindings bridging C++ performance into Python, we deliver robust automation tooling. We use Poetry for reproducible environments, pytest for comprehensive test coverage, and integrate ML pipelines with OLLAMA for semantic search and data processing.",
+    icon: <PythonIcon className="w-48 h-48 md:w-60 md:h-60" />,
+  },
+  {
+    title: "Security & Cryptography",
+    description:
+      "Security is a first-class concern in everything we ship. We developed Beekeeper — a standalone key management daemon with session isolation — and built the MetaMask Snap for Hive, deriving keys via BIP44 and passing a Hacken security audit. Our libraries implement AES-256 encryption, WebWorker isolation, and hierarchical authority models.",
+    icon: <SecurityIcon className="w-48 h-48 md:w-60 md:h-60" />,
+  },
+  {
+    title: "DevOps & Infrastructure",
+    description:
+      "We maintain Docker-based multi-stage build pipelines and GitLab CI/CD workflows for continuous delivery across all our projects. We compile C++ and TypeScript libraries to WebAssembly via Emscripten, enabling high-performance browser runtimes, and run automated cross-browser test matrices to guarantee reliability at every release.",
+    icon: <DevOpsIcon className="w-48 h-48 md:w-60 md:h-60" />,
   },
 ];
 
@@ -83,8 +116,8 @@ export function Expertise() {
           </p>
         </div>
 
-        {/* Lista */}
-        <div className="space-y-6 md:space-y-8">
+        {/* Grid — 1 column mobile, 2 columns md+ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {EXPERTISE_ITEMS.map((item, index) => (
             <ExpertiseCard
               key={item.title}
@@ -96,9 +129,7 @@ export function Expertise() {
         </div>
 
         {/* CTA Button */}
-        <div
-          className="mt-12 md:mt-16 text-center"
-        >
+        <div className="mt-12 md:mt-16 text-center">
           <a
             href="#works"
             className={cn(
@@ -143,6 +174,9 @@ function ExpertiseCard({
   index,
   is_visible,
 }: ExpertiseCardProps) {
+  // Stagger classes cycle through stagger-3..stagger-6 to stay within CSS-defined range
+  const stagger_class = `stagger-${((index % 4) + 3) as 3 | 4 | 5 | 6}`;
+
   return (
     <div
       className={cn(
@@ -155,7 +189,7 @@ function ExpertiseCard({
         "hover:shadow-card-hover",
         "hover:-translate-y-1",
         "fade-up",
-        `stagger-${Math.min(index + 3, 6)}`,
+        stagger_class,
         is_visible && "is-visible"
       )}
     >

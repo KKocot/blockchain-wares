@@ -9,19 +9,29 @@ interface JobPosition {
 
 const JOB_POSITIONS: JobPosition[] = [
   {
-    title: "Frontend Developers",
+    title: "Front-end Developer",
     description:
-      "Experienced in JavaScript programming, Angular framework and NodeJS platform.",
+      "Experienced in TypeScript, React/Next.js or Vue/Nuxt, and modern frontend tooling. Build scalable web applications with cutting-edge technologies.",
   },
   {
-    title: "C++ Developers",
+    title: "Back-end Developer",
     description:
-      "Who want to work on cutting edge technologies at solving interesting and non-trite problems, giving a lot of satisfaction for each good engineer.",
+      "C++ or Python expertise with interest in blockchain infrastructure and high-performance systems. Work on core engine development.",
+  },
+  {
+    title: "System Administrator",
+    description:
+      "Docker, CI/CD pipelines, Linux infrastructure, and DevOps automation. Maintain and optimize our deployment infrastructure.",
+  },
+  {
+    title: "UI Designer",
+    description:
+      "Modern web design, component-based design systems, and user experience. Create intuitive interfaces for our applications.",
   },
   {
     title: "Any Good Engineer",
     description:
-      "Having an opened mind and good motivation, which would like to join us.",
+      "Having an open mind and good motivation, who would like to join us. We value talent and drive regardless of your specific specialization.",
   },
 ];
 
@@ -71,7 +81,7 @@ export function Career() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex flex-wrap justify-center gap-6">
           {JOB_POSITIONS.map((position, index) => (
             <JobPositionCard
               key={position.title}
@@ -112,7 +122,7 @@ function JobPositionCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col p-6 md:p-8 rounded-2xl",
+        "group relative flex flex-col p-6 md:p-8 rounded-2xl w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]",
         "bg-base-200/30 backdrop-blur-sm",
         "border border-white/5",
         "shadow-card",

@@ -1,124 +1,14 @@
 import { cn } from "../lib/utils";
-import { BlockchainIcon, EdaIcon, EngineeringIcon, DatabaseIcon } from "./icons";
 import { CometEffect } from "./ui";
 import { useScrollAnimation } from "../hooks";
-
-interface Project {
-  title: string;
-  description: string;
-  url?: string;
-}
-
-interface ProjectSection {
-  id: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  icon: React.ReactNode;
-  projects: Project[];
-}
-
-const SECTIONS: ProjectSection[] = [
-  {
-    id: "blockchain",
-    title: "Blockchain & Crypto",
-    subtitle: "Decentralized solutions powering the future of finance and social media",
-    description:
-      "Experience dating back to 2014 with Keyhotee. Specializing in Hive blockchain with custom framework handling thousands of transactions per second.",
-    icon: <BlockchainIcon className="w-12 h-12" />,
-    projects: [
-      {
-        title: "Hive Blockchain",
-        description:
-          "Hive has redefined social media by building a living, breathing, and growing social economy - a community where users are rewarded for sharing their voice. It's a new kind of attention economy.",
-        url: "https://hive.blog",
-      },
-      {
-        title: "BlockTrades",
-        description:
-          "BlockTrades enables users to rapidly and safely purchase cryptocurrencies without the hassles typically associated with purchasing through a centralized cryptocurrency exchange.",
-      },
-      {
-        title: "BEOS Blockchain",
-        description:
-          "This project implemented unique and unheard of ideas in the blockchain world. Location-dependent rules of operation, automatically adjusted to current requirements.",
-      },
-      {
-        title: "Peerplays",
-        description:
-          "The first decentralized global betting platform, using Graphene technology and Delegated Proof of Stake (DPoS) to provide the fastest, most decentralized blockchain consensus model.",
-        url: "https://www.peerplays.com/",
-      },
-    ],
-  },
-  {
-    id: "eda-engineering",
-    title: "EDA & Engineering",
-    subtitle: "Electronic design automation tools and simulation software",
-    description:
-      "Over a dozen years developing HDL compiler, simulation and advanced debugging tools for large scale System Verilog models. Development of CAD & CAE software used at design and verification processes at biggest engineering companies worldwide.",
-    icon: <EdaIcon className="w-12 h-12" />,
-    projects: [
-      {
-        title: "SynaptiCAD - Verilogger",
-        description:
-          "SynaptiCAD Verilogger Extreme bundle consists of a HDL GUI debugger (BugHunter Pro) and a command-line based Verilog compiler (simx).",
-        url: "http://www.syncad.com/vlg_verilog_compiler_simulator.htm",
-      },
-      {
-        title: "SynaptiCAD - BugHunter Pro",
-        description:
-          "Graphical Debugging for Verilog, VHDL, and C++ simulators.",
-        url: "http://www.syncad.com/vhdl_verilog_debugger.htm",
-      },
-      {
-        title: "SynaptiCAD - Test Bench Generators",
-        description:
-          "TestBencher Pro is a graphical test bench generator that dramatically reduces the time required to create and maintain test benches for VHDL and Verilog.",
-        url: "http://www.syncad.com/testbencher_verilog_vhdl_testbench_generator.htm",
-      },
-      {
-        title: "ModelCenter Integrate",
-        description:
-          "ModelCenter Integrate increases productivity by enabling users to execute significantly more simulations with less time and resources.",
-      },
-    ],
-  },
-  {
-    id: "data-systems",
-    title: "Data Systems",
-    subtitle: "Database solutions and data center infrastructure management",
-    description:
-      "Experienced in RDBMS and modern non-SQL databases like RocksDB and Neo4J, offering critical write throughput and efficient object traversal.",
-    icon: <DatabaseIcon className="w-12 h-12" />,
-    projects: [
-      {
-        title: "RDBMS - WSMS",
-        description:
-          "Data access and business logic layers being foundations of Workstation Management System (WSMS) owned by Prointegra company.",
-        url: "http://www.prointegra.com.pl/system-wsms/",
-      },
-      {
-        title: "NonSQL DB Engine",
-        description:
-          "Unique engine allowing to model extensible user defined entities. Used in MetaModel Base and Uptime-DC products.",
-        url: "http://www.prointegra.com.pl/714-2/",
-      },
-      {
-        title: "Uptime-DC",
-        description:
-          "Comprehensive data center infrastructure management system for monitoring and controlling critical facilities.",
-        url: "http://uptime-dc.com/",
-      },
-    ],
-  },
-];
+import { SECTIONS } from "./our-works-data";
+import type { Project, ProjectSection } from "./our-works-data";
 
 /**
  * Our Works section component
- * Displays projects grouped into 3 distinct sections
+ * Displays projects grouped into 7 distinct sections
  * Features:
- * - Section-based grouping (no tabs)
+ * - Section-based grouping
  * - Responsive grid layout
  * - Scroll-triggered animations per section
  * - Staggered card animations
@@ -205,11 +95,8 @@ function ProjectSectionBlock({ section }: ProjectSectionBlockProps) {
       <CometEffect />
 
       {/* Section header */}
-      <div className="flex items-start gap-5 mb-6 relative z-10">
-        <div className="flex-shrink-0 text-secondary transition-transform duration-300 group-hover/section:scale-105">
-          {section.icon}
-        </div>
-        <div className="pt-1">
+      <div className="mb-6 relative z-10">
+        <div>
           <h3 className={cn(
             "text-xl md:text-2xl font-bold mb-2",
             "transition-colors duration-300",
@@ -230,7 +117,9 @@ function ProjectSectionBlock({ section }: ProjectSectionBlockProps) {
           "grid gap-4 relative z-10",
           section.projects.length === 3
             ? "grid-cols-1 md:grid-cols-3"
-            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+            : section.projects.length <= 4
+            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         )}
       >
         {section.projects.map((project) => (

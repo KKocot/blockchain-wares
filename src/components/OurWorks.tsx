@@ -1,21 +1,46 @@
+import { useState, useCallback, useMemo } from "react";
 import { cn } from "../lib/utils";
-import { CometEffect } from "./ui";
-import { useScrollAnimation } from "../hooks";
+import { useScrollAnimation, useAutoRotate } from "../hooks";
 import { SECTIONS } from "./our-works-data";
-import type { Project, ProjectSection } from "./our-works-data";
+import { SectionNav, ContentPanel, MobileTabs } from "./our-works";
 
 /**
- * Our Works section component
- * Displays projects grouped into 7 distinct sections
- * Features:
- * - Section-based grouping
- * - Responsive grid layout
- * - Scroll-triggered animations per section
- * - Staggered card animations
- * - Hover effects on project cards
+ * Our Works section — two-panel layout
+ *
+ * Desktop: sticky sidebar navigation (left ~35%) + content panel (right ~65%)
+ * Mobile: horizontal scroll tabs + stacked content below
+ *
+ * Auto-rotates through sections with a progress bar indicator.
  */
 export function OurWorks() {
   const { ref, is_visible } = useScrollAnimation<HTMLElement>();
+  const [active_id, set_active_id] = useState<string>(SECTIONS[0]?.id ?? "");
+
+  const active_index = useMemo(
+    () => SECTIONS.findIndex((s) => s.id === active_id),
+    [active_id]
+  );
+
+  const handle_index_change = useCallback((index: number) => {
+    const section = SECTIONS[index];
+    if (section) set_active_id(section.id);
+  }, []);
+
+  const { is_auto_playing, progress_key, handle_user_select } = useAutoRotate({
+    count: SECTIONS.length,
+    active_index,
+    on_change: handle_index_change,
+  });
+
+  const handle_select = useCallback(
+    (id: string) => {
+      const index = SECTIONS.findIndex((s) => s.id === id);
+      if (index !== -1) handle_user_select(index);
+    },
+    [handle_user_select]
+  );
+
+  const active_section = SECTIONS.find((s) => s.id === active_id) ?? SECTIONS[0];
 
   return (
     <section
@@ -44,9 +69,7 @@ export function OurWorks() {
             )}
           >
             Our{" "}
-            <span className="text-secondary">
-              Works
-            </span>
+            <span className="text-secondary">Works</span>
           </h2>
 
           <p
@@ -61,142 +84,38 @@ export function OurWorks() {
           </p>
         </div>
 
-        {/* Project sections */}
-        <div className="space-y-12 md:space-y-16">
-          {SECTIONS.map((section) => (
-            <ProjectSectionBlock
-              key={section.id}
-              section={section}
-            />
-          ))}
+        {/* Mobile tabs — visible below md */}
+        <div className="md:hidden mb-6">
+          <MobileTabs
+            sections={SECTIONS}
+            active_id={active_id}
+            on_select={handle_select}
+            is_auto_playing={is_auto_playing}
+            progress_key={progress_key}
+          />
+        </div>
+
+        {/* Two-panel layout — desktop */}
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10">
+          {/* Left sidebar — hidden on mobile, sticky on desktop */}
+          <aside className="hidden md:block md:w-[35%] lg:w-[32%] shrink-0">
+            <div className="sticky top-24">
+              <SectionNav
+                sections={SECTIONS}
+                active_id={active_id}
+                on_select={handle_select}
+                is_auto_playing={is_auto_playing}
+                progress_key={progress_key}
+              />
+            </div>
+          </aside>
+
+          {/* Right content panel */}
+          <div className="flex-1 min-w-0">
+            <ContentPanel section={active_section} />
+          </div>
         </div>
       </div>
     </section>
-  );
-}
-
-interface ProjectSectionBlockProps {
-  section: ProjectSection;
-}
-
-function ProjectSectionBlock({ section }: ProjectSectionBlockProps) {
-  return (
-    <div
-      className={cn(
-        "group/section relative p-4 md:p-6 rounded-2xl",
-        "bg-base-200/30 backdrop-blur-sm",
-        "border border-white/5",
-        "shadow-card",
-        "transition-all duration-300",
-        "hover:bg-base-200/50 hover:border-secondary/20",
-        "hover:shadow-card-hover"
-      )}
-    >
-      <CometEffect />
-
-      {/* Section header */}
-      <div className="mb-6 relative z-10">
-        <div>
-          <h3 className={cn(
-            "text-xl md:text-2xl font-bold mb-2",
-            "transition-colors duration-300",
-            "group-hover/section:text-secondary"
-          )}>
-            {section.title}
-          </h3>
-          <p className="text-sm text-base-content/60 mb-2">{section.subtitle}</p>
-          <p className="text-sm md:text-base text-base-content/60 leading-relaxed">
-            {section.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Projects grid */}
-      <div
-        className={cn(
-          "grid gap-4 relative z-10",
-          section.projects.length === 3
-            ? "grid-cols-1 md:grid-cols-3"
-            : section.projects.length <= 4
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
-            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-        )}
-      >
-        {section.projects.map((project) => (
-          <ProjectCard
-            key={project.title}
-            {...project}
-          />
-        ))}
-      </div>
-
-      {/* Accent line */}
-      <div
-        className={cn(
-          "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
-          "bg-secondary transition-all duration-300",
-          "group-hover/section:h-1/3"
-        )}
-      />
-    </div>
-  );
-}
-
-interface ProjectCardProps extends Project {}
-
-function ProjectCard({ title, description, url }: ProjectCardProps) {
-  return (
-    <article
-      className={cn(
-        "group relative p-4 rounded-xl h-full flex flex-col",
-        "bg-base-100/50 border border-white/5",
-        "shadow-sm",
-        "transition-all duration-300",
-        "hover:bg-base-100/70 hover:border-secondary/20",
-        "hover:shadow-md",
-        "hover:-translate-y-1"
-      )}
-    >
-      <CometEffect />
-      <div className="relative z-10 flex flex-col h-full">
-        <h4 className="text-base font-bold mb-2 group-hover:text-secondary transition-colors">
-          {title}
-        </h4>
-
-        <p className="text-sm text-base-content/60 leading-relaxed mb-3 flex-grow">
-          {description}
-        </p>
-
-        {url && (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              "inline-flex items-center gap-2 text-sm font-medium",
-              "text-secondary hover:text-secondary/80",
-              "transition-all duration-300"
-            )}
-            aria-label={`Learn more about ${title}`}
-          >
-            Learn more
-            <svg
-              className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </a>
-        )}
-      </div>
-    </article>
   );
 }

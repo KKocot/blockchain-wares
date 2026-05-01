@@ -46,8 +46,9 @@ export function OurWorks() {
     <section
       ref={ref}
       id="works"
-      className="relative py-16 md:py-24 lg:py-32 px-4"
+      className="relative min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
     >
+      <div className="w-full">
       <div className="relative z-10 max-w-6xl mx-auto w-full">
         {/* Section header */}
         <div className="text-center mb-12 md:mb-16">
@@ -115,6 +116,7 @@ export function OurWorks() {
             <ContentPanel section={active_section} />
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

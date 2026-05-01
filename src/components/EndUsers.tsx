@@ -33,8 +33,9 @@ export function EndUsers() {
   return (
     <section
       id="end-users"
-      className="relative py-24 px-4 overflow-hidden bg-base-100"
+      className="relative min-h-screen flex items-center py-24 px-4 overflow-hidden"
     >
+      <div className="w-full">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-5">
         <div
@@ -111,6 +112,7 @@ export function EndUsers() {
             Clients from our EDA tools era and blockchain ecosystem
           </p>
         </div>
+      </div>
       </div>
     </section>
   );

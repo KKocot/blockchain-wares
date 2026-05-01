@@ -30,6 +30,15 @@ export function Hero() {
             height: "600px",
           }}
         />
+        {/* Bottom fade-out: smoothly blend Hero into the next section */}
+        <div
+          className="absolute bottom-0 left-0 right-0 pointer-events-none"
+          style={{
+            height: "40%",
+            background:
+              "linear-gradient(to bottom, transparent 0%, oklch(12% 0.042 264.695) 100%)",
+          }}
+        />
       </div>
 
       {/* Main content */}

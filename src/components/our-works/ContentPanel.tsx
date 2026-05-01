@@ -77,7 +77,7 @@ export const ContentPanel = memo(function ContentPanel({
       role="tabpanel"
       id={`tabpanel-${section.id}`}
       aria-labelledby={`tab-${section.id}`}
-      className="min-h-[24rem]"
+      className="h-auto md:h-[50rem] lg:h-[42rem] overflow-hidden"
     >
       <AnimatePresence mode="wait">
         <motion.div

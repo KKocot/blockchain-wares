@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@plugin "daisyui";
+
 /* DaisyUI Theme Configuration */
 @plugin "daisyui/theme" {
   name: "blockchainwares";

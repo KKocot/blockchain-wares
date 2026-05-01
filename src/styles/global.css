@@ -1317,6 +1317,12 @@ body {
   animation: subtle-pulse 2s ease-in-out infinite;
 }
 
+/* Our Works — auto-rotate progress bar */
+@keyframes progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,

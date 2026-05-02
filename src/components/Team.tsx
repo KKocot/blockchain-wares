@@ -63,12 +63,11 @@ export function Team() {
 
         <div
           className={cn(
-            "group relative p-4 md:p-6 rounded-2xl",
+            "relative p-4 md:p-6 rounded-2xl",
             "bg-base-200/30 backdrop-blur-sm",
             "border border-white/5",
             "shadow-card",
-            "transition-all duration-300",
-            "hover:bg-base-200/50 hover:border-secondary/20",
+            "transition-shadow duration-300",
             "hover:shadow-card-hover",
             "scale-in stagger-3",
             is_visible && "is-visible"
@@ -86,11 +85,7 @@ export function Team() {
                   height={757}
                   loading="lazy"
                   decoding="async"
-                  className={cn(
-                    "w-full h-full object-cover",
-                    "transition-transform duration-700 ease-out",
-                    "group-hover:scale-105"
-                  )}
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target;
                     if (target instanceof HTMLImageElement) {
@@ -118,15 +113,6 @@ export function Team() {
               </div>
             </div>
           </div>
-
-          {/* Accent line */}
-          <div
-            className={cn(
-              "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
-              "bg-secondary transition-all duration-300",
-              "group-hover:h-1/3"
-            )}
-          />
         </div>
       </div>
       </div>

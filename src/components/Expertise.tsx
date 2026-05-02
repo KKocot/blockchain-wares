@@ -182,14 +182,12 @@ function ExpertiseCard({
   return (
     <div
       className={cn(
-        "group relative p-4 md:p-6 rounded-2xl",
+        "relative p-4 md:p-6 rounded-2xl",
         "bg-base-200/30 backdrop-blur-sm",
         "border border-white/5",
         "shadow-card",
-        "transition-all duration-300",
-        "hover:bg-base-200/50 hover:border-secondary/20",
+        "transition-shadow duration-300",
         "hover:shadow-card-hover",
-        "hover:-translate-y-1",
         "fade-up",
         stagger_class,
         is_visible && "is-visible"
@@ -199,17 +197,11 @@ function ExpertiseCard({
 
       {/* Header: Icon + Title/Description */}
       <div className="flex items-start gap-5 relative z-10">
-        <div className="flex-shrink-0 text-secondary transition-transform duration-300 group-hover:scale-105">
+        <div className="flex-shrink-0 text-secondary">
           {icon}
         </div>
         <div className="pt-2">
-          <h3
-            className={cn(
-              "text-xl md:text-2xl font-bold mb-3",
-              "transition-colors duration-300",
-              "group-hover:text-secondary"
-            )}
-          >
+          <h3 className="text-xl md:text-2xl font-bold mb-3">
             {title}
           </h3>
           <p className="text-sm md:text-base text-base-content/60 leading-relaxed">
@@ -217,15 +209,6 @@ function ExpertiseCard({
           </p>
         </div>
       </div>
-
-      {/* Accent line */}
-      <div
-        className={cn(
-          "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
-          "bg-secondary transition-all duration-300",
-          "group-hover:h-1/3"
-        )}
-      />
     </div>
   );
 }

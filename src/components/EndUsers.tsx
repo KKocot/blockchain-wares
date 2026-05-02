@@ -33,17 +33,9 @@ export function EndUsers() {
   return (
     <section
       id="end-users"
-      className="relative min-h-screen flex items-center py-24 px-4 overflow-hidden"
+      className="relative min-h-screen flex items-center py-24 px-4"
     >
       <div className="w-full">
-      {/* Background decoration */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute top-0 left-1/4 w-96 h-96 bg-secondary blur-3xl"
-          style={{ transform: "translate(-50%, -50%)" }}
-        />
-      </div>
-
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -60,8 +52,8 @@ export function EndUsers() {
         {/* Infinite scroll carousel */}
         <div className="relative">
           {/* Gradient overlays */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-r from-base-100 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-l from-base-100 to-transparent z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-r from-base-100/80 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-l from-base-100/80 to-transparent z-10" />
 
           {/* Carousel container */}
           <div className="overflow-hidden">

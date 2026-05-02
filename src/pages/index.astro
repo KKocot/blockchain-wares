@@ -16,14 +16,13 @@ import {
 
 <Layout>
   <Navigation client:load />
-  <Hero client:load />
 
-  <div class="relative" style="overflow: clip;">
+  <div class="relative bg-base-100" style="overflow: clip;">
     <div class="absolute inset-0 pointer-events-none" style="z-index: 0;">
-      <!-- Blob 1: starts with negative top to overlap Hero fade-out zone -->
+      <!-- Blob 1: covers Hero area from the top -->
       <div
         class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
-        style="top: -300px; left: 15%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.12) 0%, transparent 70%);"
+        style="top: 0; left: 15%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.12) 0%, transparent 70%);"
       ></div>
 
       <!-- Blobs 2-12: overlapping distribution for seamless coverage -->
@@ -84,6 +83,7 @@ import {
     </div>
 
     <div class="relative" style="z-index: 1;">
+      <Hero client:load />
       <About client:visible />
       <Expertise client:visible />
       <OurWorks client:visible />

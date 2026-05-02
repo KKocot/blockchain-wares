@@ -10,7 +10,7 @@ import { BlockchainGrid } from "./BlockchainGrid";
  */
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-base-100">
+    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
       {/* 3D blockchain grid background */}
       <div className="absolute inset-0">
         <BlockchainGrid />
@@ -28,15 +28,6 @@ export function Hero() {
               "radial-gradient(circle, oklch(71% 0.143 215.221 / 0.1) 0%, transparent 70%)",
             width: "600px",
             height: "600px",
-          }}
-        />
-        {/* Bottom fade-out: smoothly blend Hero into the next section */}
-        <div
-          className="absolute bottom-0 left-0 right-0 pointer-events-none"
-          style={{
-            height: "40%",
-            background:
-              "linear-gradient(to bottom, transparent 0%, oklch(12% 0.042 264.695) 100%)",
           }}
         />
       </div>

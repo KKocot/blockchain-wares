@@ -212,7 +212,7 @@ function StatCard({ stat, index, is_in_view }: { stat: Stat; index: number; is_i
 
   return (
     <div className={cn(
-      "relative group",
+      "relative",
       "scale-in",
       `stagger-${index + 1}`,
       is_in_view && "is-visible"
@@ -222,9 +222,8 @@ function StatCard({ stat, index, is_in_view }: { stat: Stat; index: number; is_i
         "bg-base-200/30 backdrop-blur-sm",
         "border border-white/5",
         "shadow-lg shadow-black/20",
-        "transition-all duration-300",
-        "hover:bg-base-200/50 hover:border-secondary/20",
-        "hover:shadow-xl"
+        "transition-shadow duration-300",
+        "hover:shadow-card-hover"
       )}>
         <div className="text-2xl md:text-4xl lg:text-5xl font-bold text-secondary mb-1 md:mb-2">
           {display_value}{stat.suffix}
@@ -233,11 +232,6 @@ function StatCard({ stat, index, is_in_view }: { stat: Stat; index: number; is_i
           {stat.label}
         </div>
       </div>
-      {/* Glow effect on hover */}
-      <div className={cn(
-        "absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100",
-        "bg-secondary/5 blur-xl transition-opacity duration-300 -z-10"
-      )} />
     </div>
   );
 }
@@ -328,14 +322,12 @@ export function About() {
               <div
                 key={prop.title}
                 className={cn(
-                  "group relative p-4 md:p-6 rounded-xl md:rounded-2xl",
+                  "relative p-4 md:p-6 rounded-xl md:rounded-2xl",
                   "bg-base-200/30 backdrop-blur-sm",
                   "border border-white/5",
                   "shadow-lg shadow-black/20",
-                  "hover:bg-base-200/50 hover:border-secondary/20",
-                  "hover:shadow-xl",
-                  "hover:translate-x-2",
-                  "transition-all duration-300",
+                  "transition-shadow duration-300",
+                  "hover:shadow-card-hover",
                   "fade-right",
                   `stagger-${index + 1}`,
                   section_visible && "is-visible"
@@ -346,15 +338,12 @@ export function About() {
                     "flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-lg md:rounded-xl",
                     "bg-secondary/10 text-secondary",
                     "flex items-center justify-center",
-                    "shadow-md",
-                    "transition-all duration-300",
-                    "group-hover:bg-secondary group-hover:text-secondary-content",
-                    "group-hover:shadow-lg"
+                    "shadow-md"
                   )}>
                     {prop.icon}
                   </div>
                   <div>
-                    <h3 className="text-base md:text-lg font-semibold mb-0.5 md:mb-1 group-hover:text-secondary transition-colors">
+                    <h3 className="text-base md:text-lg font-semibold mb-0.5 md:mb-1">
                       {prop.title}
                     </h3>
                     <p className="text-xs md:text-sm text-base-content/60">
@@ -362,12 +351,6 @@ export function About() {
                     </p>
                   </div>
                 </div>
-                {/* Accent line */}
-                <div className={cn(
-                  "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
-                  "bg-secondary transition-all duration-300",
-                  "group-hover:h-1/2"
-                )} />
               </div>
             ))}
           </div>

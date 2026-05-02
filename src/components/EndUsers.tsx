@@ -1,110 +1,108 @@
-/**
- * EndUsers section component
- * Features:
- * - Industry leaders who used EDA tools
- * - Infinite scroll carousel (CSS animation - more performant)
- * - Pause on hover
- * - Gradient fade edges
- * - Responsive layout
- */
+import { cn } from "../lib/utils";
+import { useScrollAnimation } from "../hooks";
+import { companies } from "./end-users-data";
+
 export function EndUsers() {
-
-  const end_users = [
-    "AT&T",
-    "Atmel",
-    "BlockTrades",
-    "Fujitsu",
-    "Hewlett-Packard",
-    "IBM Corporation",
-    "Intel Corporation",
-    "Lexmark International Inc.",
-    "Motorola",
-    "NASA",
-    "Peerplays",
-    "Phoenix Integration",
-    "Phoenix Technologies",
-    "Prointegra",
-    "Texas Instruments",
-    "US Government",
-  ];
-
-  const duplicated_users = [...end_users, ...end_users];
+  const { ref, is_visible } = useScrollAnimation<HTMLElement>();
 
   return (
     <section
+      ref={ref}
       id="end-users"
-      className="relative min-h-screen flex items-center py-24 px-4"
+      className="relative min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
     >
       <div className="w-full">
-      <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            Trusted By{" "}
-            <span className="text-secondary">Industry Leaders</span>
-          </h2>
-          <p className="text-base md:text-lg text-base-content/70 max-w-2xl mx-auto">
-            Our EDA tools and software solutions have been deployed by Fortune
-            500 companies, government agencies, and technology pioneers worldwide
-          </p>
-        </div>
+        <div className="max-w-6xl mx-auto w-full relative z-10">
+          <div className="text-center mb-12 md:mb-16">
+            <span
+              className={cn(
+                "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
+                "fade-up",
+                is_visible && "is-visible"
+              )}
+            >
+              Our Clients
+            </span>
 
-        {/* Infinite scroll carousel */}
-        <div className="relative">
-          {/* Gradient overlays */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-r from-base-100/80 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-l from-base-100/80 to-transparent z-10" />
+            <h2
+              className={cn(
+                "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
+                "fade-up stagger-1",
+                is_visible && "is-visible"
+              )}
+            >
+              Trusted By{" "}
+              <span className="text-secondary">Industry Leaders</span>
+            </h2>
 
-          {/* Carousel container */}
-          <div className="overflow-hidden">
-            <style>
-              {`
-                @keyframes marquee-scroll {
-                  0% { transform: translateX(0); }
-                  100% { transform: translateX(-50%); }
-                }
+            <p
+              className={cn(
+                "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+                "fade-up stagger-2",
+                is_visible && "is-visible"
+              )}
+            >
+              Our EDA tools and software solutions have been deployed by Fortune
+              500 companies, government agencies, and technology pioneers
+              worldwide
+            </p>
+          </div>
 
-                .marquee-container {
-                  animation: marquee-scroll 30s linear infinite;
-                  width: fit-content;
-                }
-
-                .marquee-container:hover {
-                  animation-play-state: paused;
-                }
-
-                @media (prefers-reduced-motion: reduce) {
-                  .marquee-container {
-                    animation: none;
-                  }
-                }
-              `}
-            </style>
-            <div className="marquee-container flex gap-8 md:gap-12">
-              {/* Using index as key is acceptable here for carousel duplication */}
-              {duplicated_users.map((company, index) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6">
+            {companies.map((company, index) => (
+              <a
+                key={company.name}
+                href={company.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
                 <div
-                  key={`${company}-${index}`}
-                  className="flex-shrink-0 px-6 py-8 min-w-[200px] md:min-w-[280px]"
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2",
+                    "h-24 md:h-28",
+                    "bg-base-200/30 backdrop-blur-sm",
+                    "border border-white/5 rounded-xl",
+                    "transition-all duration-300",
+                    "hover:border-secondary/20 hover:bg-base-200/50",
+                    "scale-in",
+                    `stagger-${3 + Math.min(index, 3)}`,
+                    is_visible && "is-visible"
+                  )}
                 >
-                  <div className="text-center group cursor-default">
-                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-base-content opacity-60 group-hover:opacity-100 group-hover:text-secondary transition-all duration-300 whitespace-nowrap">
-                      {company}
-                    </p>
-                  </div>
+                  {company.logoFile ? (
+                    <>
+                      <img
+                        src={`/assets/logos/${company.logoFile}`}
+                        alt={company.name}
+                        className="h-6 md:h-8 w-auto opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                      />
+                      <span className="text-xs md:text-sm text-base-content/50 group-hover:text-secondary/80 transition-colors duration-300">
+                        {company.name}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm md:text-base font-semibold text-base-content/60 group-hover:text-secondary transition-colors duration-300">
+                      {company.name}
+                    </span>
+                  )}
                 </div>
-              ))}
-            </div>
+              </a>
+            ))}
+          </div>
+
+          <div
+            className={cn(
+              "text-center mt-12",
+              "fade-up stagger-4",
+              is_visible && "is-visible"
+            )}
+          >
+            <p className="text-sm text-base-content/70 italic">
+              Clients from our EDA tools era and blockchain ecosystem
+            </p>
           </div>
         </div>
-
-        {/* Footer note */}
-        <div className="text-center mt-12">
-          <p className="text-sm text-base-content/70 italic">
-            Clients from our EDA tools era and blockchain ecosystem
-          </p>
-        </div>
-      </div>
       </div>
     </section>
   );

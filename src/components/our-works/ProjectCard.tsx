@@ -30,17 +30,15 @@ export const ProjectCard = memo(function ProjectCard({ title, description, url, 
       initial="hidden"
       animate="visible"
       className={cn(
-        "group relative p-4 rounded-xl h-full flex flex-col",
+        "relative p-4 rounded-xl h-full flex flex-col",
         "bg-base-100/50 border border-white/5",
         "shadow-sm",
-        "transition-all duration-300",
-        "hover:bg-base-100/70 hover:border-secondary/20",
-        "hover:shadow-md",
-        "hover:-translate-y-1"
+        "transition-shadow duration-300",
+        "hover:shadow-card-hover"
       )}
     >
       <div className="relative z-10 flex flex-col h-full">
-        <h4 className="text-base font-bold mb-2 group-hover:text-secondary transition-colors">
+        <h4 className="text-base font-bold mb-2">
           {title}
         </h4>
 
@@ -62,7 +60,7 @@ export const ProjectCard = memo(function ProjectCard({ title, description, url, 
           >
             Learn more
             <svg
-              className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

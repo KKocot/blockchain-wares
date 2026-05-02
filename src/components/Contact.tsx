@@ -75,23 +75,18 @@ export function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div
             className={cn(
-              "group relative p-4 md:p-6 rounded-2xl",
+              "relative p-4 md:p-6 rounded-2xl",
               "bg-base-200/30 backdrop-blur-sm",
               "border border-white/5",
               "shadow-card",
-              "transition-all duration-300",
-              "hover:bg-base-200/50 hover:border-secondary/20",
+              "transition-shadow duration-300",
               "hover:shadow-card-hover",
               "fade-left stagger-3",
               is_visible && "is-visible"
             )}
           >
             <CometEffect />
-            <h3 className={cn(
-              "text-xl md:text-2xl font-bold mb-3",
-              "transition-colors duration-300",
-              "group-hover:text-secondary"
-            )}>
+            <h3 className="text-xl md:text-2xl font-bold mb-3">
               Contact Information
             </h3>
             <p className="text-sm md:text-base text-base-content/60 leading-relaxed mb-6">
@@ -103,25 +98,15 @@ export function Contact() {
                 <ContactItem key={item.label} {...item} />
               ))}
             </div>
-
-            {/* Accent line */}
-            <div
-              className={cn(
-                "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
-                "bg-secondary transition-all duration-300",
-                "group-hover:h-1/3"
-              )}
-            />
           </div>
 
           <div
             className={cn(
-              "group relative p-4 md:p-6 rounded-2xl",
+              "relative p-4 md:p-6 rounded-2xl",
               "bg-base-200/30 backdrop-blur-sm",
               "border border-white/5",
               "shadow-card",
-              "transition-all duration-300",
-              "hover:bg-base-200/50 hover:border-secondary/20",
+              "transition-shadow duration-300",
               "hover:shadow-card-hover",
               "fade-right stagger-4",
               is_visible && "is-visible"
@@ -139,15 +124,6 @@ export function Contact() {
                 title="BlockchainWares Location"
               />
             </div>
-
-            {/* Accent line */}
-            <div
-              className={cn(
-                "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
-                "bg-secondary transition-all duration-300",
-                "group-hover:h-1/3"
-              )}
-            />
           </div>
         </div>
       </div>
@@ -163,20 +139,14 @@ function ContactItem({ label, value, link, icon }: ContactInfo) {
   const content = (
     <div
       className={cn(
-        "group/item flex items-start gap-4 p-3 rounded-xl",
+        "flex items-start gap-4 p-3 rounded-xl",
         "bg-base-100/30 border border-white/5",
         "shadow-sm",
-        "transition-all duration-300",
-        link && "hover:bg-base-100/50 hover:border-secondary/20 hover:shadow-md cursor-pointer"
+        "transition-shadow duration-300",
+        link && "hover:shadow-card-hover cursor-pointer"
       )}
     >
-      <div
-        className={cn(
-          "text-2xl flex-shrink-0",
-          "transition-transform duration-300",
-          link && "group-hover/item:scale-110"
-        )}
-      >
+      <div className="text-2xl flex-shrink-0">
         {icon}
       </div>
 
@@ -184,12 +154,7 @@ function ContactItem({ label, value, link, icon }: ContactInfo) {
         <p className="text-xs text-base-content/50 font-semibold uppercase tracking-wider">
           {label}
         </p>
-        <p
-          className={cn(
-            "text-sm text-base-content/80 leading-relaxed",
-            link && "group-hover/item:text-secondary transition-colors"
-          )}
-        >
+        <p className="text-sm text-base-content/80 leading-relaxed">
           {value}
         </p>
       </div>

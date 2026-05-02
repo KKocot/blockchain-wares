@@ -124,14 +124,12 @@ function JobPositionCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col p-6 md:p-8 rounded-2xl w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]",
+        "relative flex flex-col p-6 md:p-8 rounded-2xl w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]",
         "bg-base-200/30 backdrop-blur-sm",
         "border border-white/5",
         "shadow-card",
-        "transition-all duration-300",
-        "hover:bg-base-200/50 hover:border-secondary/20",
+        "transition-shadow duration-300",
         "hover:shadow-card-hover",
-        "hover:-translate-y-1",
         "fade-up",
         `stagger-${index + 3}`,
         is_visible && "is-visible"
@@ -139,11 +137,7 @@ function JobPositionCard({
     >
       <CometEffect />
       <div className="relative z-20 flex-1">
-        <h3 className={cn(
-          "text-xl md:text-2xl font-bold mb-3",
-          "transition-colors duration-300",
-          "group-hover:text-secondary"
-        )}>
+        <h3 className="text-xl md:text-2xl font-bold mb-3">
           {title}
         </h3>
 
@@ -162,15 +156,6 @@ function JobPositionCard({
           Apply Now
         </Button>
       </div>
-
-      {/* Accent line */}
-      <div
-        className={cn(
-          "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 rounded-full",
-          "bg-secondary transition-all duration-300",
-          "group-hover:h-1/3"
-        )}
-      />
     </div>
   );
 }

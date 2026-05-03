@@ -1,5 +1,4 @@
 export { BlockchainIcon } from "./BlockchainIcon";
-export { BlockchainIcon2 } from "./BlockchainIcon2";
 export { DatabaseIcon } from "./DatabaseIcon";
 export { DevOpsIcon } from "./DevOpsIcon";
 export { EdaIcon } from "./EdaIcon";

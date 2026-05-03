@@ -28,26 +28,9 @@ export function FrontendIcon({ className }: FrontendIconProps) {
 
   return (
     <svg className={className} viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="fe-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="fe-window-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.04" />
-        </linearGradient>
-        <linearGradient id="fe-node-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.08" />
-        </linearGradient>
-      </defs>
-
-      <circle cx="100" cy="80" r="70" fill="url(#fe-glow)" className="frontend-glow" />
-
       {/* Browser window frame */}
       <g className="frontend-window">
-        <rect x="36" y="18" width="128" height="92" rx="6" fill="url(#fe-window-grad)" stroke="currentColor" strokeWidth="2" />
+        <rect x="36" y="18" width="128" height="92" rx="6" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="2" />
         <rect x="36" y="18" width="128" height="18" rx="6" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2" />
         <circle cx="50" cy="27" r="3" fill="currentColor" fillOpacity="0.7" />
         <circle cx="62" cy="27" r="3" fill="currentColor" fillOpacity="0.5" />
@@ -95,7 +78,7 @@ export function FrontendIcon({ className }: FrontendIconProps) {
       <g className="frontend-nodes">
         {module_nodes.map((n, i) => (
           <g key={`nd-${i}`} className={`frontend-node-${i}`}>
-            <circle cx={n.cx} cy={n.cy} r="12" fill="url(#fe-node-grad)" stroke="currentColor" strokeWidth="1.5" />
+            <circle cx={n.cx} cy={n.cy} r="12" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="1.5" />
             <circle cx={n.cx} cy={n.cy} r="7" fill="currentColor" fillOpacity="0.12" stroke="currentColor" strokeWidth="1" strokeOpacity="0.5" />
             <circle cx={n.cx} cy={n.cy} r="3" fill="currentColor" fillOpacity="0.6" />
           </g>

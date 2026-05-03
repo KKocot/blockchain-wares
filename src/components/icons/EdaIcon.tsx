@@ -10,26 +10,6 @@ export function EdaIcon({ className }: EdaIconProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Background glow */}
-      <defs>
-        <radialGradient id="eda-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="chip-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.05" />
-        </linearGradient>
-      </defs>
-
-      <circle
-        cx="100"
-        cy="80"
-        r="70"
-        fill="url(#eda-glow)"
-        className="eda-glow"
-      />
-
       {/* Main chip body */}
       <rect
         x="60"
@@ -37,7 +17,8 @@ export function EdaIcon({ className }: EdaIconProps) {
         width="80"
         height="70"
         rx="4"
-        fill="url(#chip-gradient)"
+        fill="currentColor"
+        fillOpacity="0.12"
         stroke="currentColor"
         strokeWidth="2"
         className="eda-chip"

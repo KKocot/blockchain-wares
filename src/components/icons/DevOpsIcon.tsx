@@ -44,24 +44,6 @@ export function DevOpsIcon({ className }: DevOpsIconProps) {
 
   return (
     <svg className={className} viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="devops-glow" cx="50%" cy="45%" r="50%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="devops-loop-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.3" />
-          <stop offset="50%" stopColor="currentColor" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.25" />
-        </linearGradient>
-        <linearGradient id="devops-ctn-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.05" />
-        </linearGradient>
-      </defs>
-
-      <circle cx="100" cy="75" r="70" fill="url(#devops-glow)" className="devops-glow" />
-
       {/* Cloud symbol */}
       <g className="devops-cloud">
         <path d="M72 18 C72 10, 82 6, 90 10 C94 4, 106 4, 110 10 C118 6, 128 10, 128 18 C134 18, 134 28, 128 28 L72 28 C66 28, 66 18, 72 18 Z" fill="currentColor" fillOpacity="0.06" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.35" />
@@ -72,7 +54,7 @@ export function DevOpsIcon({ className }: DevOpsIconProps) {
       {/* Infinity / Mobius loop */}
       <g className="devops-loop">
         <path d={create_infinity(100, 68, 52, 22)} stroke="currentColor" strokeWidth="8" strokeOpacity="0.05" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <path d={create_infinity(100, 68, 52, 22)} stroke="url(#devops-loop-grad)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d={create_infinity(100, 68, 52, 22)} stroke="currentColor" strokeWidth="3.5" strokeOpacity="0.22" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         <path d={create_infinity(100, 68, 52, 22)} stroke="currentColor" strokeWidth="1" strokeOpacity="0.1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </g>
 
@@ -110,7 +92,7 @@ export function DevOpsIcon({ className }: DevOpsIconProps) {
       <g className="devops-containers">
         {containers.map((c, i) => (
           <g key={`ct-${i}`} className={`devops-container-${i}`}>
-            <rect x={c.x} y={c.y} width={c.w} height={c.h} rx="4" fill="url(#devops-ctn-grad)" stroke="currentColor" strokeWidth="1.5" />
+            <rect x={c.x} y={c.y} width={c.w} height={c.h} rx="4" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="1.5" />
             {layer_offsets(c.x, c.y, c.w).map((l, li) => (
               <rect key={`ly-${i}-${li}`} x={l.x} y={l.y} width={l.w} height={l.h} rx="1.5" fill="currentColor" fillOpacity={l.o} stroke="currentColor" strokeWidth="0.6" strokeOpacity="0.15" />
             ))}

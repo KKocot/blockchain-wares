@@ -3,6 +3,44 @@ interface DatabaseIconProps {
 }
 
 export function DatabaseIcon({ className }: DatabaseIconProps) {
+  // Cylinder geometry constants
+  const cx = 100;
+  const rx = 32;
+  const ry = 10;
+
+  // Three stacked cylinders sharing edges (top ellipse of lower = bottom ellipse of upper)
+  const layers = [
+    { topY: 25, bottomY: 55, fillOpacity: 0.08, label: "top" },
+    { topY: 55, bottomY: 85, fillOpacity: 0.15, label: "mid" },
+    { topY: 85, bottomY: 115, fillOpacity: 0.22, label: "bottom" },
+  ] as const;
+
+  // Data rows inside each cylinder (horizontal lines representing records)
+  const dataRows: Array<{ cy: number; lines: Array<{ x1: number; x2: number }> }> = [
+    {
+      cy: 40,
+      lines: [
+        { x1: 82, x2: 105 },
+        { x1: 88, x2: 118 },
+      ],
+    },
+    {
+      cy: 70,
+      lines: [
+        { x1: 80, x2: 112 },
+        { x1: 85, x2: 104 },
+        { x1: 90, x2: 120 },
+      ],
+    },
+    {
+      cy: 100,
+      lines: [
+        { x1: 84, x2: 116 },
+        { x1: 78, x2: 108 },
+      ],
+    },
+  ];
+
   return (
     <svg
       className={className}
@@ -10,116 +48,123 @@ export function DatabaseIcon({ className }: DatabaseIconProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Main database cylinder (center) */}
       <g className="db-cylinder">
-        {/* Cylinder body */}
-        <rect
-          x="70"
-          y="55"
-          width="60"
-          height="50"
-          rx="2"
-          fill="currentColor"
-          fillOpacity="0.15"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-        {/* Top ellipse */}
+        {layers.map((layer, i) => (
+          <g key={layer.label} className={`db-layer-${i}`}>
+            {/* Cylinder body fill: path from top ellipse arc down to bottom ellipse arc */}
+            <path
+              d={`M${cx - rx},${layer.topY} A${rx},${ry} 0 0,0 ${cx + rx},${layer.topY} L${cx + rx},${layer.bottomY} A${rx},${ry} 0 0,1 ${cx - rx},${layer.bottomY} Z`}
+              fill="currentColor"
+              fillOpacity={layer.fillOpacity}
+              stroke="none"
+            />
+
+            {/* Left side line */}
+            <line
+              x1={cx - rx}
+              y1={layer.topY}
+              x2={cx - rx}
+              y2={layer.bottomY}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeOpacity="0.6"
+            />
+
+            {/* Right side line */}
+            <line
+              x1={cx + rx}
+              y1={layer.topY}
+              x2={cx + rx}
+              y2={layer.bottomY}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeOpacity="0.6"
+            />
+
+            {/* Bottom ellipse (drawn for every cylinder) */}
+            <ellipse
+              cx={cx}
+              cy={layer.bottomY}
+              rx={rx}
+              ry={ry}
+              fill="currentColor"
+              fillOpacity={layer.fillOpacity * 0.6}
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+
+            {/* Data rows (horizontal record lines) */}
+            {dataRows[i].lines.map((line, j) => (
+              <line
+                key={j}
+                x1={line.x1}
+                y1={dataRows[i].cy + j * 7}
+                x2={line.x2}
+                y2={dataRows[i].cy + j * 7}
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeOpacity={0.2 + i * 0.05}
+                strokeLinecap="round"
+              />
+            ))}
+          </g>
+        ))}
+
+        {/* Top ellipse of the top cylinder (lid) - drawn last to layer on top */}
         <ellipse
-          cx="100"
-          cy="55"
-          rx="30"
-          ry="10"
+          cx={cx}
+          cy={layers[0].topY}
+          rx={rx}
+          ry={ry}
+          fill="currentColor"
+          fillOpacity="0.18"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        />
+
+        {/* Data points along left side */}
+        {[38, 52, 68, 82, 98, 112].map((y) => (
+          <circle
+            key={y}
+            cx={58}
+            cy={y}
+            r="1.5"
+            fill="currentColor"
+            fillOpacity="0.2"
+          />
+        ))}
+      </g>
+
+      {/* Query indicator (magnifying glass) — separate layer, drawn last */}
+      <g className="db-magnifier">
+        <circle
+          cx={148}
+          cy={72}
+          r="8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeOpacity="0.25"
+        />
+        <line
+          x1={154}
+          y1={78}
+          x2={160}
+          y2={84}
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeOpacity="0.25"
+          strokeLinecap="round"
+        />
+        {/* Small dot inside magnifying glass */}
+        <circle
+          cx={148}
+          cy={72}
+          r="2"
           fill="currentColor"
           fillOpacity="0.2"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-        {/* Middle layer line */}
-        <ellipse
-          cx="100"
-          cy="75"
-          rx="30"
-          ry="10"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="db-layer-1"
-        />
-        {/* Bottom layer line */}
-        <ellipse
-          cx="100"
-          cy="95"
-          rx="30"
-          ry="10"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="db-layer-2"
-        />
-        {/* Bottom ellipse */}
-        <ellipse
-          cx="100"
-          cy="105"
-          rx="30"
-          ry="10"
-          fill="currentColor"
-          fillOpacity="0.1"
-          stroke="currentColor"
-          strokeWidth="2"
         />
       </g>
-
-      {/* Graph nodes (Neo4J style) - left cluster */}
-      <g className="db-node-cluster-left">
-        <circle cx="28" cy="45" r="10" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2" />
-        <circle cx="28" cy="45" r="4" fill="currentColor" fillOpacity="0.6" />
-
-        <circle cx="22" cy="80" r="10" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2" />
-        <circle cx="22" cy="80" r="4" fill="currentColor" fillOpacity="0.6" />
-
-        <circle cx="32" cy="115" r="10" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2" />
-        <circle cx="32" cy="115" r="4" fill="currentColor" fillOpacity="0.6" />
-
-        {/* Graph connections */}
-        <line x1="28" y1="55" x2="22" y2="70" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-graph-line-1" />
-        <line x1="22" y1="90" x2="32" y2="105" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-graph-line-2" />
-        <line x1="35" y1="50" x2="38" y2="108" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeDasharray="3 3" className="db-graph-line-3" />
-      </g>
-
-      {/* Graph nodes - right cluster */}
-      <g className="db-node-cluster-right">
-        <circle cx="172" cy="45" r="10" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2" />
-        <circle cx="172" cy="45" r="4" fill="currentColor" fillOpacity="0.6" />
-
-        <circle cx="178" cy="80" r="10" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2" />
-        <circle cx="178" cy="80" r="4" fill="currentColor" fillOpacity="0.6" />
-
-        <circle cx="168" cy="115" r="10" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2" />
-        <circle cx="168" cy="115" r="4" fill="currentColor" fillOpacity="0.6" />
-
-        {/* Graph connections */}
-        <line x1="172" y1="55" x2="178" y2="70" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-graph-line-4" />
-        <line x1="178" y1="90" x2="168" y2="105" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-graph-line-5" />
-        <line x1="165" y1="50" x2="162" y2="108" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeDasharray="3 3" className="db-graph-line-6" />
-      </g>
-
-      {/* Data flow lines - left to center */}
-      <line x1="38" y1="45" x2="70" y2="60" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-flow-1" />
-      <line x1="32" y1="80" x2="70" y2="80" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-flow-2" />
-      <line x1="42" y1="115" x2="70" y2="100" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-flow-3" />
-
-      {/* Data flow lines - center to right */}
-      <line x1="130" y1="60" x2="162" y2="45" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-flow-4" />
-      <line x1="130" y1="80" x2="168" y2="80" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-flow-5" />
-      <line x1="130" y1="100" x2="158" y2="115" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-flow-6" />
-
-      {/* Top indicator - pulsing dot showing activity */}
-      <circle cx="100" cy="30" r="5" fill="currentColor" fillOpacity="0.8" className="db-activity" />
-      <circle cx="100" cy="30" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" className="db-ring" />
-
-      {/* Connection from top indicator to database */}
-      <line x1="100" y1="38" x2="100" y2="45" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="db-status" />
     </svg>
   );
 }

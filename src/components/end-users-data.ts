@@ -1,6 +1,6 @@
 export interface Company {
   name: string;
-  url: string;
+  url?: string;
   logoFile?: string;
 }
 
@@ -17,7 +17,6 @@ export const companies: Company[] = [
   },
   {
     name: "BlockTrades",
-    url: "https://blocktrades.us",
   },
   {
     name: "Fujitsu",
@@ -58,16 +57,15 @@ export const companies: Company[] = [
     url: "https://www.peerplays.com",
   },
   {
+    // Acquired by ANSYS
     name: "Phoenix Integration",
-    url: "https://www.phoenix-int.com",
+    url: "https://www.ansys.com",
   },
   {
     name: "Phoenix Technologies",
-    url: "https://www.phoenix.com",
   },
   {
     name: "Prointegra",
-    url: "https://www.prointegra.com",
   },
   {
     name: "Texas Instruments",

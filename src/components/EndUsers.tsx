@@ -49,14 +49,8 @@ export function EndUsers() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6">
-            {companies.map((company, index) => (
-              <a
-                key={company.name}
-                href={company.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group"
-              >
+            {companies.map((company, index) => {
+              const card = (
                 <div
                   className={cn(
                     "flex flex-col items-center justify-center gap-2",
@@ -87,8 +81,24 @@ export function EndUsers() {
                     </span>
                   )}
                 </div>
-              </a>
-            ))}
+              );
+
+              return company.url ? (
+                <a
+                  key={company.name}
+                  href={company.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group"
+                >
+                  {card}
+                </a>
+              ) : (
+                <div key={company.name} className="group">
+                  {card}
+                </div>
+              );
+            })}
           </div>
 
           <div

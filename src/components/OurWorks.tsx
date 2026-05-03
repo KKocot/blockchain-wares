@@ -40,8 +40,6 @@ export function OurWorks() {
     [handle_user_select]
   );
 
-  const active_section = SECTIONS.find((s) => s.id === active_id) ?? SECTIONS[0];
-
   return (
     <section
       ref={ref}
@@ -113,7 +111,7 @@ export function OurWorks() {
 
           {/* Right content panel */}
           <div className="flex-1 min-w-0">
-            <ContentPanel section={active_section} />
+            <ContentPanel sections={SECTIONS} active_id={active_id} />
           </div>
         </div>
       </div>

@@ -1,28 +1,13 @@
 import { memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "../../lib/utils";
 import type { ProjectSection } from "../our-works-data";
 import { ProjectCard } from "./ProjectCard";
 
 interface ContentPanelProps {
-  section: ProjectSection;
+  sections: ProjectSection[];
+  active_id: string;
 }
-
-const EASE: [number, number, number, number] = [0.44, 0, 0.56, 1];
-
-const PANEL_VARIANTS = {
-  initial: { opacity: 0, y: 12 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: EASE },
-  },
-  exit: {
-    opacity: 0,
-    y: -12,
-    transition: { duration: 0.25, ease: EASE },
-  },
-} as const;
 
 /**
  * Returns responsive grid classes based on project count
@@ -35,7 +20,6 @@ function get_grid_classes(count: number): string {
 
 /**
  * Inner content for a single section — memoized to avoid re-renders
- * when AnimatePresence keeps it mounted during exit animation
  */
 const SectionContent = memo(function SectionContent({
   section,
@@ -65,31 +49,40 @@ const SectionContent = memo(function SectionContent({
 });
 
 /**
- * Right-side content panel for Our Works section
- * Displays the active section's description and project cards
- * with crossfade/slide animations on section change
+ * Content panel for Our Works section
+ *
+ * All sections are rendered simultaneously in the same grid cell (CSS grid overlay).
+ * Container height = tallest section naturally — no layout shift when switching tabs.
+ * Active section crossfades in, inactive sections are hidden with opacity 0.
  */
 export const ContentPanel = memo(function ContentPanel({
-  section,
+  sections,
+  active_id,
 }: ContentPanelProps) {
   return (
     <div
       role="tabpanel"
-      id={`tabpanel-${section.id}`}
-      aria-labelledby={`tab-${section.id}`}
-      className="h-auto md:h-[50rem] lg:h-[42rem] overflow-hidden"
+      aria-labelledby={`tab-${active_id}`}
+      className="grid md:min-h-[32rem]"
     >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={section.id}
-          variants={PANEL_VARIANTS}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-        >
-          <SectionContent section={section} />
-        </motion.div>
-      </AnimatePresence>
+      {sections.map((section) => {
+        const is_active = section.id === active_id;
+        return (
+          <motion.div
+            key={section.id}
+            className={cn(
+              "col-start-1 row-start-1",
+              !is_active && ""
+            )}
+            animate={{ opacity: is_active ? 1 : 0 }}
+            transition={{ duration: 0.35, ease: [0.44, 0, 0.56, 1] }}
+            aria-hidden={!is_active}
+            style={{ pointerEvents: is_active ? "auto" : "none" }}
+          >
+            <SectionContent section={section} />
+          </motion.div>
+        );
+      })}
     </div>
   );
 });

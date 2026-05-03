@@ -17,6 +17,7 @@ export const companies: Company[] = [
   },
   {
     name: "BlockTrades",
+    url: "https://hive.blog/@blocktrades",
   },
   {
     name: "Fujitsu",

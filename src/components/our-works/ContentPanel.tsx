@@ -72,7 +72,7 @@ export const ContentPanel = memo(function ContentPanel({
             key={section.id}
             className={cn(
               "col-start-1 row-start-1",
-              !is_active && ""
+              !is_active && "hidden md:block"
             )}
             animate={{ opacity: is_active ? 1 : 0 }}
             transition={{ duration: 0.35, ease: [0.44, 0, 0.56, 1] }}

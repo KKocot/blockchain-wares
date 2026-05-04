@@ -15,6 +15,91 @@ import {
 ---
 
 <Layout>
+  <!-- Static SSR Splash Screen — renders immediately without JS hydration -->
+  <div
+    id="splash-screen"
+    aria-hidden="true"
+    style="position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:oklch(12% 0.042 264.695);"
+  >
+    <!-- Logo SVG -->
+    <svg
+      style="width:7rem;height:7rem;color:oklch(71% 0.143 215.221);margin-bottom:1.5rem;overflow:visible;"
+      viewBox="0 0 376 381"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        class="splash-cube-top"
+        d="M279.821,53.892 L280.041,161.35 L187.324,215.471 L95.222,161.992 L95,53.697 L187.324,0 L279.821,53.892 Z M124,55.4245884 L187.82302,94.1626305 L251.646039,55.4245884 L187.753367,18 L124,55.4245884 Z M194.410644,185.257007 L259.870283,149.353672 L258.233664,74.7122942 L193.876683,111.332677 L194.410644,185.257007 Z M110.548129,74.7122942 L108.91151,149.353672 L174.371148,185.257007 L174.835456,111.212035 L110.548129,74.7122942 Z"
+        fill="currentColor"
+        style="opacity:0;animation:splash-cube-top 0.8s cubic-bezier(0.16,1,0.3,1) 0s forwards;"
+      />
+      <path
+        class="splash-cube-bottom-left"
+        d="M184.821,218.892 L185.041,326.35 L92.324,380.471 L0.222,326.992 L0,218.697 L92.324,165 L184.821,218.892 Z M29,220.424588 L92.8230196,259.162631 L156.646039,220.424588 L92.7533667,183 L29,220.424588 Z M99.4106443,350.257007 L164.870283,314.353672 L163.233664,239.712294 L98.8766834,276.332677 L99.4106443,350.257007 Z M15.5481286,239.712294 L13.9115098,314.353672 L79.3711482,350.257007 L79.8354562,276.212035 L15.5481286,239.712294 Z"
+        fill="currentColor"
+        style="opacity:0;animation:splash-cube-bottom-left 0.8s cubic-bezier(0.16,1,0.3,1) 0.05s forwards;"
+      />
+      <path
+        class="splash-cube-bottom-right"
+        d="M374.821,218.892 L375.041,326.35 L282.324,380.471 L190.222,326.992 L190,218.697 L282.324,165 L374.821,218.892 Z M219,220.424588 L282.82302,259.162631 L346.646039,220.424588 L282.753367,183 L219,220.424588 Z M289.410644,350.257007 L354.870283,314.353672 L353.233664,239.712294 L288.876683,276.332677 L289.410644,350.257007 Z M205.548129,239.712294 L203.91151,314.353672 L269.371148,350.257007 L269.835456,276.212035 L205.548129,239.712294 Z"
+        fill="currentColor"
+        style="opacity:0;animation:splash-cube-bottom-right 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards;"
+      />
+    </svg>
+
+    <!-- Typewriter company name -->
+    <div
+      style="display:flex;align-items:center;justify-content:center;font-size:1.75rem;font-weight:700;letter-spacing:0.025em;font-family:'Quicksand',system-ui,sans-serif;"
+    >
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.1s forwards;">B</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.16s forwards;">l</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.22s forwards;">o</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.28s forwards;">c</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.34s forwards;">k</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.4s forwards;">c</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.46s forwards;">h</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.52s forwards;">a</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.58s forwards;">i</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.64s forwards;">n</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.7s forwards;">W</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.76s forwards;">a</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.82s forwards;">r</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.88s forwards;">e</span>
+      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.94s forwards;">s</span>
+      <span style="display:inline-block;color:oklch(71% 0.143 215.221);margin-left:0.125rem;animation:splash-blink 0.8s step-end infinite 1.1s;">|</span>
+    </div>
+
+    <!-- Inline script — NOT type="module" to execute immediately -->
+    <script is:inline>
+      (function() {
+        var splash = document.getElementById('splash-screen');
+        if (!splash) return;
+
+        // Respect prefers-reduced-motion
+        var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reducedMotion) {
+          splash.style.display = 'none';
+          return;
+        }
+
+        // Block scroll during splash
+        document.body.style.overflow = 'hidden';
+
+        // Schedule fade out after 2.5s
+        setTimeout(function() {
+          splash.style.transition = 'opacity 0.5s ease-in-out';
+          splash.style.opacity = '0';
+
+          splash.addEventListener('transitionend', function() {
+            splash.remove();
+            document.body.style.overflow = 'auto';
+          }, { once: true });
+        }, 2500);
+      })();
+    </script>
+  </div>
+
   <Navigation client:load />
 
   <div class="relative bg-base-100" style="overflow: clip;">

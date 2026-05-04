@@ -20,7 +20,7 @@ const SectionContent = memo(function SectionContent({
   return (
     <>
       {/* Section title */}
-      <h3 className="text-2xl md:text-3xl font-bold text-secondary mb-3">
+      <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-secondary mb-3">
         {section.title}
       </h3>
 
@@ -30,7 +30,7 @@ const SectionContent = memo(function SectionContent({
       </p>
 
       {/* Projects list */}
-      <div className="flex flex-col divide-y divide-white/5 max-h-[30rem] overflow-y-auto scrollbar-thin pr-2">
+      <div className="flex flex-col divide-y divide-white/5 md:max-h-[30rem] md:overflow-y-auto scrollbar-thin pr-2">
         {section.projects.map((project, index) => (
           <ProjectCard key={project.title} {...project} index={index} />
         ))}
@@ -63,7 +63,7 @@ export const ContentPanel = memo(function ContentPanel({
             key={section.id}
             className={cn(
               "col-start-1 row-start-1",
-              !is_active && "hidden md:block"
+              !is_active && "hidden md:block md:opacity-0 md:pointer-events-none"
             )}
             animate={{ opacity: is_active ? 1 : 0 }}
             transition={{ duration: 0.35, ease: [0.44, 0, 0.56, 1] }}

@@ -44,7 +44,7 @@ export function OurWorks() {
     <section
       ref={ref}
       id="works"
-      className="relative min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
+      className="relative min-h-0 md:min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
     >
       <div className="w-full">
       <div className="relative z-10 max-w-6xl mx-auto w-full">

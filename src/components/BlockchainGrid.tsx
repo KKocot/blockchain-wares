@@ -101,7 +101,7 @@ export function BlockchainGrid() {
     };
 
     const calculate_block_count = (width: number) => {
-      if (width < 640) return 6;
+      if (width < 640) return 4;
       if (width < 1024) return 8;
       if (width < 1440) return 12;
       return 16;
@@ -112,7 +112,7 @@ export function BlockchainGrid() {
       const current_count = blocks_ref.current.length;
       const padding_x = 0.08;
       const padding_y = 0.1;
-      const min_rel_distance = 0.12;
+      const min_rel_distance = width < 640 ? 0.15 : 0.12;
 
       // Update existing block positions
       for (const block of blocks_ref.current) {
@@ -258,8 +258,9 @@ export function BlockchainGrid() {
     };
 
     const draw_block = (ctx: CanvasRenderingContext2D, block: Block) => {
-      const block_width = 90;
-      const block_height = 54;
+      const { width: canvas_width } = dimensions_ref.current;
+      const block_width = canvas_width < 640 ? Math.min(90, canvas_width * 0.2) : 90;
+      const block_height = canvas_width < 640 ? Math.min(54, canvas_width * 0.12) : 54;
       const x = block.x - block_width / 2;
       const y = block.y - block_height / 2 + Math.sin(time + block.pulse) * 3;
 

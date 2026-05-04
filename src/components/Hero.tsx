@@ -10,7 +10,7 @@ import { BlockchainGrid } from "./BlockchainGrid";
  */
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center px-6 sm:px-8 overflow-hidden">
       {/* 3D blockchain grid background */}
       <div className="absolute inset-0">
         <BlockchainGrid />
@@ -37,7 +37,7 @@ export function Hero() {
         {/* Logo + Company name */}
         <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 mb-8 hero-fade-in">
           <AnimatedLogo className="h-16 sm:h-20 md:h-28 lg:h-36 w-auto text-base-content" />
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
             <span className="text-secondary">Blockchain</span>Wares
           </h1>
         </div>

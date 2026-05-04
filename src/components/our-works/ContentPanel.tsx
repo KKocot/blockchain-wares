@@ -25,7 +25,7 @@ const SectionContent = memo(function SectionContent({
       </h3>
 
       {/* Full description */}
-      <p className="text-sm md:text-base text-base-content/60 leading-relaxed mb-6">
+      <p className="text-sm md:text-base text-base-content/80 leading-relaxed mb-6">
         {section.description}
       </p>
 

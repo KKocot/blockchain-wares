@@ -50,7 +50,7 @@ export function Team() {
 
           <p
             className={cn(
-              "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+              "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
               "fade-up stagger-2",
               is_visible && "is-visible"
             )}
@@ -106,7 +106,7 @@ export function Team() {
                 )}
               >
                 <div className="text-center px-4">
-                  <p className="text-base-content/70 text-lg">
+                  <p className="text-base-content/80 text-lg">
                     Team photo coming soon
                   </p>
                 </div>

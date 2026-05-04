@@ -132,7 +132,7 @@ export function Navigation() {
                       "relative text-sm font-semibold px-4 py-2 rounded-full transition-all duration-300",
                       is_active
                         ? "text-white"
-                        : "text-neutral-400 hover:text-white"
+                        : "text-neutral-300 hover:text-white"
                     )}
                   >
                     {/* Glow blob behind active link */}

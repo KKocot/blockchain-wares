@@ -106,7 +106,7 @@ export function Expertise() {
 
           <p
             className={cn(
-              "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+              "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
               "fade-up stagger-2",
               is_visible && "is-visible"
             )}

@@ -50,7 +50,7 @@ const SectionNavItem = memo(function SectionNavItem({
       <h3
         className={cn(
           "text-sm md:text-base font-bold transition-colors duration-300 leading-snug",
-          is_active ? "text-secondary" : "text-base-content/50 group-hover:text-base-content/80"
+          is_active ? "text-secondary" : "text-base-content/70 group-hover:text-base-content/80"
         )}
       >
         {section.title}
@@ -58,7 +58,7 @@ const SectionNavItem = memo(function SectionNavItem({
       <p
         className={cn(
           "text-xs md:text-sm leading-snug mt-0.5 transition-colors duration-300",
-          is_active ? "text-base-content/70" : "text-base-content/35"
+          is_active ? "text-base-content/80" : "text-base-content/60"
         )}
       >
         {section.subtitle}

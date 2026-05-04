@@ -46,7 +46,7 @@ export const MobileTabs = memo(function MobileTabs({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
               is_active
                 ? "bg-secondary text-secondary-content"
-                : "bg-base-200/50 text-base-content/50 hover:text-base-content/80 hover:bg-base-200"
+                : "bg-base-200/50 text-base-content/70 hover:text-base-content/80 hover:bg-base-200"
             )}
           >
             {section.title}

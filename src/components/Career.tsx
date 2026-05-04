@@ -72,7 +72,7 @@ export function Career() {
           </h2>
 
           <p className={cn(
-            "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+            "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
             "fade-up stagger-2",
             is_visible && "is-visible"
           )}>
@@ -141,7 +141,7 @@ function JobPositionCard({
           {title}
         </h3>
 
-        <p className="text-sm md:text-base text-base-content/60 leading-relaxed mb-6">
+        <p className="text-sm md:text-base text-base-content/80 leading-relaxed mb-6">
           {description}
         </p>
       </div>

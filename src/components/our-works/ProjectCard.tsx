@@ -90,7 +90,7 @@ export const ProjectCard = memo(function ProjectCard({
         )}
       </h4>
 
-      <p className="text-sm text-base-content/60 leading-relaxed">
+      <p className="text-sm text-base-content/80 leading-relaxed">
         {description}
       </p>
     </motion.article>

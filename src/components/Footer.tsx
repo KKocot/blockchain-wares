@@ -15,21 +15,21 @@ export function Footer() {
             >
               BlockchainWares
             </a>
-            <span className="text-xs text-base-content/50 hidden sm:inline">
+            <span className="text-xs text-base-content/70 hidden sm:inline">
               |
             </span>
-            <p className="text-xs text-base-content/50 hidden sm:inline">
+            <p className="text-xs text-base-content/70 hidden sm:inline">
               Blockchain, EDA & Engineering Solutions
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            <p className="text-xs text-base-content/50">
+            <p className="text-xs text-base-content/70">
               Copyright &copy; {current_year} BlockchainWares
             </p>
             <a
               href="#"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-base-content/50 hover:text-secondary transition-colors duration-150"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-base-content/70 hover:text-secondary transition-colors duration-150"
             >
               <ArrowUpIcon />
               <span>Back to top</span>

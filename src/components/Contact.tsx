@@ -71,7 +71,7 @@ export function Contact() {
           </h2>
 
           <p className={cn(
-            "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+            "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
             "fade-up stagger-2",
             is_visible && "is-visible"
           )}>
@@ -97,7 +97,7 @@ export function Contact() {
             <h3 className="text-xl md:text-2xl font-bold mb-3">
               Contact Information
             </h3>
-            <p className="text-sm md:text-base text-base-content/60 leading-relaxed mb-6">
+            <p className="text-sm md:text-base text-base-content/80 leading-relaxed mb-6">
               Ready to start your next project? Reach out to us and let's
               discuss how we can help you achieve your goals.
             </p>
@@ -155,7 +155,7 @@ function LinkedInIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="text-base-content/70"
+      className="text-base-content/80"
     >
       <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
       <rect width="4" height="12" x="2" y="9" />
@@ -180,7 +180,7 @@ function ContactItem({ label, value, link, icon }: ContactInfo) {
       </div>
 
       <div className="space-y-1">
-        <p className="text-xs text-base-content/50 font-semibold uppercase tracking-wider">
+        <p className="text-xs text-base-content/70 font-semibold uppercase tracking-wider">
           {label}
         </p>
         <p className="text-sm text-base-content/80 leading-relaxed">

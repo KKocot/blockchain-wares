@@ -46,7 +46,7 @@ export function Hero() {
         </div>
 
         {/* Tagline */}
-        <p className="text-lg md:text-xl lg:text-2xl text-base-content/70 max-w-2xl mx-auto leading-relaxed hero-fade-in-delayed">
+        <p className="text-lg md:text-xl lg:text-2xl text-base-content/80 max-w-2xl mx-auto leading-relaxed hero-fade-in-delayed">
           Software development company from Poland
         </p>
       </div>

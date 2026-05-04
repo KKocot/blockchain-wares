@@ -1,6 +1,5 @@
 import { memo } from "react";
 import { motion } from "framer-motion";
-import { cn } from "../../lib/utils";
 import type { Project } from "../our-works-data";
 
 interface ProjectCardProps extends Project {
@@ -22,60 +21,78 @@ const CARD_VARIANTS = {
   }),
 };
 
-export const ProjectCard = memo(function ProjectCard({ title, description, url, index }: ProjectCardProps) {
+export const ProjectCard = memo(function ProjectCard({
+  title,
+  description,
+  url,
+  index,
+}: ProjectCardProps) {
   return (
     <motion.article
       custom={index}
       variants={CARD_VARIANTS}
       initial="hidden"
       animate="visible"
-      className={cn(
-        "relative p-4 rounded-xl h-full flex flex-col",
-        "bg-base-100/50 border border-white/5",
-        "shadow-sm",
-        "transition-shadow duration-300",
-        "hover:shadow-card-hover"
-      )}
+      className="flex flex-col gap-1 md:flex-row md:gap-6 py-4"
     >
-      <div className="relative z-10 flex flex-col h-full">
-        <h4 className="text-base font-bold mb-2">
-          {title}
-        </h4>
-
-        <p className="text-sm text-base-content/60 leading-relaxed mb-3 flex-grow">
-          {description}
-        </p>
-
-        {url && (
+      <h4 className="text-base font-bold shrink-0 md:w-56">
+        {url ? (
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(
-              "inline-flex items-center gap-2 text-sm font-medium",
-              "text-secondary hover:text-secondary/80",
-              "transition-all duration-300"
-            )}
-            aria-label={`Learn more about ${title}`}
+            className="hover:text-secondary transition-colors duration-200"
+            aria-label={`Visit ${title}`}
           >
-            Learn more
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
+            {title.includes(" ") ? (
+              <>
+                {title.slice(0, title.lastIndexOf(" "))}{" "}
+                <span className="whitespace-nowrap">
+                  {title.slice(title.lastIndexOf(" ") + 1)}
+                  <svg
+                    className="w-3.5 h-3.5 inline-block ml-1.5 align-baseline text-secondary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 17L17 7M17 7H7M17 7v10"
+                    />
+                  </svg>
+                </span>
+              </>
+            ) : (
+              <span className="whitespace-nowrap">
+                {title}
+                <svg
+                  className="w-3.5 h-3.5 inline-block ml-1.5 align-baseline text-secondary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 17L17 7M17 7H7M17 7v10"
+                  />
+                </svg>
+              </span>
+            )}
           </a>
+        ) : (
+          title
         )}
-      </div>
+      </h4>
+
+      <p className="text-sm text-base-content/60 leading-relaxed">
+        {description}
+      </p>
     </motion.article>
   );
 });

@@ -10,15 +10,6 @@ interface ContentPanelProps {
 }
 
 /**
- * Returns responsive grid classes based on project count
- */
-function get_grid_classes(count: number): string {
-  if (count === 3) return "grid-cols-1 md:grid-cols-3";
-  if (count <= 4) return "grid-cols-1 md:grid-cols-2";
-  return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
-}
-
-/**
  * Inner content for a single section — memoized to avoid re-renders
  */
 const SectionContent = memo(function SectionContent({
@@ -38,8 +29,8 @@ const SectionContent = memo(function SectionContent({
         {section.description}
       </p>
 
-      {/* Projects grid */}
-      <div className={cn("grid gap-4", get_grid_classes(section.projects.length))}>
+      {/* Projects list */}
+      <div className="flex flex-col divide-y divide-white/5">
         {section.projects.map((project, index) => (
           <ProjectCard key={project.title} {...project} index={index} />
         ))}
@@ -63,7 +54,7 @@ export const ContentPanel = memo(function ContentPanel({
     <div
       role="tabpanel"
       aria-labelledby={`tab-${active_id}`}
-      className="grid md:min-h-[32rem]"
+      className="grid"
     >
       {sections.map((section) => {
         const is_active = section.id === active_id;

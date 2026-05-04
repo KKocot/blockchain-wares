@@ -976,6 +976,68 @@ line.frontend-props {
   to { transform: scaleX(1); }
 }
 
+/* ============================================
+   SPLASH SCREEN ANIMATIONS
+   ============================================ */
+
+/* Cube assembly — top cube enters from above */
+@keyframes splash-cube-top {
+  from {
+    transform: translateY(-150px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Cube assembly — bottom-left enters from lower-left */
+@keyframes splash-cube-bottom-left {
+  from {
+    transform: translate(-150px, 100px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+/* Cube assembly — bottom-right enters from lower-right */
+@keyframes splash-cube-bottom-right {
+  from {
+    transform: translate(150px, 100px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+/* Typewriter letter reveal */
+@keyframes splash-letter {
+  from {
+    max-width: 0;
+    opacity: 0;
+  }
+  to {
+    max-width: 1.5em;
+    opacity: 1;
+  }
+}
+
+/* Blinking cursor */
+@keyframes splash-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -995,6 +1057,10 @@ line.frontend-props {
   .section-header {
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  #splash-screen {
+    display: none !important;
   }
 
 }

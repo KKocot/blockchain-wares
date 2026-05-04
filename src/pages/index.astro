@@ -85,6 +85,7 @@ import {
 
         // Block scroll during splash
         document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
 
         // Schedule fade out after 2.5s
         setTimeout(function() {
@@ -93,7 +94,8 @@ import {
 
           splash.addEventListener('transitionend', function() {
             splash.remove();
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
           }, { once: true });
         }, 2500);
       })();

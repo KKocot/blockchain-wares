@@ -30,16 +30,19 @@ export const SECTIONS: ProjectSection[] = [
         title: "HAF — Hive Application Framework",
         description:
           "PostgreSQL-based push-model indexing layer for the Hive blockchain. Multiple HAF apps share a single server with automatic fork handling and efficient data access via sql_serializer plugin and hive_fork_manager extension.",
+        url: "https://gitlab.syncad.com/hive/haf",
       },
       {
         title: "HAfAH — Account History API",
         description:
           "HAF-based REST API providing account operation history, block and transaction lookup, without requiring blockchain replay. Over 5,353 commits and 68 contributors.",
+        url: "https://gitlab.syncad.com/hive/HAfAH",
       },
       {
         title: "HAF Block Explorer API",
         description:
           "Comprehensive blockchain REST API built on HAF integrating balance tracking, reputation tracking, and account history. OpenAPI/Swagger docs with Docker Compose deployment.",
+        url: "https://gitlab.syncad.com/hive/haf_block_explorer",
       },
       {
         title: "BlockTrades",
@@ -72,31 +75,37 @@ export const SECTIONS: ProjectSection[] = [
         title: "Wax — Multi-Language API",
         description:
           "Extension module bridging Hive's C++ core to Python (Cython) and TypeScript (WASM/Emscripten). Transaction building, signing, asset manipulation, and Protobuf integration. Security-audited by Hacken (May 2025).",
+        url: "https://gitlab.syncad.com/hive/wax",
       },
       {
         title: "Beekeeper — Wallet Daemon",
         description:
           "Standalone key management daemon with HTTP/WebSocket API, session management, auto-lock timeout, and WASM bindings for browser environments. Published as @hiveio/beekeeper.",
+        url: "https://gitlab.syncad.com/hive/beekeeper",
       },
       {
         title: "WorkerBee — Automation Framework",
         description:
           "Event-based observer pattern library for building Hive bots and automation. 25+ filters, data providers, real-time and historical data, combined filter logic (AND/OR). 181 kB bundle.",
+        url: "https://gitlab.syncad.com/hive/workerbee",
       },
       {
         title: "hb-auth — Web Authorization",
         description:
           "Browser authorization library using WebWorker isolation and IndexedDB for secure key storage. Dual client modes without exposing private keys. Published as @hiveio/hb-auth.",
+        url: "https://gitlab.syncad.com/hive/hb-auth",
       },
       {
         title: "MetaMask Snap for Hive",
         description:
           "MetaMask extension deriving Hive keys from MetaMask seed via BIP44, enabling transaction signing within the MetaMask security model. Passed Hacken security audit (May 2025). Published as @hiveio/metamask-snap.",
+        url: "https://gitlab.syncad.com/hive/metamask-snap",
       },
       {
         title: "HealthChecker Component",
         description:
           "Reusable React component for monitoring Hive API endpoint health with automatic provider switching and dark mode support. Published as @hiveio/healthchecker-component.",
+        url: "https://gitlab.syncad.com/hive/healthchecker-component",
       },
     ],
   },
@@ -111,36 +120,43 @@ export const SECTIONS: ProjectSection[] = [
         title: "Block Explorer UI",
         description:
           "Full-featured blockchain explorer with block and transaction search, account info, witness tracking, market data, and balance history visualization. Playwright E2E tests across 3 browser engines.",
+        url: "https://gitlab.syncad.com/hive/haf_block_explorer",
       },
       {
         title: "Denser — Social Media dApp",
         description:
           "Decentralized blogging and social media platform (successor to hive.blog/condenser). Turborepo monorepo with 15+ internal packages, blog app, wallet app, and HAF API stack integration.",
+        url: "https://gitlab.syncad.com/hive/denser",
       },
       {
         title: "Wallet dApp",
         description:
           "Modern multi-auth wallet supporting MetaMask Snap, Keychain, PeakVault, and Google Wallet/Drive integration with dark mode.",
+        url: "https://gitlab.syncad.com/hive/wallet-dapp",
       },
       {
         title: "TX Inspector",
         description:
           "Transaction analysis tool with multi-format input (hash/JSON/binary/file), authority graph visualization, hex viewer, and delegated authority detection up to 2 levels.",
+        url: "https://gitlab.syncad.com/hive/tx-inspector",
       },
       {
         title: "Clive — CLI/TUI Wallet",
         description:
           "Dual-mode command-line and terminal UI wallet with mouse support, Beekeeper integration, and profile system. Entry points: clive (TUI) and clive-dev (debug mode). Over 8,899 commits.",
+        url: "https://gitlab.syncad.com/hive/clive",
       },
       {
         title: "HiveSense — AI Semantic Search",
         description:
           "HAF-based semantic search over blockchain posts using OLLAMA ML embeddings, pgvector similarity, parallel LLM processing, and thematic contributor identification.",
+        url: "https://gitlab.syncad.com/hive/hivesense",
       },
       {
         title: "Balance Tracker",
         description:
           "HAF application for graphing account balances (HIVE/HBD) over time. Dual backend support (PostgREST/Python) with React web UI and JMeter performance testing.",
+        url: "https://gitlab.syncad.com/hive/balance_tracker",
       },
       {
         title: "Keyhotee",
@@ -184,16 +200,19 @@ export const SECTIONS: ProjectSection[] = [
         title: "Wax Documentation",
         description:
           "Comprehensive documentation with multi-language code tabs and 71+ executable snippets. Deployed via GitLab Pages with branch-specific URLs for developer convenience.",
+        url: "https://gitlab.syncad.com/hive/wax-doc",
       },
       {
         title: "WorkerBee Documentation",
         description:
           "Interactive documentation with Swagger API docs and branch preview deployments covering the full WorkerBee automation framework.",
+        url: "https://gitlab.syncad.com/hive/workerbee-doc-snippets",
       },
       {
         title: "Wax & WorkerBee Code Snippets",
         description:
           "Executable documentation examples: 71+ TypeScript snippets organized by category with built-in test runners, covering Beekeeper, filters, providers, and custom integration patterns.",
+        url: "https://gitlab.syncad.com/hive/wax-doc-snippets",
       },
     ],
   },

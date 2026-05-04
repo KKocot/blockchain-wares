@@ -37,7 +37,7 @@ export function EndUsers() {
 
             <p
               className={cn(
-                "text-base md:text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto",
+                "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
                 "fade-up stagger-2",
                 is_visible && "is-visible"
               )}
@@ -55,8 +55,8 @@ export function EndUsers() {
                   className={cn(
                     "flex flex-col items-center justify-center gap-2",
                     "h-24 md:h-28",
-                    "bg-base-200/30 backdrop-blur-sm",
-                    "border border-white/5 rounded-xl",
+                    "bg-base-200/50 backdrop-blur-sm",
+                    "border border-white/10 rounded-xl",
                     "transition-all duration-300",
                     "hover:border-secondary/20 hover:bg-base-200/50",
                     "scale-in",
@@ -69,14 +69,14 @@ export function EndUsers() {
                       <img
                         src={`/assets/logos/${company.logoFile}`}
                         alt={company.name}
-                        className="h-6 md:h-8 w-auto opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                        className="h-6 md:h-8 w-auto opacity-90 group-hover:opacity-100 transition-opacity duration-300"
                       />
-                      <span className="text-xs md:text-sm text-base-content/50 group-hover:text-secondary/80 transition-colors duration-300">
+                      <span className="text-xs md:text-sm text-base-content/90 group-hover:text-secondary/80 transition-colors duration-300">
                         {company.name}
                       </span>
                     </>
                   ) : (
-                    <span className="text-sm md:text-base font-semibold text-base-content/60 group-hover:text-secondary transition-colors duration-300">
+                    <span className="text-sm md:text-base font-semibold text-base-content/80 group-hover:text-secondary transition-colors duration-300">
                       {company.name}
                     </span>
                   )}
@@ -108,7 +108,7 @@ export function EndUsers() {
               is_visible && "is-visible"
             )}
           >
-            <p className="text-sm text-base-content/70 italic">
+            <p className="text-sm text-base-content/80 italic">
               Clients from our EDA tools era and blockchain ecosystem
             </p>
           </div>

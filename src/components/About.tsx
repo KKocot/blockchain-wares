@@ -20,136 +20,67 @@ interface ValueProp {
   icon: React.ReactNode;
 }
 
-// CSS-animated SVG Icons
+// Minimal inline SVG icons
 function ScaleIcon() {
   return (
-    <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 32 32" fill="none">
-      {/* Network nodes */}
-      <circle
-        cx="16" cy="8" r="3"
-        fill="currentColor"
-        className="scale-node-1"
-      />
-      <circle
-        cx="6" cy="20" r="3"
-        fill="currentColor"
-        className="scale-node-2"
-      />
-      <circle
-        cx="26" cy="20" r="3"
-        fill="currentColor"
-        className="scale-node-3"
-      />
-      <circle
-        cx="16" cy="26" r="2"
-        fill="currentColor"
-        opacity={0.6}
-        className="scale-node-4"
-      />
-      {/* Connecting lines */}
-      <path
-        d="M16 11 L6 17 M16 11 L26 17 M6 20 L16 24 M26 20 L16 24"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        className="scale-lines"
-      />
+    <svg
+      className="w-7 h-7 md:w-8 md:h-8"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Three arrows expanding outward from center */}
+      <path d="M16 22 L16 10" />
+      <path d="M12 14 L16 10 L20 14" />
+      <path d="M10 22 L10 16" />
+      <path d="M7 19 L10 16 L13 19" />
+      <path d="M22 22 L22 16" />
+      <path d="M19 19 L22 16 L25 19" />
+      {/* Baseline */}
+      <path d="M6 26 L26 26" />
     </svg>
   );
 }
 
 function ShieldIcon() {
   return (
-    <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 32 32" fill="none">
+    <svg
+      className="w-7 h-7 md:w-8 md:h-8"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {/* Shield outline */}
-      <path
-        d="M16 3 L28 8 L28 15 C28 22 22 27 16 29 C10 27 4 22 4 15 L4 8 L16 3Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-      />
-      {/* Inner shield glow */}
-      <path
-        d="M16 6 L25 10 L25 15 C25 20 20 24 16 26 C12 24 7 20 7 15 L7 10 L16 6Z"
-        fill="currentColor"
-        className="shield-glow"
-      />
+      <path d="M16 3 L27 8 L27 16 C27 22.5 22 27 16 29 C10 27 5 22.5 5 16 L5 8 Z" />
       {/* Checkmark */}
-      <path
-        d="M11 16 L14 19 L21 12"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        className="shield-check"
-      />
-      {/* Pulse rings */}
-      <circle
-        cx="16" cy="16" r="12"
-        stroke="currentColor"
-        strokeWidth="1"
-        fill="none"
-        className="shield-pulse"
-      />
+      <path d="M11 16 L14.5 19.5 L21 13" />
     </svg>
   );
 }
 
 function ExpertiseIcon() {
   return (
-    <svg className="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 32 32" fill="none">
-      {/* Brain/chip hybrid */}
-      <rect
-        x="8" y="8" width="16" height="16" rx="3"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        className="chip-rotate"
-      />
-      {/* Circuit lines */}
-      <path
-        d="M4 12 L8 12 M4 16 L8 16 M4 20 L8 20"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        className="circuit-left"
-      />
-      <path
-        d="M24 12 L28 12 M24 16 L28 16 M24 20 L28 20"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        className="circuit-right"
-      />
-      <path
-        d="M12 4 L12 8 M16 4 L16 8 M20 4 L20 8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        className="circuit-top"
-      />
-      <path
-        d="M12 24 L12 28 M16 24 L16 28 M20 24 L20 28"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        className="circuit-bottom"
-      />
-      {/* Core */}
-      <circle
-        cx="16" cy="16" r="4"
-        fill="currentColor"
-        className="chip-core"
-      />
-      {/* Inner circuit pattern */}
-      <path
-        d="M13 13 L19 19 M19 13 L13 19"
-        stroke="currentColor"
-        strokeWidth="1"
-        strokeLinecap="round"
-        className="chip-pattern"
-      />
+    <svg
+      className="w-7 h-7 md:w-8 md:h-8"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Lightbulb outline */}
+      <path d="M12 28 L20 28" />
+      <path d="M13 25 L19 25" />
+      <path d="M13 25 C13 22 10 20 10 15 C10 11 12.5 7 16 5 C19.5 7 22 11 22 15 C22 20 19 22 19 25" />
+      {/* Filament rays */}
+      <path d="M14 15 L16 13 L18 15" />
     </svg>
   );
 }

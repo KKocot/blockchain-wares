@@ -94,136 +94,135 @@ export function Navigation() {
   }, [is_open]);
 
   return (
-    <nav
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out",
-        is_scrolled
-          ? "bg-base-100/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
-          : "bg-transparent",
-      )}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <a
-            href="#"
-            className="flex items-center gap-2 transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <img
-              src="/assets/img/blockchainwares.svg"
-              alt=""
-              className="h-8 w-auto"
-            />
-            <span className="text-xl font-bold text-base-content">
-              BlockchainWares
-            </span>
-          </a>
+    <>
+      <nav
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out",
+          is_scrolled
+            ? "bg-base-100/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
+            : "bg-transparent",
+        )}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <a
+              href="#"
+              className="flex items-center gap-2 transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <img
+                src="/assets/img/blockchainwares.svg"
+                alt=""
+                className="h-8 w-auto"
+              />
+              <span className="text-xl font-bold text-base-content">
+                BlockchainWares
+              </span>
+            </a>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-6">
-            {nav_items.map((item) => {
-              const is_active = active_section === item.href;
-              return (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "relative text-sm font-semibold px-4 py-2 rounded-full transition-all duration-300",
-                    is_active
-                      ? "text-white"
-                      : "text-neutral-400 hover:text-white"
-                  )}
-                >
-                  {/* Glow blob behind active link */}
-                  <span
+            {/* Desktop Menu */}
+            <div className="hidden md:flex items-center space-x-6">
+              {nav_items.map((item) => {
+                const is_active = active_section === item.href;
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
                     className={cn(
-                      "absolute inset-0 rounded-full bg-secondary/20 blur-md transition-all duration-500",
+                      "relative text-sm font-semibold px-4 py-2 rounded-full transition-all duration-300",
                       is_active
-                        ? "opacity-100 scale-110"
-                        : "opacity-0 scale-75"
+                        ? "text-white"
+                        : "text-neutral-400 hover:text-white"
                     )}
-                  />
-                  {/* Subtle background pill */}
-                  <span
-                    className={cn(
-                      "absolute inset-0 rounded-full transition-all duration-300",
-                      is_active
-                        ? "bg-secondary/30"
-                        : "bg-transparent hover:bg-white/5"
-                    )}
-                  />
-                  {/* Text */}
-                  <span className="relative z-10">{item.label}</span>
-                </a>
-              );
-            })}
+                  >
+                    {/* Glow blob behind active link */}
+                    <span
+                      className={cn(
+                        "absolute inset-0 rounded-full bg-secondary/20 blur-md transition-all duration-500",
+                        is_active
+                          ? "opacity-100 scale-110"
+                          : "opacity-0 scale-75"
+                      )}
+                    />
+                    {/* Subtle background pill */}
+                    <span
+                      className={cn(
+                        "absolute inset-0 rounded-full transition-all duration-300",
+                        is_active
+                          ? "bg-secondary/30"
+                          : "bg-transparent hover:bg-white/5"
+                      )}
+                    />
+                    {/* Text */}
+                    <span className="relative z-10">{item.label}</span>
+                  </a>
+                );
+              })}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => set_is_open(!is_open)}
+              className="md:hidden p-2 text-base-content hover:text-secondary transition-all duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg"
+              aria-label={is_open ? "Close menu" : "Open menu"}
+              aria-expanded={is_open}
+            >
+              <HamburgerIcon is_open={is_open} />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Backdrop — sibling of nav, not child */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300",
+          is_open ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => set_is_open(false)}
+      />
+
+      {/* Mobile Menu Drawer — sibling of nav, not child */}
+      <div
+        className={cn(
+          "fixed top-0 right-0 bottom-0 w-full sm:w-80 bg-base-100 border-l border-base-300 z-[70] overflow-y-auto",
+          "transform transition-transform duration-300 ease-out",
+          is_open ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="p-6">
+          {/* Close Button */}
+          <div className="flex justify-end mb-8">
+            <button
+              onClick={() => set_is_open(false)}
+              className="p-2 text-base-content hover:text-secondary transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+              aria-label="Close menu"
+            >
+              <CloseIcon />
+            </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => set_is_open(!is_open)}
-            className="md:hidden p-2 text-base-content hover:text-secondary transition-all duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg"
-            aria-label={is_open ? "Close menu" : "Open menu"}
-            aria-expanded={is_open}
-          >
-            <HamburgerIcon is_open={is_open} />
-          </button>
+          {/* Mobile Nav Items */}
+          <div className="space-y-4">
+            {nav_items.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={handle_nav_click}
+                className={cn(
+                  "block text-lg font-medium transition-colors py-2 border-l-2",
+                  active_section === item.href
+                    ? "text-secondary border-secondary pl-3"
+                    : "text-base-content hover:text-secondary border-transparent pl-3"
+                )}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Mobile Menu Drawer */}
-      <>
-        {/* Backdrop */}
-        <div
-          className={cn(
-            "fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300",
-            is_open ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}
-          onClick={() => set_is_open(false)}
-        />
-
-        {/* Drawer */}
-        <div
-          className={cn(
-            "fixed top-0 right-0 bottom-0 w-full sm:w-80 bg-base-100 border-l border-base-300 z-50 overflow-y-auto",
-            "transform transition-transform duration-300 ease-out",
-            is_open ? "translate-x-0" : "translate-x-full"
-          )}
-        >
-              <div className="p-6">
-                {/* Close Button */}
-                <div className="flex justify-end mb-8">
-                  <button
-                    onClick={() => set_is_open(false)}
-                    className="p-2 text-base-content hover:text-secondary transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
-                    aria-label="Close menu"
-                  >
-                    <CloseIcon />
-                  </button>
-                </div>
-
-                {/* Mobile Nav Items */}
-                <div className="space-y-4">
-                  {nav_items.map((item) => (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      onClick={handle_nav_click}
-                      className={cn(
-                        "block text-lg font-medium transition-colors py-2 border-l-2",
-                        active_section === item.href
-                          ? "text-secondary border-secondary pl-3"
-                          : "text-base-content hover:text-secondary border-transparent pl-3"
-                      )}
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-    </nav>
+    </>
   );
 }
 

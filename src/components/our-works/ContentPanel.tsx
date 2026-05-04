@@ -30,7 +30,7 @@ const SectionContent = memo(function SectionContent({
       </p>
 
       {/* Projects list */}
-      <div className="flex flex-col divide-y divide-white/5">
+      <div className="flex flex-col divide-y divide-white/5 max-h-[30rem] overflow-y-auto scrollbar-thin pr-2">
         {section.projects.map((project, index) => (
           <ProjectCard key={project.title} {...project} index={index} />
         ))}

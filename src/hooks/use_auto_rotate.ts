@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const AUTO_ROTATE_INTERVAL = 5000;
+const AUTO_ROTATE_INTERVAL = 15000;
 
 
 interface UseAutoRotateOptions {

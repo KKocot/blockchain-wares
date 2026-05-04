@@ -2,7 +2,7 @@ import { memo } from "react";
 import { cn } from "../../lib/utils";
 import type { ProjectSection } from "../our-works-data";
 
-const AUTO_ROTATE_INTERVAL = 5000;
+const AUTO_ROTATE_INTERVAL = 15000;
 
 interface MobileTabsProps {
   sections: ProjectSection[];

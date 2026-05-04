@@ -52,7 +52,7 @@ export const MobileTabs = memo(function MobileTabs({
             {section.title}
 
             {/* Progress bar — thin line at bottom of active pill */}
-            {is_active && (
+            {is_active && is_auto_playing && (
               <span
                 key={progress_key}
                 aria-hidden="true"

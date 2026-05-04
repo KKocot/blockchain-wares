@@ -64,8 +64,8 @@ const SectionNavItem = memo(function SectionNavItem({
         {section.subtitle}
       </p>
 
-      {/* Progress bar — only on active tab */}
-      {is_active && (
+      {/* Progress bar — only on active tab while auto-playing */}
+      {is_active && is_auto_playing && (
         <span
           key={progress_key}
           aria-hidden="true"

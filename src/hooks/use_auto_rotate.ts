@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const AUTO_ROTATE_INTERVAL = 5000;
-const PAUSE_AFTER_CLICK = 8000;
+
 
 interface UseAutoRotateOptions {
   /** Total number of items to cycle through */
@@ -25,7 +25,7 @@ interface UseAutoRotateReturn {
  * Hook for auto-rotating through sections with progress tracking.
  *
  * - Cycles forward every AUTO_ROTATE_INTERVAL ms
- * - Pauses for PAUSE_AFTER_CLICK ms after user interaction
+ * - Stops permanently on user interaction
  * - Pauses when document tab is hidden
  */
 export function useAutoRotate({
@@ -37,16 +37,12 @@ export function useAutoRotate({
   const [progress_key, set_progress_key] = useState(0);
 
   const timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pause_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const user_stopped_ref = useRef(false);
 
-  const clear_timers = useCallback(() => {
+  const clear_timer = useCallback(() => {
     if (timer_ref.current) {
       clearTimeout(timer_ref.current);
       timer_ref.current = null;
-    }
-    if (pause_timer_ref.current) {
-      clearTimeout(pause_timer_ref.current);
-      pause_timer_ref.current = null;
     }
   }, []);
 
@@ -60,24 +56,15 @@ export function useAutoRotate({
     }, AUTO_ROTATE_INTERVAL);
   }, [active_index, count, on_change]);
 
-  /** Handle user manually selecting a section */
+  /** Handle user manually selecting a section — stops auto-rotation permanently */
   const handle_user_select = useCallback(
     (index: number) => {
-      clear_timers();
+      clear_timer();
       on_change(index);
-
-      // Pause auto-rotation
+      user_stopped_ref.current = true;
       set_is_auto_playing(false);
-      set_progress_key((k) => k + 1);
-
-      // Resume after PAUSE_AFTER_CLICK
-      pause_timer_ref.current = setTimeout(() => {
-        set_is_auto_playing(true);
-        set_progress_key((k) => k + 1);
-        // schedule_next will be triggered by the useEffect below
-      }, PAUSE_AFTER_CLICK);
     },
-    [clear_timers, on_change]
+    [clear_timer, on_change]
   );
 
   /** Main effect: keep the rotation timer in sync with state */
@@ -95,10 +82,10 @@ export function useAutoRotate({
   /** Pause/resume on document visibility change */
   useEffect(() => {
     function handle_visibility_change() {
+      if (user_stopped_ref.current) return;
       if (document.hidden) {
         set_is_auto_playing(false);
       } else {
-        // Resume from where we paused — restart the cycle
         set_is_auto_playing(true);
         set_progress_key((k) => k + 1);
       }
@@ -115,8 +102,8 @@ export function useAutoRotate({
 
   /** Cleanup on unmount */
   useEffect(() => {
-    return clear_timers;
-  }, [clear_timers]);
+    return clear_timer;
+  }, [clear_timer]);
 
   return { is_auto_playing, progress_key, handle_user_select };
 }

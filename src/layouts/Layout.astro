@@ -12,6 +12,9 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = new URL("/assets/img/og-image.png", Astro.site);
+const siteURL = Astro.site?.toString().replace(/\/$/, "") ?? "";
+const logoURL = new URL("/assets/img/blockchainwares.svg", Astro.site);
 ---
 
 <!doctype html>
@@ -34,7 +37,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.png" />
+    <meta property="og:image" content={ogImageURL} />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:site_name" content="BlockchainWares" />
 
@@ -42,7 +45,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta name="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
-    <meta name="twitter:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.png" />
+    <meta name="twitter:image" content={ogImageURL} />
 
     <!-- Fonts (non-render-blocking) -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -72,70 +75,64 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:image:height" content="630" />
 
     <!-- Schema.org JSON-LD -->
-    <script type="application/ld+json" is:inline>
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "BlockchainWares",
-        "url": "https://www.blockchainwares.com.pl",
-        "logo": "https://www.blockchainwares.com.pl/assets/img/blockchainwares.svg",
-        "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software. Based in Dabrowa Gornicza, Poland.",
-        "foundingDate": "2013",
-        "numberOfEmployees": {
-          "@type": "QuantitativeValue",
-          "value": 25
-        },
-        "email": "contact@blockchainwares.pl",
-        "sameAs": ["https://www.linkedin.com/company/blockchainwares/"],
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Graniczna 34B/U11",
-          "addressLocality": "Dąbrowa Górnicza",
-          "postalCode": "41-303",
-          "addressCountry": "PL"
-        }
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "BlockchainWares",
+      "url": siteURL,
+      "logo": logoURL.href,
+      "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software. Based in Dabrowa Gornicza, Poland.",
+      "foundingDate": "2013",
+      "numberOfEmployees": {
+        "@type": "QuantitativeValue",
+        "value": 25
+      },
+      "email": "contact@blockchainwares.pl",
+      "sameAs": ["https://www.linkedin.com/company/blockchainwares/"],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Graniczna 34B/U11",
+        "addressLocality": "Dąbrowa Górnicza",
+        "postalCode": "41-303",
+        "addressCountry": "PL"
       }
-    </script>
-    <script type="application/ld+json" is:inline>
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "BlockchainWares",
-        "url": "https://www.blockchainwares.com.pl",
-        "description": "Blockchain & Enterprise Software Development Company"
-      }
-    </script>
-    <script type="application/ld+json" is:inline>
-      {
-        "@context": "https://schema.org",
-        "@type": "ProfessionalService",
-        "name": "BlockchainWares",
-        "url": "https://www.blockchainwares.com.pl",
-        "email": "contact@blockchainwares.pl",
-        "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software.",
-        "image": "https://www.blockchainwares.com.pl/assets/img/blockchainwares.svg",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Graniczna 34B/U11",
-          "addressLocality": "Dąbrowa Górnicza",
-          "postalCode": "41-303",
-          "addressCountry": "PL"
-        },
-        "geo": {
-          "@type": "GeoCoordinates",
-          "latitude": 50.3390,
-          "longitude": 19.1770
-        },
-        "openingHoursSpecification": {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "09:00",
-          "closes": "17:00"
-        },
-        "sameAs": ["https://www.linkedin.com/company/blockchainwares/"],
-        "priceRange": "$$"
-      }
-    </script>
+    })} />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "BlockchainWares",
+      "url": siteURL,
+      "description": "Blockchain & Enterprise Software Development Company"
+    })} />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "BlockchainWares",
+      "url": siteURL,
+      "email": "contact@blockchainwares.pl",
+      "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software.",
+      "image": logoURL.href,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Graniczna 34B/U11",
+        "addressLocality": "Dąbrowa Górnicza",
+        "postalCode": "41-303",
+        "addressCountry": "PL"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 50.3390,
+        "longitude": 19.1770
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "17:00"
+      },
+      "sameAs": ["https://www.linkedin.com/company/blockchainwares/"],
+      "priceRange": "$$"
+    })} />
   </head>
   <body class="bg-base-100 overflow-x-hidden">
     <slot />

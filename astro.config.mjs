@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://www.blockchainwares.com.pl",
+  site: "https://blockchain-wares.vercel.app",
   integrations: [react(), sitemap()],
 
   vite: {

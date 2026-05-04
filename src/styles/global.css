@@ -78,6 +78,12 @@
   --noise: 1;
 }
 
+/* CSS containment for decorative blobs — reduces layout/paint cost */
+.blob-contained {
+  contain: layout style paint;
+  will-change: transform;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
@@ -508,6 +514,88 @@ line.frontend-props {
 .devops-arrow-2 path { animation: devops-flow 1.8s ease-in-out 1s infinite; }
 .devops-connector line,
 .devops-connector path { animation: devops-flow 2s ease-in-out infinite; }
+
+/* Pause all infinite icon animations by default — run only when section is visible */
+.blockchain-center,
+.blockchain-top,
+.blockchain-bottom,
+.blockchain-tl,
+.blockchain-tr,
+.blockchain-bl,
+.blockchain-br,
+.blockchain-line-1,
+.blockchain-line-2,
+.blockchain-line-3,
+.blockchain-line-4,
+.blockchain-line-5,
+.blockchain-line-6,
+.db-magnifier,
+.eda-chip,
+.eda-clock,
+.eng-gear-main,
+.eng-gear-tl,
+.eng-gear-br,
+.eng-dimension,
+.frontend-child-0,
+.frontend-child-1,
+.frontend-grandchild,
+.python-terminal,
+.python-gear,
+.python-prompt-1,
+.python-prompt-2,
+.security-shield,
+.security-lock,
+.devops-arrow-0 line,
+.devops-arrow-0 path,
+.devops-arrow-1 line,
+.devops-arrow-1 path,
+.devops-arrow-2 line,
+.devops-arrow-2 path,
+.devops-connector line,
+.devops-connector path {
+  animation-play-state: paused;
+}
+
+/* Resume animations when parent section becomes visible (via useScrollAnimation hook) */
+.is-visible .blockchain-center,
+.is-visible .blockchain-top,
+.is-visible .blockchain-bottom,
+.is-visible .blockchain-tl,
+.is-visible .blockchain-tr,
+.is-visible .blockchain-bl,
+.is-visible .blockchain-br,
+.is-visible .blockchain-line-1,
+.is-visible .blockchain-line-2,
+.is-visible .blockchain-line-3,
+.is-visible .blockchain-line-4,
+.is-visible .blockchain-line-5,
+.is-visible .blockchain-line-6,
+.is-visible .db-magnifier,
+.is-visible .eda-chip,
+.is-visible .eda-clock,
+.is-visible .eng-gear-main,
+.is-visible .eng-gear-tl,
+.is-visible .eng-gear-br,
+.is-visible .eng-dimension,
+.is-visible .frontend-child-0,
+.is-visible .frontend-child-1,
+.is-visible .frontend-grandchild,
+.is-visible .python-terminal,
+.is-visible .python-gear,
+.is-visible .python-prompt-1,
+.is-visible .python-prompt-2,
+.is-visible .security-shield,
+.is-visible .security-lock,
+.is-visible .devops-arrow-0 line,
+.is-visible .devops-arrow-0 path,
+.is-visible .devops-arrow-1 line,
+.is-visible .devops-arrow-1 path,
+.is-visible .devops-arrow-2 line,
+.is-visible .devops-arrow-2 path,
+.is-visible .devops-connector line,
+.is-visible .devops-connector path {
+  animation-play-state: running;
+}
 
 /* Comet/Electron animations for cards */
 @keyframes comet-fly-right {

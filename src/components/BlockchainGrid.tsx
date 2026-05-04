@@ -31,6 +31,8 @@ export function BlockchainGrid() {
   const blocks_ref = useRef<Block[]>([]);
   const dimensions_ref = useRef({ width: 0, height: 0 });
   const gradient_cache_ref = useRef<Map<string, CanvasGradient>>(new Map());
+  const is_visible_ref = useRef(true);
+  const draw_fn_ref = useRef<(() => void) | null>(null);
 
   const is_in_exclusion_zone = useCallback((rel_x: number, rel_y: number) => {
     const center_x = 0.5;
@@ -41,6 +43,36 @@ export function BlockchainGrid() {
       Math.abs(rel_x - center_x) < zone_width / 2 &&
       Math.abs(rel_y - center_y) < zone_height / 2
     );
+  }, []);
+
+  // Pause/resume canvas animation based on viewport visibility
+  useEffect(() => {
+    const canvas = canvas_ref.current;
+    if (!canvas) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const was_visible = is_visible_ref.current;
+        is_visible_ref.current = entry.isIntersecting;
+
+        // Restart animation loop when becoming visible again
+        if (entry.isIntersecting && !was_visible && draw_fn_ref.current) {
+          animation_ref.current = requestAnimationFrame(draw_fn_ref.current);
+        }
+        // Cancel animation when going off-screen
+        if (!entry.isIntersecting && was_visible) {
+          cancelAnimationFrame(animation_ref.current);
+          animation_ref.current = 0;
+        }
+      },
+      { threshold: 0 }
+    );
+
+    // Observe the canvas parent (Hero section container)
+    const target = canvas.parentElement ?? canvas;
+    observer.observe(target);
+
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -517,6 +549,10 @@ export function BlockchainGrid() {
     };
 
     const draw = () => {
+      // When off-screen, the IntersectionObserver cancels rAF entirely.
+      // This guard handles the edge case where draw fires one last time.
+      if (!is_visible_ref.current) return;
+
       check_and_resize();
 
       const { width, height } = dimensions_ref.current;
@@ -565,10 +601,14 @@ export function BlockchainGrid() {
       animation_ref.current = requestAnimationFrame(draw);
     };
 
+    // Store draw reference so IntersectionObserver can restart the loop
+    draw_fn_ref.current = draw;
     draw();
 
     return () => {
       cancelAnimationFrame(animation_ref.current);
+      animation_ref.current = 0;
+      draw_fn_ref.current = null;
       gradient_cache_ref.current.clear();
     };
   }, [is_in_exclusion_zone]);

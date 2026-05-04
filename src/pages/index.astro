@@ -108,76 +108,76 @@ import {
     <div class="absolute inset-0 pointer-events-none" style="z-index: 0;">
       <!-- Blob 1: covers Hero area from the top -->
       <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
+        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
         style="top: 0; left: 15%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.12) 0%, transparent 70%);"
       ></div>
 
       <!-- Blobs 2-12: overlapping distribution for seamless coverage -->
       <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
+        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
         style="top: 6%; right: 10%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px]"
+        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
         style="top: 15%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
+        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
         style="top: 25%; left: 5%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px]"
+        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
         style="top: 33%; right: 5%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
+        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
         style="top: 42%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(65% 0.15 280 / 0.08) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px]"
+        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
         style="top: 50%; left: 10%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
+        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
         style="top: 58%; right: 10%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px]"
+        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
         style="top: 66%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
+        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
         style="top: 74%; left: 15%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px]"
+        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
         style="top: 82%; right: 10%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
       ></div>
 
       <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]"
+        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
         style="top: 90%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(65% 0.15 280 / 0.08) 0%, transparent 70%);"
       ></div>
     </div>
 
     <div class="relative" style="z-index: 1;">
       <Hero client:load />
-      <About client:load />
-      <Expertise client:load />
-      <OurWorks client:load />
-      <EndUsers client:load />
-      <Team client:load />
-      <Career client:load />
-      <Contact client:load />
+      <About client:visible />
+      <Expertise client:visible />
+      <OurWorks client:visible />
+      <EndUsers client:visible />
+      <Team client:visible />
+      <Career client:visible />
+      <Contact client:visible />
       <Footer />
     </div>
   </div>

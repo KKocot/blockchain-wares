@@ -124,7 +124,7 @@ function JobPositionCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col p-6 md:p-8 rounded-2xl w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]",
+        "relative flex flex-col p-6 md:p-8 rounded-[32px] md:rounded-[40px] w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]",
         "bg-base-200/30 backdrop-blur-sm",
         "border border-white/5",
         "shadow-card",

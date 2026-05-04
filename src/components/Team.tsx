@@ -63,7 +63,7 @@ export function Team() {
 
         <div
           className={cn(
-            "relative p-4 md:p-6 rounded-2xl",
+            "relative p-4 md:p-6 rounded-[28px] md:rounded-[36px]",
             "bg-base-200/30 backdrop-blur-sm",
             "border border-white/5",
             "shadow-card",

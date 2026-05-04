@@ -1,0 +1,22 @@
+{
+  "name": "BlockchainWares",
+  "short_name": "BW",
+  "description": "Blockchain & Enterprise Software Development",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#13141f",
+  "theme_color": "#4EB4FF",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

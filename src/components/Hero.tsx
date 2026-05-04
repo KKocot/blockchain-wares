@@ -39,6 +39,9 @@ export function Hero() {
           <AnimatedLogo className="h-16 sm:h-20 md:h-28 lg:h-36 w-auto text-base-content" />
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
             <span className="text-secondary">Blockchain</span>Wares
+            <span className="sr-only">
+              {" "}— Blockchain & Enterprise Software Development Company
+            </span>
           </h1>
         </div>
 

@@ -112,7 +112,7 @@ export function Navigation() {
             >
               <img
                 src="/assets/img/blockchainwares.svg"
-                alt=""
+                alt="BlockchainWares logo"
                 className="h-8 w-auto"
               />
               <span className="text-xl font-bold text-base-content">

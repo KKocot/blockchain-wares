@@ -20,6 +20,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="author" content="BlockchainWares" />
+    <meta name="keywords" content="blockchain development, enterprise software, EDA, event-driven architecture, distributed systems, smart contracts, database optimization, software house, Dąbrowa Górnicza, Poland" />
     <meta name="generator" content={Astro.generator} />
 
     <!-- SEO -->
@@ -32,29 +34,37 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.svg" />
+    <meta property="og:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:site_name" content="BlockchainWares" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.svg" />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://www.blockchainwares.com.pl/assets/img/og-image.png" />
 
-    <!-- Fonts -->
+    <!-- Fonts (non-render-blocking) -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="preload"
       as="style"
       href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+      />
+    </noscript>
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- Additional meta tags -->
     <meta name="theme-color" content="#4EB4FF" />
@@ -76,11 +86,54 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           "value": 25
         },
         "email": "contact@blockchainwares.pl",
+        "sameAs": ["https://www.linkedin.com/company/blockchainwares/"],
         "address": {
           "@type": "PostalAddress",
-          "addressLocality": "Dabrowa Gornicza",
+          "streetAddress": "Graniczna 34B/U11",
+          "addressLocality": "Dąbrowa Górnicza",
+          "postalCode": "41-303",
           "addressCountry": "PL"
         }
+      }
+    </script>
+    <script type="application/ld+json" is:inline>
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "BlockchainWares",
+        "url": "https://www.blockchainwares.com.pl",
+        "description": "Blockchain & Enterprise Software Development Company"
+      }
+    </script>
+    <script type="application/ld+json" is:inline>
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": "BlockchainWares",
+        "url": "https://www.blockchainwares.com.pl",
+        "email": "contact@blockchainwares.pl",
+        "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software.",
+        "image": "https://www.blockchainwares.com.pl/assets/img/blockchainwares.svg",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Graniczna 34B/U11",
+          "addressLocality": "Dąbrowa Górnicza",
+          "postalCode": "41-303",
+          "addressCountry": "PL"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 50.3390,
+          "longitude": 19.1770
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "09:00",
+          "closes": "17:00"
+        },
+        "sameAs": ["https://www.linkedin.com/company/blockchainwares/"],
+        "priceRange": "$$"
       }
     </script>
   </head>

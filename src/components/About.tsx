@@ -295,25 +295,6 @@ export function About() {
               demanding engineering challenges with precision and expertise.
             </p>
 
-            {/* CTA Button */}
-            <div className={cn("fade-up stagger-4", section_visible && "is-visible")}>
-              <a
-                href="#expertise"
-                className={cn(
-                  "inline-flex items-center gap-2 px-6 py-3 rounded-full",
-                  "bg-secondary text-secondary-content font-medium",
-                  "shadow-lg",
-                  "transition-all duration-300",
-                  "hover:bg-secondary/90 hover:gap-3 hover:shadow-xl",
-                  "focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 focus:ring-offset-base-100"
-                )}
-              >
-                Our Expertise
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                </svg>
-              </a>
-            </div>
           </div>
 
           {/* Right column - Value propositions */}

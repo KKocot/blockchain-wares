@@ -9,7 +9,7 @@ interface ContactInfo {
   icon: string;
 }
 
-const LINKEDIN_URL = "https://www.linkedin.com/company/blockchainwares/";
+const LINKEDIN_URL = "https://pl.linkedin.com/company/blockchainwares-software-sp-z-o-o";
 
 const CONTACT_DATA: ContactInfo[] = [
   {

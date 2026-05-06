@@ -2,6 +2,7 @@ import { memo } from "react";
 import { motion } from "framer-motion";
 import { cn } from "../../lib/utils";
 import type { ProjectSection } from "../our-works-data";
+import { EXPERTISE_BY_ID } from "../expertise-data";
 import { ProjectCard } from "./ProjectCard";
 
 interface ContentPanelProps {
@@ -17,12 +18,33 @@ const SectionContent = memo(function SectionContent({
 }: {
   section: ProjectSection;
 }) {
+  // BIG hero icon — custom_icon (if provided) overrides default expertise icon.
+  const primary_expertise =
+    section.expertise_ids.length > 0
+      ? EXPERTISE_BY_ID[section.expertise_ids[0]]
+      : undefined;
+  const hero_icon = section.custom_icon ?? primary_expertise?.icon;
+
   return (
     <>
-      {/* Section title */}
-      <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-secondary mb-3">
-        {section.title}
-      </h3>
+      {/* Section header — BIG icon + title/subtitle */}
+      <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 mb-6">
+        {hero_icon ? (
+          <div
+            className={cn(
+              "shrink-0 text-secondary",
+              "w-20 h-20 md:w-28 md:h-28",
+              "drop-shadow-[0_0_24px_rgba(34,211,238,0.18)]"
+            )}
+            aria-hidden="true"
+          >
+            {hero_icon}
+          </div>
+        ) : null}
+        <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-secondary">
+          {section.title}
+        </h3>
+      </div>
 
       {/* Full description */}
       <p className="text-sm md:text-base text-base-content/80 leading-relaxed mb-6">

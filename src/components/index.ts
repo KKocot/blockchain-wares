@@ -2,7 +2,6 @@ export { Hero } from "./Hero";
 export { About } from "./About";
 export { AnimatedLogo } from "./AnimatedLogo";
 export { Navigation } from "./Navigation";
-export { Expertise } from "./Expertise";
 export { OurWorks } from "./OurWorks";
 export { EndUsers } from "./EndUsers";
 export { Team } from "./Team";

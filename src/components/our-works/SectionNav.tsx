@@ -47,14 +47,14 @@ const SectionNavItem = memo(function SectionNavItem({
           : "border-l-2 border-transparent hover:bg-base-200/50 hover:border-secondary/30"
       )}
     >
-      <h3
+      <h4
         className={cn(
           "text-sm md:text-base font-bold transition-colors duration-300 leading-snug",
           is_active ? "text-secondary" : "text-base-content/70 group-hover:text-base-content/80"
         )}
       >
         {section.title}
-      </h3>
+      </h4>
       <p
         className={cn(
           "text-xs md:text-sm leading-snug mt-0.5 transition-colors duration-300",

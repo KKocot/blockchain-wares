@@ -465,6 +465,27 @@ line.frontend-props {
   animation: none;
 }
 
+/* HiveIcon animations */
+@keyframes hive-bar-pulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes hive-bar-shimmer {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px currentColor); }
+}
+
+.hive-bar-1 {
+  animation: hive-bar-pulse 2.8s ease-in-out infinite;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+}
+
+.hive-bar-2 {
+  animation: hive-bar-shimmer 2.8s ease-in-out 0.6s infinite;
+}
+
 /* PythonIcon animations */
 @keyframes python-terminal-scale {
   0%, 100% { transform: scale(1); }
@@ -515,6 +536,135 @@ line.frontend-props {
 .devops-connector line,
 .devops-connector path { animation: devops-flow 2s ease-in-out infinite; }
 
+/* SdkIcon animations */
+@keyframes sdk-card-float-back {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(-3px); opacity: 0.9; }
+}
+
+@keyframes sdk-card-float-mid {
+  0%, 100% { transform: translateY(0); opacity: 0.85; }
+  50% { transform: translateY(-2px); opacity: 1; }
+}
+
+@keyframes sdk-card-pulse-front {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 1; filter: drop-shadow(0 0 6px currentColor); }
+}
+
+@keyframes sdk-bracket-pulse {
+  0%, 100% { opacity: 0.7; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.05); }
+}
+
+@keyframes sdk-line-shimmer {
+  0%, 100% { stroke-opacity: 0.3; }
+  50% { stroke-opacity: 0.9; }
+}
+
+@keyframes sdk-dot-blink {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.sdk-card-back {
+  animation: sdk-card-float-back 3.2s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.sdk-card-mid {
+  animation: sdk-card-float-mid 3.2s ease-in-out 0.3s infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.sdk-card-front {
+  animation: sdk-card-pulse-front 3.2s ease-in-out 0.6s infinite;
+}
+
+.sdk-bracket-left {
+  animation: sdk-bracket-pulse 2s ease-in-out infinite;
+  transform-origin: 76px 108px;
+  transform-box: fill-box;
+}
+
+.sdk-bracket-right {
+  animation: sdk-bracket-pulse 2s ease-in-out 0.2s infinite;
+  transform-origin: 144px 108px;
+  transform-box: fill-box;
+}
+
+.sdk-line-1 { animation: sdk-line-shimmer 1.5s ease-in-out infinite; }
+.sdk-line-2 { animation: sdk-line-shimmer 1.5s ease-in-out 0.3s infinite; }
+.sdk-line-3 { animation: sdk-line-shimmer 1.5s ease-in-out 0.6s infinite; }
+
+.sdk-dot { animation: sdk-dot-blink 1.5s ease-in-out infinite; }
+
+/* DocsIcon animations (stacked document pages with code block) */
+@keyframes docs-page-float-back {
+  0%, 100% { opacity: 0.7; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(-2px); }
+}
+
+@keyframes docs-page-glow-front {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 1; filter: drop-shadow(0 0 5px currentColor); }
+}
+
+@keyframes docs-line-fade {
+  0%, 100% { opacity: 0.4; transform: scaleX(1); }
+  50% { opacity: 0.85; transform: scaleX(1.02); }
+}
+
+@keyframes docs-code-shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
+}
+
+@keyframes docs-code-line-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes docs-corner-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.docs-page-back {
+  animation: docs-page-float-back 3.2s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.docs-page-front {
+  animation: docs-page-glow-front 3.2s ease-in-out 0.4s infinite;
+}
+
+.docs-corner-fold {
+  animation: docs-corner-pulse 2s ease-in-out infinite;
+}
+
+.docs-line-title {
+  animation: docs-line-fade 2s ease-in-out infinite;
+  transform-origin: left center;
+  transform-box: fill-box;
+}
+
+.docs-line-1 { animation: docs-line-fade 2s ease-in-out 0.15s infinite; transform-origin: left center; transform-box: fill-box; }
+.docs-line-2 { animation: docs-line-fade 2s ease-in-out 0.3s infinite; transform-origin: left center; transform-box: fill-box; }
+.docs-line-3 { animation: docs-line-fade 2s ease-in-out 0.45s infinite; transform-origin: left center; transform-box: fill-box; }
+.docs-line-4 { animation: docs-line-fade 2s ease-in-out 0.6s infinite; transform-origin: left center; transform-box: fill-box; }
+.docs-line-5 { animation: docs-line-fade 2s ease-in-out 0.75s infinite; transform-origin: left center; transform-box: fill-box; }
+
+.docs-code-block {
+  animation: docs-code-shimmer 2.4s ease-in-out infinite;
+}
+
+.docs-code-line-1 { animation: docs-code-line-pulse 1.6s ease-in-out infinite; }
+.docs-code-line-2 { animation: docs-code-line-pulse 1.6s ease-in-out 0.4s infinite; }
+
 /* Pause all infinite icon animations by default — run only when section is visible */
 .blockchain-center,
 .blockchain-top,
@@ -539,6 +689,8 @@ line.frontend-props {
 .frontend-child-0,
 .frontend-child-1,
 .frontend-grandchild,
+.hive-bar-1,
+.hive-bar-2,
 .python-terminal,
 .python-gear,
 .python-prompt-1,
@@ -552,7 +704,28 @@ line.frontend-props {
 .devops-arrow-2 line,
 .devops-arrow-2 path,
 .devops-connector line,
-.devops-connector path {
+.devops-connector path,
+.sdk-card-back,
+.sdk-card-mid,
+.sdk-card-front,
+.sdk-bracket-left,
+.sdk-bracket-right,
+.sdk-line-1,
+.sdk-line-2,
+.sdk-line-3,
+.sdk-dot,
+.docs-page-back,
+.docs-page-front,
+.docs-corner-fold,
+.docs-line-title,
+.docs-line-1,
+.docs-line-2,
+.docs-line-3,
+.docs-line-4,
+.docs-line-5,
+.docs-code-block,
+.docs-code-line-1,
+.docs-code-line-2 {
   animation-play-state: paused;
 }
 
@@ -580,6 +753,8 @@ line.frontend-props {
 .is-visible .frontend-child-0,
 .is-visible .frontend-child-1,
 .is-visible .frontend-grandchild,
+.is-visible .hive-bar-1,
+.is-visible .hive-bar-2,
 .is-visible .python-terminal,
 .is-visible .python-gear,
 .is-visible .python-prompt-1,
@@ -593,7 +768,28 @@ line.frontend-props {
 .is-visible .devops-arrow-2 line,
 .is-visible .devops-arrow-2 path,
 .is-visible .devops-connector line,
-.is-visible .devops-connector path {
+.is-visible .devops-connector path,
+.is-visible .sdk-card-back,
+.is-visible .sdk-card-mid,
+.is-visible .sdk-card-front,
+.is-visible .sdk-bracket-left,
+.is-visible .sdk-bracket-right,
+.is-visible .sdk-line-1,
+.is-visible .sdk-line-2,
+.is-visible .sdk-line-3,
+.is-visible .sdk-dot,
+.is-visible .docs-page-back,
+.is-visible .docs-page-front,
+.is-visible .docs-corner-fold,
+.is-visible .docs-line-title,
+.is-visible .docs-line-1,
+.is-visible .docs-line-2,
+.is-visible .docs-line-3,
+.is-visible .docs-line-4,
+.is-visible .docs-line-5,
+.is-visible .docs-code-block,
+.is-visible .docs-code-line-1,
+.is-visible .docs-code-line-2 {
   animation-play-state: running;
 }
 

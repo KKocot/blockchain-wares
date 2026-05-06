@@ -1,3 +1,6 @@
+import { createElement, type ReactNode } from "react";
+import { DocsIcon, EngineeringIcon, HiveIcon, SdkIcon } from "./icons";
+
 export interface Deployment {
   label?: string; // np. "Blog", "Wallet" — opcjonalnie (przy single deployment zwykle pomijane)
   url: string;
@@ -15,6 +18,17 @@ export interface ProjectSection {
   title: string;
   subtitle: string;
   description: string;
+  /**
+   * Expertise areas applied in this section.
+   * Maps to `id` keys from `EXPERTISE_BY_ID` (see `expertise-data.ts`).
+   * Rendered as chip/pill badges at the top of each section.
+   */
+  expertise_ids: string[];
+  /**
+   * Optional custom hero icon. When provided, overrides the default icon
+   * derived from the first entry in `expertise_ids`.
+   */
+  custom_icon?: ReactNode;
   projects: Project[];
 }
 
@@ -25,6 +39,7 @@ export const SECTIONS: ProjectSection[] = [
     subtitle: "High-performance blockchain nodes and indexing infrastructure",
     description:
       "Experience dating back to 2014 with Keyhotee. Core contributors to Hive blockchain with over 31,000 commits. Specializing in C++ node development (hived), HAF PostgreSQL-backed indexing handling thousands of TPS, DPoS/Graphene-based platforms (BEOS, Peerplays) with 3-second blocks, and exchange infrastructure (BlockTrades).",
+    expertise_ids: ["blockchain", "engineering", "devops"],
     projects: [
       {
         title: "Hive Blockchain",
@@ -65,6 +80,8 @@ export const SECTIONS: ProjectSection[] = [
       "Backend services exposing Hive blockchain data via REST and JSON-RPC",
     description:
       "Production-grade backend services built on top of HAF — REST APIs and JSON-RPC endpoints with OpenAPI/Swagger specifications, enabling third-party developers to query Hive blockchain data without running their own full node.",
+    expertise_ids: ["blockchain", "databases", "engineering"],
+    custom_icon: createElement(HiveIcon, { className: "w-full h-full" }),
     projects: [
       {
         title: "HAfAH — Account History API",
@@ -88,6 +105,8 @@ export const SECTIONS: ProjectSection[] = [
     subtitle: "Open-source tooling for the Hive developer ecosystem",
     description:
       "A complete developer platform built for Hive: multi-language API bindings, secure key management, automation frameworks, and browser authorization libraries — enabling third-party developers to build on Hive with confidence.",
+    expertise_ids: ["blockchain", "python", "frontend"],
+    custom_icon: createElement(SdkIcon, { className: "w-full h-full" }),
     projects: [
       {
         title: "Wax — Multi-Language API",
@@ -135,6 +154,7 @@ export const SECTIONS: ProjectSection[] = [
     subtitle: "End-user blockchain experiences and decentralized applications",
     description:
       "Rich end-user products across the Hive ecosystem — from a full blockchain explorer and decentralized social media platform to CLI wallets, transaction analysis tools, and AI-powered semantic search. Each project links both to the live deployment and to its open-source repository.",
+    expertise_ids: ["frontend", "blockchain", "security"],
     projects: [
       {
         title: "Block Explorer UI",
@@ -201,6 +221,8 @@ export const SECTIONS: ProjectSection[] = [
     subtitle: "Governance tools and smart contracts for the EOS blockchain",
     description:
       "Delivered during the 2017–2019 EOS/BEOS era in collaboration with TerraDacs: a cross-platform desktop wallet for block producer voting, and two on-chain governance smart contracts for proxy registration and producer metadata.",
+    expertise_ids: ["blockchain", "engineering"],
+    custom_icon: createElement(EngineeringIcon, { className: "w-full h-full" }),
     projects: [
       {
         title: "EOS Voter",
@@ -225,6 +247,8 @@ export const SECTIONS: ProjectSection[] = [
     subtitle: "Developer documentation and interactive code examples",
     description:
       "Comprehensive documentation sites for the Hive developer platform — featuring multi-language code tabs, 71+ executable TypeScript snippets, Swagger API docs, and branch-specific preview deployments.",
+    expertise_ids: ["engineering"],
+    custom_icon: createElement(DocsIcon, { className: "w-full h-full" }),
     projects: [
       {
         title: "Wax Documentation",
@@ -254,6 +278,7 @@ export const SECTIONS: ProjectSection[] = [
     subtitle: "Electronic design automation tools and simulation software",
     description:
       "Over a dozen years developing HDL compiler, simulation and advanced debugging tools for large scale System Verilog models. Development of CAD & CAE software used at design and verification processes at biggest engineering companies worldwide.",
+    expertise_ids: ["eda", "engineering"],
     projects: [
       {
         title: "SynaptiCAD - Verilogger",
@@ -294,6 +319,7 @@ export const SECTIONS: ProjectSection[] = [
     subtitle: "Database solutions and data center infrastructure management",
     description:
       "Experienced in RDBMS and modern non-SQL databases like RocksDB and Neo4J, offering critical write throughput and efficient object traversal.",
+    expertise_ids: ["databases", "engineering"],
     projects: [
       {
         title: "RDBMS - WSMS",

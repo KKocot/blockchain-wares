@@ -11,10 +11,10 @@ test.describe("Sections visibility", () => {
     await expect(about_section.getByRole("heading", { name: /Software Development/i })).toBeVisible();
   });
 
-  test("Expertise section is visible with content", async ({ page }) => {
+  test("What We Do section is visible with content", async ({ page }) => {
     await page.goto("/");
 
-    const expertise_section = page.locator("#expertise");
+    const expertise_section = page.locator("#what-we-do");
     await expertise_section.scrollIntoViewIfNeeded();
     await expect(expertise_section).toBeVisible({ timeout: 10000 });
 
@@ -25,7 +25,7 @@ test.describe("Sections visibility", () => {
   test("All main sections exist on page", async ({ page }) => {
     await page.goto("/");
 
-    const sections = ["#about", "#expertise", "#works", "#team", "#career", "#contact"];
+    const sections = ["#about", "#what-we-do", "#works", "#team", "#career", "#contact"];
 
     for (const section_id of sections) {
       const section = page.locator(section_id);

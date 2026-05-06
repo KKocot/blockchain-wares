@@ -5,10 +5,12 @@ import { SECTIONS } from "./our-works-data";
 import { SectionNav, ContentPanel, MobileTabs } from "./our-works";
 
 /**
- * Our Works section — two-panel layout
+ * Unified "What We Do" section — single integrated UI.
  *
- * Desktop: sticky sidebar navigation (left ~35%) + content panel (right ~65%)
- * Mobile: horizontal scroll tabs + stacked content below
+ * One header, sticky sidebar (desktop) / horizontal tabs (mobile), content panel
+ * with expertise badges woven into each section as metadata. No separate
+ * expertise grid block — competencies are surfaced organically inside the
+ * portfolio.
  *
  * Auto-rotates through sections with a progress bar indicator.
  */
@@ -43,78 +45,80 @@ export function OurWorks() {
   return (
     <section
       ref={ref}
-      id="works"
-      className="relative min-h-0 md:min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
+      id="what-we-do"
+      className={cn(
+        "relative py-16 md:py-24 lg:py-32 px-4",
+        is_visible && "is-visible"
+      )}
     >
       <div className="w-full">
-      <div className="relative z-10 max-w-6xl mx-auto w-full">
-        {/* Section header */}
-        <div className="text-center mb-12 md:mb-16">
-          <span
-            className={cn(
-              "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
-              "fade-up",
-              is_visible && "is-visible"
-            )}
-          >
-            Portfolio
-          </span>
+        <div className="relative z-10 max-w-7xl mx-auto w-full">
+          {/* Unified section header */}
+          <div className="text-center mb-12 md:mb-16">
+            <span
+              className={cn(
+                "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
+                "fade-up",
+                is_visible && "is-visible"
+              )}
+            >
+              Our Expertise
+            </span>
 
-          <h2
-            className={cn(
-              "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
-              "fade-up stagger-1",
-              is_visible && "is-visible"
-            )}
-          >
-            Our{" "}
-            <span className="text-secondary">Works</span>
-          </h2>
+            <h2
+              className={cn(
+                "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
+                "fade-up stagger-1",
+                is_visible && "is-visible"
+              )}
+            >
+              What <span className="text-secondary">We Do</span>
+            </h2>
 
-          <p
-            className={cn(
-              "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
-              "fade-up stagger-2",
-              is_visible && "is-visible"
-            )}
-          >
-            Explore our portfolio of cutting-edge projects across blockchain,
-            EDA, engineering, and database technologies.
-          </p>
-        </div>
+            <p
+              className={cn(
+                "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
+                "fade-up stagger-2",
+                is_visible && "is-visible"
+              )}
+            >
+              End-to-end engineering across blockchain, EDA, data, and frontend
+              — shipped in production for partners worldwide.
+            </p>
+          </div>
 
-        {/* Mobile tabs — visible below md */}
-        <div className="md:hidden mb-6">
-          <MobileTabs
-            sections={SECTIONS}
-            active_id={active_id}
-            on_select={handle_select}
-            is_auto_playing={is_auto_playing}
-            progress_key={progress_key}
-          />
-        </div>
+          {/* Mobile tabs — visible below md */}
+          <div className="md:hidden mb-6">
+            <MobileTabs
+              sections={SECTIONS}
+              active_id={active_id}
+              on_select={handle_select}
+              is_auto_playing={is_auto_playing}
+              progress_key={progress_key}
+            />
+          </div>
 
-        {/* Two-panel layout — desktop */}
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10">
-          {/* Left sidebar — hidden on mobile, sticky on desktop */}
-          <aside className="hidden md:block md:w-[35%] lg:w-[32%] shrink-0">
-            <div className="sticky top-24">
-              <SectionNav
-                sections={SECTIONS}
-                active_id={active_id}
-                on_select={handle_select}
-                is_auto_playing={is_auto_playing}
-                progress_key={progress_key}
-              />
+          {/* Two-panel layout — desktop */}
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 max-w-6xl mx-auto">
+            {/* Left sidebar — hidden on mobile, sticky on desktop */}
+            <aside className="hidden md:block md:w-[35%] lg:w-[32%] shrink-0">
+              <div className="sticky top-24">
+                <SectionNav
+                  sections={SECTIONS}
+                  active_id={active_id}
+                  on_select={handle_select}
+                  is_auto_playing={is_auto_playing}
+                  progress_key={progress_key}
+                />
+              </div>
+            </aside>
+
+            {/* Right content panel */}
+            <div className="flex-1 min-w-0">
+              <ContentPanel sections={SECTIONS} active_id={active_id} />
             </div>
-          </aside>
-
-          {/* Right content panel */}
-          <div className="flex-1 min-w-0">
-            <ContentPanel sections={SECTIONS} active_id={active_id} />
           </div>
         </div>
-      </div>
       </div>
     </section>
   );

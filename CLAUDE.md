@@ -31,7 +31,7 @@ Single Page Application zbudowana w Astro z React Islands:
 - `src/components/ui/` - reużywalne komponenty UI (Button, etc.)
 - `src/lib/utils.ts` - helper `cn()` do mergowania klas Tailwind
 
-Sekcje strony (w kolejności): Navigation, Hero, Expertise, OurWorks, Services, EndUsers, Team, Career, Contact, Footer
+Sekcje strony (w kolejności): Navigation, Hero, OurWorks (What We Do + Portfolio), Services, EndUsers, Team, Career, Contact, Footer
 
 ## DaisyUI Theme
 

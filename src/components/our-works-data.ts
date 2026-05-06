@@ -112,7 +112,10 @@ export const SECTIONS: ProjectSection[] = [
         title: "Wax — Multi-Language API",
         description:
           "Extension module bridging Hive's C++ core to Python (Cython) and TypeScript (WASM/Emscripten). Transaction building, signing, asset manipulation, and Protobuf integration. Security-audited by Hacken (May 2025).",
-        deployments: [{ url: "https://gitlab.syncad.com/hive/wax" }],
+        deployments: [
+          { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/wax" },
+        ],
       },
       {
         title: "Beekeeper — Wallet Daemon",
@@ -254,7 +257,10 @@ export const SECTIONS: ProjectSection[] = [
         title: "Wax Documentation",
         description:
           "Comprehensive documentation with multi-language code tabs and 71+ executable snippets. Deployed via GitLab Pages with branch-specific URLs for developer convenience.",
-        deployments: [{ url: "https://gitlab.syncad.com/hive/wax-doc" }],
+        deployments: [
+          { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/wax-doc" },
+        ],
       },
       {
         title: "WorkerBee Documentation",

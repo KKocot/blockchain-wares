@@ -1,18 +1,5 @@
-import { useEffect, useState } from "react";
 import { cn } from "../lib/utils";
 import { useScrollAnimation } from "../hooks";
-
-interface Stat {
-  value: number;
-  suffix: string;
-  label: string;
-}
-
-const STATS: Stat[] = [
-  { value: 10, suffix: "+", label: "Years of Experience" },
-  { value: 30, suffix: "+", label: "Projects Delivered" },
-  { value: 25, suffix: "+", label: "Engineers" },
-];
 
 interface ValueProp {
   title: string;
@@ -31,6 +18,7 @@ function ScaleIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       {/* Three arrows expanding outward from center */}
       <path d="M16 22 L16 10" />
@@ -55,6 +43,7 @@ function ShieldIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       {/* Shield outline */}
       <path d="M16 3 L27 8 L27 16 C27 22.5 22 27 16 29 C10 27 5 22.5 5 16 L5 8 Z" />
@@ -74,6 +63,7 @@ function ExpertiseIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       {/* Lightbulb outline */}
       <path d="M12 28 L20 28" />
@@ -81,6 +71,28 @@ function ExpertiseIcon() {
       <path d="M13 25 C13 22 10 20 10 15 C10 11 12.5 7 16 5 C19.5 7 22 11 22 15 C22 20 19 22 19 25" />
       {/* Filament rays */}
       <path d="M14 15 L16 13 L18 15" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      className="w-7 h-7 md:w-8 md:h-8"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Clock face */}
+      <circle cx="16" cy="16" r="11" />
+      {/* Hour hand pointing up */}
+      <line x1="16" y1="16" x2="16" y2="9" />
+      {/* Minute hand pointing right */}
+      <line x1="16" y1="16" x2="21" y2="16" />
     </svg>
   );
 }
@@ -101,75 +113,15 @@ const VALUE_PROPS: ValueProp[] = [
     description: "25+ engineers including security specialists in blockchain, EDA, databases, and complex engineering challenges.",
     icon: <ExpertiseIcon />,
   },
+  {
+    title: "Two Decades",
+    description: "Founded in 2002, working with blockchain since 2013 — over two decades of engineering excellence.",
+    icon: <ClockIcon />,
+  },
 ];
-
-function useAnimatedCounter(value: number, is_in_view: boolean) {
-  const [display_value, set_display_value] = useState(0);
-
-  useEffect(() => {
-    if (!is_in_view) return;
-
-    const duration = 2000; // 2s
-    const start_time = performance.now();
-    let animation_frame: number;
-
-    const animate_count = (current_time: number) => {
-      const elapsed = current_time - start_time;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // easeOut cubic (matching Framer Motion's easeOut)
-      const eased = 1 - Math.pow(1 - progress, 3);
-      set_display_value(Math.round(value * eased));
-
-      if (progress < 1) {
-        animation_frame = requestAnimationFrame(animate_count);
-      }
-    };
-
-    animation_frame = requestAnimationFrame(animate_count);
-
-    return () => {
-      if (animation_frame) {
-        cancelAnimationFrame(animation_frame);
-      }
-    };
-  }, [is_in_view, value]);
-
-  return display_value;
-}
-
-function StatCard({ stat, index, is_in_view }: { stat: Stat; index: number; is_in_view: boolean }) {
-  const display_value = useAnimatedCounter(stat.value, is_in_view);
-
-  return (
-    <div className={cn(
-      "relative",
-      "scale-in",
-      `stagger-${index + 1}`,
-      is_in_view && "is-visible"
-    )}>
-      <div className={cn(
-        "relative z-10 p-4 md:p-6 rounded-xl md:rounded-2xl",
-        "bg-base-200/30 backdrop-blur-sm",
-        "border border-white/5",
-        "shadow-lg shadow-black/20",
-        "transition-shadow duration-300",
-        "hover:shadow-card-hover"
-      )}>
-        <div className="text-2xl md:text-4xl lg:text-5xl font-bold text-secondary mb-1 md:mb-2">
-          {display_value}{stat.suffix}
-        </div>
-        <div className="text-[10px] md:text-sm text-base-content/60 uppercase tracking-wider">
-          {stat.label}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function About() {
   const { ref: section_ref, is_visible: section_visible } = useScrollAnimation<HTMLElement>();
-  const { ref: stats_ref, is_visible: stats_visible } = useScrollAnimation<HTMLDivElement>();
 
   return (
     <section
@@ -179,7 +131,7 @@ export function About() {
     >
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Two-column layout */}
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-center mb-10 md:mb-20">
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-center">
           {/* Left column - Text content */}
           <div>
             <span
@@ -210,8 +162,9 @@ export function About() {
                 section_visible && "is-visible"
               )}
             >
-              We are a software development company based in Dabrowa Gornicza, Poland.
-              We specialize in building complete products, complex frameworks, and
+              Founded in 2002, we are a software development company based in Dabrowa
+              Gornicza, Poland. Since 2013 we have been deeply involved in blockchain,
+              while continuing to build complete products, complex frameworks, and
               reusable libraries that power businesses worldwide.
             </p>
 
@@ -265,25 +218,6 @@ export function About() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Stats section */}
-        <div ref={stats_ref} className="relative">
-          {/* Divider line - hidden on mobile */}
-          <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-transparent via-secondary/30 to-transparent" />
-
-          <div className="pt-8 md:pt-16">
-            <div className="grid grid-cols-3 gap-3 md:gap-6">
-              {STATS.map((stat, index) => (
-                <StatCard
-                  key={stat.label}
-                  stat={stat}
-                  index={index}
-                  is_in_view={stats_visible}
-                />
-              ))}
-            </div>
           </div>
         </div>
       </div>

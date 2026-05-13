@@ -52,19 +52,18 @@ export const SECTIONS: ProjectSection[] = [
           "PostgreSQL-based push-model indexing layer for the Hive blockchain. Multiple HAF apps share a single server with automatic fork handling and efficient data access via sql_serializer plugin and hive_fork_manager extension.",
         deployments: [
           { label: "Source", url: "https://gitlab.syncad.com/hive/haf" },
+          { label: "Site", url: "https://haf-website-nine.vercel.app" },
         ],
       },
       {
         title: "BlockTrades",
         description:
           "BlockTrades enables users to rapidly and safely purchase cryptocurrencies without the hassles typically associated with purchasing through a centralized cryptocurrency exchange. Unlike a traditional exchange, you don't need to maintain a balance on the site.",
-        deployments: [{ label: "Site", url: "https://blocktrades.us" }],
       },
       {
         title: "BEOS Blockchain Platform",
         description:
           "Business-oriented EOSIO fork implementing unique and unheard of ideas in the blockchain world. Location-dependent rules of operation, automatically adjusted to current requirements. 0.5s block confirmation with BFT consensus.",
-        deployments: [{ label: "Site", url: "https://beos.world" }],
       },
       {
         title: "Peerplays",
@@ -90,6 +89,7 @@ export const SECTIONS: ProjectSection[] = [
           "HAF-based REST API providing account operation history, block and transaction lookup, without requiring blockchain replay. Over 5,353 commits and 68 contributors.",
         deployments: [
           { label: "Source", url: "https://gitlab.syncad.com/hive/HAfAH" },
+          { label: "Site", url: "https://hafah-website.vercel.app/" },
         ],
       },
       {
@@ -101,6 +101,7 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/haf_block_explorer",
           },
+          { label: "Site", url: "https://hafbe-website.vercel.app" },
         ],
       },
     ],
@@ -121,6 +122,7 @@ export const SECTIONS: ProjectSection[] = [
         deployments: [
           { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
           { label: "Source", url: "https://gitlab.syncad.com/hive/wax" },
+          { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/wax" },
         ],
       },
       {
@@ -129,6 +131,8 @@ export const SECTIONS: ProjectSection[] = [
           "Standalone key management daemon with HTTP/WebSocket API, session management, auto-lock timeout, and WASM bindings for browser environments. Published as @hiveio/beekeeper.",
         deployments: [
           { label: "Source", url: "https://gitlab.syncad.com/hive/beekeeper" },
+          { label: "Site", url: "https://beekeeper-website.vercel.app" },
+          { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/beekeeper" },
         ],
       },
       {
@@ -137,6 +141,8 @@ export const SECTIONS: ProjectSection[] = [
           "Event-based observer pattern library for building Hive bots and automation. 25+ filters, data providers, real-time and historical data, combined filter logic (AND/OR). 181 kB bundle.",
         deployments: [
           { label: "Source", url: "https://gitlab.syncad.com/hive/workerbee" },
+          { label: "Site", url: "https://workerbee-landing.vercel.app" },
+          { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/workerbee" },
         ],
       },
       {
@@ -145,6 +151,8 @@ export const SECTIONS: ProjectSection[] = [
           "Browser authorization library using WebWorker isolation and IndexedDB for secure key storage. Dual client modes without exposing private keys. Published as @hiveio/hb-auth.",
         deployments: [
           { label: "Source", url: "https://gitlab.syncad.com/hive/hb-auth" },
+          { label: "Site", url: "https://hb-auth-website.vercel.app" },
+          { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/hb-auth" },
         ],
       },
       {
@@ -156,6 +164,8 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/metamask-snap",
           },
+          { label: "Site", url: "https://hive-snap-landing.vercel.app" },
+          { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/metamask-snap" },
         ],
       },
       {
@@ -167,6 +177,7 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/healthchecker-component",
           },
+          { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/healthchecker-component" },
         ],
       },
     ],
@@ -188,6 +199,7 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/haf_block_explorer",
           },
+          { label: "Site", url: "https://explore.openhive.network/" },
         ],
       },
       {
@@ -209,6 +221,7 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/wallet-dapp",
           },
+          { label: "Site", url: "https://auth.dev.openhive.network" },
         ],
       },
       {
@@ -220,6 +233,7 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/tx-inspector",
           },
+          { label: "Site", url: "https://auth.openhive.network/" },
         ],
       },
       {
@@ -228,6 +242,7 @@ export const SECTIONS: ProjectSection[] = [
           "Dual-mode command-line and terminal UI wallet with mouse support, Beekeeper integration, and profile system. Entry points: clive (TUI) and clive-dev (debug mode). Over 8,899 commits.",
         deployments: [
           { label: "Source", url: "https://gitlab.syncad.com/hive/clive" },
+          { label: "Site", url: "https://clive-website-alpha.vercel.app/" },
         ],
       },
       {
@@ -236,6 +251,7 @@ export const SECTIONS: ProjectSection[] = [
           "HAF-based semantic search over blockchain posts using OLLAMA ML embeddings, pgvector similarity, parallel LLM processing, and thematic contributor identification.",
         deployments: [
           { label: "Source", url: "https://gitlab.syncad.com/hive/hivesense" },
+          { label: "Site", url: "https://hivesense-website-nine.vercel.app" },
         ],
       },
       {
@@ -247,6 +263,7 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/balance_tracker",
           },
+          { label: "Site", url: "https://balance-tracker-landing.vercel.app" },
         ],
       },
       {

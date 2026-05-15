@@ -120,6 +120,7 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Extension module bridging Hive's C++ core to Python (Cython) and TypeScript (WASM/Emscripten). Transaction building, signing, asset manipulation, and Protobuf integration. Security-audited by Hacken (May 2025).",
         deployments: [
+          { label: "Site", url: "https://wax-website.vercel.app" },
           { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
           { label: "Source", url: "https://gitlab.syncad.com/hive/wax" },
           { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/wax" },
@@ -233,7 +234,7 @@ export const SECTIONS: ProjectSection[] = [
             label: "Source",
             url: "https://gitlab.syncad.com/hive/tx-inspector",
           },
-          { label: "Site", url: "https://auth.openhive.network/" },
+          { label: "Site", url: "https://tx-inspector-website.vercel.app" },
         ],
       },
       {

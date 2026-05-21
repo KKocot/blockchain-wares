@@ -141,6 +141,7 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Event-based observer pattern library for building Hive bots and automation. 25+ filters, data providers, real-time and historical data, combined filter logic (AND/OR). 181 kB bundle.",
         deployments: [
+          { label: "Docs", url: "https://doc.openhive.network/workerbee/develop/" },
           { label: "Source", url: "https://gitlab.syncad.com/hive/workerbee" },
           { label: "Site", url: "https://workerbee-landing.vercel.app" },
           { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/workerbee" },
@@ -337,6 +338,10 @@ export const SECTIONS: ProjectSection[] = [
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/wax-doc-snippets",
+          },
+          {
+            label: "Source",
+            url: "https://gitlab.syncad.com/hive/workerbee-doc-snippets/",
           },
         ],
       },

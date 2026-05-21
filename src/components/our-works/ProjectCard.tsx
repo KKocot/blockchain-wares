@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import type { Deployment, Project } from "../our-works-data";
 
@@ -28,6 +28,79 @@ function getDeploymentDisplay(deployment: Deployment): string {
   } catch {
     return deployment.url;
   }
+}
+
+function getPrettyUrl(url: string): string {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
+function getLinkIcon(label: string): ReactNode {
+  const lower = label.toLowerCase();
+
+  if (lower === "docs") {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+        <path
+          d="M3.5 2.2h6.3l3 3v8.6H3.5z"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M9.5 2.5v3h3M5.7 8.5h4.6M5.7 11h3.2"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (lower === "source") {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+        <path
+          d="M5.5 5L2.5 8l3 3M10.5 5l3 3-3 3M9.3 3.5L6.7 12.5"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  if (lower === "npm") {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+        <rect
+          x="1.5"
+          y="3.5"
+          width="13"
+          height="9"
+          stroke="currentColor"
+          strokeWidth="1.3"
+        />
+        <path
+          d="M4.5 12.5V6.5M7.5 12.5V6.5M7.5 9.5h2.5V6.5M10.5 12.5V6.5"
+          stroke="currentColor"
+          strokeWidth="1.3"
+        />
+      </svg>
+    );
+  }
+
+  // "Site", "Wax", and any other label → globe icon
+  return (
+    <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+      <circle cx="8" cy="8" r="6.3" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M1.7 8h12.6M8 1.7c1.8 2 1.8 10.6 0 12.6M8 1.7c-1.8 2-1.8 10.6 0 12.6"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+    </svg>
+  );
 }
 
 export const ProjectCard = memo(function ProjectCard({

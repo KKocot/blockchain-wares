@@ -11,6 +11,47 @@ import {
   Contact,
   Footer,
 } from "../components";
+
+const BLOB_CYAN = "oklch(71% 0.143 215.221";
+const BLOB_PURPLE = "oklch(65% 0.15 280";
+
+type Blob = {
+  top: string;
+  left?: string;
+  right?: string;
+  centerX?: boolean;
+  size: "sm" | "lg";
+  color: string;
+};
+
+const blobs: Blob[] = [
+  { top: "0",   left: "15%",               size: "sm", color: `${BLOB_CYAN} / 0.12)` },
+  { top: "6%",  right: "10%",              size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
+  { top: "15%", centerX: true,             size: "lg", color: `${BLOB_CYAN} / 0.10)` },
+  { top: "25%", left: "5%",               size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
+  { top: "33%", right: "5%",              size: "lg", color: `${BLOB_CYAN} / 0.10)` },
+  { top: "42%", centerX: true,             size: "sm", color: `${BLOB_PURPLE} / 0.08)` },
+  { top: "50%", left: "10%",              size: "lg", color: `${BLOB_CYAN} / 0.10)` },
+  { top: "58%", right: "10%",             size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
+  { top: "66%", centerX: true,             size: "lg", color: `${BLOB_CYAN} / 0.10)` },
+  { top: "74%", left: "15%",              size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
+  { top: "82%", right: "10%",             size: "lg", color: `${BLOB_CYAN} / 0.10)` },
+  { top: "90%", centerX: true,             size: "sm", color: `${BLOB_PURPLE} / 0.08)` },
+];
+
+const blobSizeClass = {
+  sm: "w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]",
+  lg: "w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px]",
+} as const;
+
+function blobStyle(blob: Blob): string {
+  const pos = blob.centerX
+    ? `left: 50%; transform: translateX(-50%);`
+    : blob.right
+      ? `right: ${blob.right};`
+      : `left: ${blob.left};`;
+  return `top: ${blob.top}; ${pos} background: radial-gradient(circle, ${blob.color} 0%, transparent 70%);`;
+}
 ---
 
 <Layout>
@@ -18,11 +59,11 @@ import {
   <div
     id="splash-screen"
     aria-hidden="true"
-    style="position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:oklch(12% 0.042 264.695);"
+    class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[oklch(12%_0.042_264.695)]"
   >
     <!-- Logo SVG -->
     <svg
-      style="width:7rem;height:7rem;color:oklch(71% 0.143 215.221);margin-bottom:1.5rem;overflow:visible;"
+      class="w-28 h-28 text-[oklch(71%_0.143_215.221)] mb-6 overflow-visible"
       viewBox="0 0 376 381"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -49,24 +90,24 @@ import {
 
     <!-- Typewriter company name -->
     <div
-      style="display:flex;align-items:center;justify-content:center;font-size:1.75rem;font-weight:700;letter-spacing:0.025em;font-family:'Quicksand',system-ui,sans-serif;"
+      class="flex items-center justify-center text-[1.75rem] font-bold tracking-wide font-[Quicksand,system-ui,sans-serif]"
     >
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.1s forwards;">B</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.16s forwards;">l</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.22s forwards;">o</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.28s forwards;">c</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.34s forwards;">k</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.4s forwards;">c</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.46s forwards;">h</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.52s forwards;">a</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.58s forwards;">i</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(96% 0.007 247.896);animation:splash-letter 0.08s ease-out 1.64s forwards;">n</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.7s forwards;">W</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.76s forwards;">a</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.82s forwards;">r</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.88s forwards;">e</span>
-      <span style="display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;color:oklch(71% 0.143 215.221);animation:splash-letter 0.08s ease-out 1.94s forwards;">s</span>
-      <span style="display:inline-block;color:oklch(71% 0.143 215.221);margin-left:0.125rem;animation:splash-blink 0.8s step-end infinite 1.1s;">|</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.1s forwards;">B</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.16s forwards;">l</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.22s forwards;">o</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.28s forwards;">c</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.34s forwards;">k</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.4s forwards;">c</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.46s forwards;">h</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.52s forwards;">a</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.58s forwards;">i</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(96%_0.007_247.896)]" style="animation:splash-letter 0.08s ease-out 1.64s forwards;">n</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(71%_0.143_215.221)]" style="animation:splash-letter 0.08s ease-out 1.7s forwards;">W</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(71%_0.143_215.221)]" style="animation:splash-letter 0.08s ease-out 1.76s forwards;">a</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(71%_0.143_215.221)]" style="animation:splash-letter 0.08s ease-out 1.82s forwards;">r</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(71%_0.143_215.221)]" style="animation:splash-letter 0.08s ease-out 1.88s forwards;">e</span>
+      <span class="inline-block max-w-0 overflow-hidden whitespace-nowrap text-[oklch(71%_0.143_215.221)]" style="animation:splash-letter 0.08s ease-out 1.94s forwards;">s</span>
+      <span class="inline-block text-[oklch(71%_0.143_215.221)] ml-0.5" style="animation:splash-blink 0.8s step-end infinite 1.1s;">|</span>
     </div>
 
     <!-- Inline script — NOT type="module" to execute immediately -->
@@ -103,72 +144,17 @@ import {
 
   <Navigation client:load />
 
-  <div class="relative bg-base-100" style="overflow: clip;">
-    <div class="absolute inset-0 pointer-events-none" style="z-index: 0;">
-      <!-- Blob 1: covers Hero area from the top -->
-      <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
-        style="top: 0; left: 15%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.12) 0%, transparent 70%);"
-      ></div>
-
-      <!-- Blobs 2-12: overlapping distribution for seamless coverage -->
-      <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
-        style="top: 6%; right: 10%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
-        style="top: 15%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
-        style="top: 25%; left: 5%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
-        style="top: 33%; right: 5%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
-        style="top: 42%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(65% 0.15 280 / 0.08) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
-        style="top: 50%; left: 10%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
-        style="top: 58%; right: 10%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
-        style="top: 66%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
-        style="top: 74%; left: 15%; background: radial-gradient(circle, oklch(65% 0.15 280 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px] blob-contained"
-        style="top: 82%; right: 10%; background: radial-gradient(circle, oklch(71% 0.143 215.221 / 0.10) 0%, transparent 70%);"
-      ></div>
-
-      <div
-        class="absolute w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px] blob-contained"
-        style="top: 90%; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, oklch(65% 0.15 280 / 0.08) 0%, transparent 70%);"
-      ></div>
+  <div class="relative bg-base-100 overflow-clip">
+    <div class="absolute inset-0 pointer-events-none z-0">
+      {blobs.map((blob) => (
+        <div
+          class={`absolute ${blobSizeClass[blob.size]} blob-contained`}
+          style={blobStyle(blob)}
+        />
+      ))}
     </div>
 
-    <div class="relative" style="z-index: 1;">
+    <div class="relative z-[1]">
       <Hero client:load />
       <About client:visible />
       <OurWorks client:visible />

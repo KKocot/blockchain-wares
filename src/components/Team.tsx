@@ -1,5 +1,5 @@
 import { cn } from "../lib/utils";
-import { CometEffect } from "./ui";
+import { CometEffect, SectionHeader, SectionWrapper } from "./ui";
 import { useScrollAnimation } from "../hooks";
 
 /**
@@ -21,45 +21,15 @@ export function Team() {
       id="team"
       className="relative min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
     >
-      <div className="w-full">
-      <div className="max-w-6xl mx-auto w-full relative z-10">
-        {/* Section header */}
-        <div className="text-center mb-12 md:mb-16">
-          <span
-            className={cn(
-              "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
-              "fade-up",
-              is_visible && "is-visible"
-            )}
-          >
-            Who We Are
-          </span>
-
-          <h2
-            className={cn(
-              "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
-              "fade-up stagger-1",
-              is_visible && "is-visible"
-            )}
-          >
-            Our{" "}
-            <span className="text-secondary">
-              Team
-            </span>
-          </h2>
-
-          <p
-            className={cn(
-              "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
-              "fade-up stagger-2",
-              is_visible && "is-visible"
-            )}
-          >
-            A dedicated team of engineers and developers passionate about
-            building cutting-edge solutions in blockchain technology and
-            high-performance software.
-          </p>
-        </div>
+      <SectionWrapper>
+        <SectionHeader
+          eyebrow="Who We Are"
+          title="Our"
+          accent="Team"
+          description="A dedicated team of engineers and developers passionate about building cutting-edge solutions in blockchain technology and high-performance software."
+          isVisible={is_visible}
+          className="mb-12 md:mb-16"
+        />
 
         <div
           className={cn(
@@ -75,7 +45,7 @@ export function Team() {
         >
           <CometEffect />
           <div className="relative overflow-hidden rounded-xl z-10">
-            <div className="relative aspect-video md:aspect-[16/9] lg:aspect-[21/9] overflow-hidden bg-base-100/50">
+            <div className="relative aspect-video md:aspect-[16/9] lg:aspect-[21/9] bg-base-100/50">
               <picture>
                 <source srcSet="/assets/img/team.webp" type="image/webp" />
                 <img
@@ -114,8 +84,7 @@ export function Team() {
             </div>
           </div>
         </div>
-      </div>
-      </div>
+      </SectionWrapper>
     </section>
   );
 }

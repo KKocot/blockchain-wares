@@ -1,3 +1,4 @@
 export { Button } from "./Button";
 export { CometEffect } from "./CometEffect";
-export { AnimatedSection, AnimatedChildren } from "./AnimatedSection";
+export { SectionHeader } from "./SectionHeader";
+export { SectionWrapper } from "./SectionWrapper";

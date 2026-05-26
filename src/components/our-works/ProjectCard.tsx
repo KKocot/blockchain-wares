@@ -131,17 +131,17 @@ export const ProjectCard = memo(function ProjectCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Visit ${title} — ${label}`}
-                  className="group flex items-center gap-2.5 text-[13px] text-[#BEE6F7] no-underline py-[3px] hover:text-[#5AC8F5] hover:translate-x-0.5 transition-[color,transform] duration-150 min-w-0"
+                  className="group flex items-center gap-2.5 text-[13px] text-secondary/75 no-underline py-[3px] hover:text-secondary hover:translate-x-0.5 transition-[color,transform] duration-150 min-w-0"
                 >
-                  <span className="shrink-0 text-[#5AC8F5]" aria-hidden="true">
+                  <span className="shrink-0 text-secondary" aria-hidden="true">
                     {getLinkIcon(label)}
                   </span>
                   <span className="font-semibold min-w-[60px]">{label}</span>
-                  <span className="font-mono text-xs text-[#5C7A91] group-hover:text-[#9FDBF5] transition-colors duration-150 truncate">
+                  <span className="font-mono text-xs text-base-content/40 group-hover:text-secondary/60 transition-colors duration-150 truncate">
                     {getPrettyUrl(deployment.url)}
                   </span>
                   <span
-                    className="ml-auto shrink-0 text-[#406B82] group-hover:text-[#5AC8F5] transition-colors duration-150"
+                    className="ml-auto shrink-0 text-base-content/30 group-hover:text-secondary transition-colors duration-150"
                     aria-hidden="true"
                   >
                     <svg

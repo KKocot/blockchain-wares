@@ -665,131 +665,38 @@ line.frontend-props {
 .docs-code-line-1 { animation: docs-code-line-pulse 1.6s ease-in-out infinite; }
 .docs-code-line-2 { animation: docs-code-line-pulse 1.6s ease-in-out 0.4s infinite; }
 
-/* Pause all infinite icon animations by default — run only when section is visible */
-.blockchain-center,
-.blockchain-top,
-.blockchain-bottom,
-.blockchain-tl,
-.blockchain-tr,
-.blockchain-bl,
-.blockchain-br,
-.blockchain-line-1,
-.blockchain-line-2,
-.blockchain-line-3,
-.blockchain-line-4,
-.blockchain-line-5,
-.blockchain-line-6,
-.db-magnifier,
-.eda-chip,
-.eda-clock,
-.eng-gear-main,
-.eng-gear-tl,
-.eng-gear-br,
-.eng-dimension,
-.frontend-child-0,
-.frontend-child-1,
-.frontend-grandchild,
-.hive-bar-1,
-.hive-bar-2,
-.python-terminal,
-.python-gear,
-.python-prompt-1,
-.python-prompt-2,
-.security-shield,
-.security-lock,
-.devops-arrow-0 line,
-.devops-arrow-0 path,
-.devops-arrow-1 line,
-.devops-arrow-1 path,
-.devops-arrow-2 line,
-.devops-arrow-2 path,
-.devops-connector line,
-.devops-connector path,
-.sdk-card-back,
-.sdk-card-mid,
-.sdk-card-front,
-.sdk-bracket-left,
-.sdk-bracket-right,
-.sdk-line-1,
-.sdk-line-2,
-.sdk-line-3,
-.sdk-dot,
-.docs-page-back,
-.docs-page-front,
-.docs-corner-fold,
-.docs-line-title,
-.docs-line-1,
-.docs-line-2,
-.docs-line-3,
-.docs-line-4,
-.docs-line-5,
-.docs-code-block,
-.docs-code-line-1,
-.docs-code-line-2 {
+/* Pause all infinite icon animations by default — run only when section is visible.
+   Wildcard attribute selectors match class prefixes for each icon group:
+   blockchain-, db-, eda-, eng-, frontend-, hive-, python-, security-, devops-, sdk-, docs-
+   devops-* animates child <line>/<path> elements, hence the descendant selectors. */
+[class*="blockchain-"],
+[class*="db-"],
+[class*="eda-"],
+[class*="eng-"],
+[class*="frontend-"],
+[class*="hive-"],
+[class*="python-"],
+[class*="security-"],
+[class*="devops-"] line,
+[class*="devops-"] path,
+[class*="sdk-"],
+[class*="docs-"] {
   animation-play-state: paused;
 }
 
 /* Resume animations when parent section becomes visible (via useScrollAnimation hook) */
-.is-visible .blockchain-center,
-.is-visible .blockchain-top,
-.is-visible .blockchain-bottom,
-.is-visible .blockchain-tl,
-.is-visible .blockchain-tr,
-.is-visible .blockchain-bl,
-.is-visible .blockchain-br,
-.is-visible .blockchain-line-1,
-.is-visible .blockchain-line-2,
-.is-visible .blockchain-line-3,
-.is-visible .blockchain-line-4,
-.is-visible .blockchain-line-5,
-.is-visible .blockchain-line-6,
-.is-visible .db-magnifier,
-.is-visible .eda-chip,
-.is-visible .eda-clock,
-.is-visible .eng-gear-main,
-.is-visible .eng-gear-tl,
-.is-visible .eng-gear-br,
-.is-visible .eng-dimension,
-.is-visible .frontend-child-0,
-.is-visible .frontend-child-1,
-.is-visible .frontend-grandchild,
-.is-visible .hive-bar-1,
-.is-visible .hive-bar-2,
-.is-visible .python-terminal,
-.is-visible .python-gear,
-.is-visible .python-prompt-1,
-.is-visible .python-prompt-2,
-.is-visible .security-shield,
-.is-visible .security-lock,
-.is-visible .devops-arrow-0 line,
-.is-visible .devops-arrow-0 path,
-.is-visible .devops-arrow-1 line,
-.is-visible .devops-arrow-1 path,
-.is-visible .devops-arrow-2 line,
-.is-visible .devops-arrow-2 path,
-.is-visible .devops-connector line,
-.is-visible .devops-connector path,
-.is-visible .sdk-card-back,
-.is-visible .sdk-card-mid,
-.is-visible .sdk-card-front,
-.is-visible .sdk-bracket-left,
-.is-visible .sdk-bracket-right,
-.is-visible .sdk-line-1,
-.is-visible .sdk-line-2,
-.is-visible .sdk-line-3,
-.is-visible .sdk-dot,
-.is-visible .docs-page-back,
-.is-visible .docs-page-front,
-.is-visible .docs-corner-fold,
-.is-visible .docs-line-title,
-.is-visible .docs-line-1,
-.is-visible .docs-line-2,
-.is-visible .docs-line-3,
-.is-visible .docs-line-4,
-.is-visible .docs-line-5,
-.is-visible .docs-code-block,
-.is-visible .docs-code-line-1,
-.is-visible .docs-code-line-2 {
+.is-visible [class*="blockchain-"],
+.is-visible [class*="db-"],
+.is-visible [class*="eda-"],
+.is-visible [class*="eng-"],
+.is-visible [class*="frontend-"],
+.is-visible [class*="hive-"],
+.is-visible [class*="python-"],
+.is-visible [class*="security-"],
+.is-visible [class*="devops-"] line,
+.is-visible [class*="devops-"] path,
+.is-visible [class*="sdk-"],
+.is-visible [class*="docs-"] {
   animation-play-state: running;
 }
 
@@ -1069,61 +976,28 @@ line.frontend-props {
   transform: translateY(0);
 }
 
-/* Fade in from different directions */
-.fade-up {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-}
-
-.fade-up.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.fade-down {
-  opacity: 0;
-  transform: translateY(-30px);
-  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-}
-
-.fade-down.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.fade-left {
-  opacity: 0;
-  transform: translateX(-30px);
-  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-}
-
-.fade-left.is-visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.fade-right {
-  opacity: 0;
-  transform: translateX(30px);
-  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-}
-
-.fade-right.is-visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* Scale animations */
+/* Fade / scale entrance animations — shared base with per-direction custom properties.
+   --_scroll-transform: initial offset (direction-specific)
+   --_scroll-duration: transition timing (default 0.7s, scale-in uses 0.6s) */
+.fade-up,
+.fade-down,
+.fade-left,
+.fade-right,
 .scale-in {
   opacity: 0;
-  transform: scale(0.95);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: var(--_scroll-transform);
+  transition: opacity var(--_scroll-duration, 0.7s) ease-out, transform var(--_scroll-duration, 0.7s) ease-out;
 }
 
-.scale-in.is-visible {
+.fade-up    { --_scroll-transform: translateY(30px); }
+.fade-down  { --_scroll-transform: translateY(-30px); }
+.fade-left  { --_scroll-transform: translateX(-30px); }
+.fade-right { --_scroll-transform: translateX(30px); }
+.scale-in   { --_scroll-transform: scale(0.95); --_scroll-duration: 0.6s; }
+
+:is(.fade-up, .fade-down, .fade-left, .fade-right, .scale-in).is-visible {
   opacity: 1;
-  transform: scale(1);
+  transform: none;
 }
 
 /* Stagger delays for children */

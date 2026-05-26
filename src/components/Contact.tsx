@@ -1,5 +1,5 @@
 import { cn } from "../lib/utils";
-import { CometEffect } from "./ui";
+import { CometEffect, SectionHeader, SectionWrapper } from "./ui";
 import { useScrollAnimation } from "../hooks";
 
 interface ContactInfo {
@@ -47,39 +47,16 @@ export function Contact() {
       id="contact"
       className="relative min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
     >
-      <div className="w-full">
-      <div className="max-w-6xl mx-auto w-full relative z-10">
-        {/* Section header */}
-        <div className="text-center mb-12 md:mb-16">
-          <span className={cn(
-            "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
-            "fade-up",
-            is_visible && "is-visible"
-          )}>
-            Contact Us
-          </span>
+      <SectionWrapper>
+        <SectionHeader
+          eyebrow="Contact Us"
+          title="Get In"
+          accent="Touch"
+          description="Have a project in mind? We'd love to hear from you."
+          isVisible={is_visible}
+          className="mb-12 md:mb-16"
+        />
 
-          <h2 className={cn(
-            "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
-            "fade-up stagger-1",
-            is_visible && "is-visible"
-          )}>
-            Get In{" "}
-            <span className="text-secondary">
-              Touch
-            </span>
-          </h2>
-
-          <p className={cn(
-            "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
-            "fade-up stagger-2",
-            is_visible && "is-visible"
-          )}>
-            Have a project in mind? We'd love to hear from you.
-          </p>
-        </div>
-
-        {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div
             className={cn(
@@ -129,13 +106,12 @@ export function Contact() {
                 style={{ border: 0 }}
                 loading="lazy"
                 allowFullScreen
-                title="BlockchainWares Location"
+                title="Google Maps - BlockchainWares office location"
               />
             </div>
           </div>
         </div>
-      </div>
-      </div>
+      </SectionWrapper>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { cn } from "../lib/utils";
+import { SectionHeader, SectionWrapper } from "./ui";
 import { useScrollAnimation, useAutoRotate } from "../hooks";
 import { SECTIONS } from "./our-works-data";
 import { SectionNav, ContentPanel, MobileTabs } from "./our-works";
@@ -51,41 +52,15 @@ export function OurWorks() {
         is_visible && "is-visible"
       )}
     >
-      <div className="w-full">
-        <div className="relative z-10 max-w-7xl mx-auto w-full">
-          {/* Unified section header */}
-          <div className="text-center mb-12 md:mb-16">
-            <span
-              className={cn(
-                "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
-                "fade-up",
-                is_visible && "is-visible"
-              )}
-            >
-              Our Expertise
-            </span>
-
-            <h2
-              className={cn(
-                "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
-                "fade-up stagger-1",
-                is_visible && "is-visible"
-              )}
-            >
-              What <span className="text-secondary">We Do</span>
-            </h2>
-
-            <p
-              className={cn(
-                "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
-                "fade-up stagger-2",
-                is_visible && "is-visible"
-              )}
-            >
-              End-to-end engineering across blockchain, EDA, data, and frontend
-              — shipped in production for partners worldwide.
-            </p>
-          </div>
+      <SectionWrapper maxWidth="max-w-7xl">
+          <SectionHeader
+            eyebrow="Our Expertise"
+            title="What"
+            accent="We Do"
+            description="End-to-end engineering across blockchain, EDA, data, and frontend — shipped in production for partners worldwide."
+            isVisible={is_visible}
+            className="mb-12 md:mb-16"
+          />
 
           {/* Mobile tabs — visible below md */}
           <div className="md:hidden mb-6">
@@ -118,8 +93,7 @@ export function OurWorks() {
               <ContentPanel sections={SECTIONS} active_id={active_id} />
             </div>
           </div>
-        </div>
-      </div>
+      </SectionWrapper>
     </section>
   );
 }

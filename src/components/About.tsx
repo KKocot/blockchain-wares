@@ -1,4 +1,5 @@
 import { cn } from "../lib/utils";
+import { SectionHeader } from "./ui";
 import { useScrollAnimation } from "../hooks";
 
 interface ValueProp {
@@ -134,39 +135,16 @@ export function About() {
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-center">
           {/* Left column - Text content */}
           <div>
-            <span
-              className={cn(
-                "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
-                "fade-up",
-                section_visible && "is-visible"
-              )}
-            >
-              About Us
-            </span>
-
-            <h2
-              className={cn(
-                "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
-                "fade-up stagger-1",
-                section_visible && "is-visible"
-              )}
-            >
-              Software Development{" "}
-              <span className="text-secondary">Done Right</span>
-            </h2>
-
-            <p
-              className={cn(
-                "text-base md:text-lg text-base-content/70 leading-relaxed mb-4 md:mb-6",
-                "fade-up stagger-2",
-                section_visible && "is-visible"
-              )}
-            >
-              Founded in 2002, we are a software development company based in Dabrowa
-              Gornicza, Poland. Since 2013 we have been deeply involved in blockchain,
-              while continuing to build complete products, complex frameworks, and
-              reusable libraries that power businesses worldwide.
-            </p>
+            <SectionHeader
+              eyebrow="About Us"
+              title="Software Development"
+              accent="Done Right"
+              description="Founded in 2002, we are a software development company based in Dabrowa Gornicza, Poland. Since 2013 we have been deeply involved in blockchain, while continuing to build complete products, complex frameworks, and reusable libraries that power businesses worldwide."
+              isVisible={section_visible}
+              align="left"
+              className="mb-4 md:mb-6"
+              descriptionClassName="text-base-content/70"
+            />
 
             <p
               className={cn(
@@ -178,7 +156,6 @@ export function About() {
               From blockchain solutions to database optimization, we tackle the most
               demanding engineering challenges with precision and expertise.
             </p>
-
           </div>
 
           {/* Right column - Value propositions */}

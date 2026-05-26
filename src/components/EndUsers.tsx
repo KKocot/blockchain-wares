@@ -1,4 +1,5 @@
 import { cn } from "../lib/utils";
+import { SectionHeader, SectionWrapper } from "./ui";
 import { useScrollAnimation } from "../hooks";
 import { companies } from "./end-users-data";
 
@@ -11,42 +12,15 @@ export function EndUsers() {
       id="end-users"
       className="relative min-h-screen flex items-center py-16 md:py-24 lg:py-32 px-4"
     >
-      <div className="w-full">
-        <div className="max-w-6xl mx-auto w-full relative z-10">
-          <div className="text-center mb-12 md:mb-16">
-            <span
-              className={cn(
-                "text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4",
-                "fade-up",
-                is_visible && "is-visible"
-              )}
-            >
-              Our Clients
-            </span>
-
-            <h2
-              className={cn(
-                "text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg",
-                "fade-up stagger-1",
-                is_visible && "is-visible"
-              )}
-            >
-              Trusted By{" "}
-              <span className="text-secondary">Industry Leaders</span>
-            </h2>
-
-            <p
-              className={cn(
-                "text-base md:text-lg text-base-content/80 leading-relaxed max-w-2xl mx-auto",
-                "fade-up stagger-2",
-                is_visible && "is-visible"
-              )}
-            >
-              Our EDA tools and software solutions have been deployed by Fortune
-              500 companies, government agencies, and technology pioneers
-              worldwide
-            </p>
-          </div>
+      <SectionWrapper>
+          <SectionHeader
+            eyebrow="Our Clients"
+            title="Trusted By"
+            accent="Industry Leaders"
+            description="Our EDA tools and software solutions have been deployed by Fortune 500 companies, government agencies, and technology pioneers worldwide"
+            isVisible={is_visible}
+            className="mb-12 md:mb-16"
+          />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6">
             {companies.map((company, index) => {
@@ -112,8 +86,7 @@ export function EndUsers() {
               Clients from our EDA tools era and blockchain ecosystem
             </p>
           </div>
-        </div>
-      </div>
+      </SectionWrapper>
     </section>
   );
 }

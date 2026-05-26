@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { motion } from "framer-motion";
 import { cn } from "../../lib/utils";
 import type { ProjectSection } from "../our-works-data";
 import { EXPERTISE_BY_ID } from "../expertise-data";
@@ -81,19 +80,18 @@ export const ContentPanel = memo(function ContentPanel({
       {sections.map((section) => {
         const is_active = section.id === active_id;
         return (
-          <motion.div
+          <div
             key={section.id}
             className={cn(
               "col-start-1 row-start-1",
-              !is_active && "hidden md:block md:opacity-0 md:pointer-events-none"
+              "transition-opacity duration-350 ease-[cubic-bezier(0.44,0,0.56,1)]",
+              is_active ? "opacity-100" : "hidden md:block md:opacity-0 md:pointer-events-none"
             )}
-            animate={{ opacity: is_active ? 1 : 0 }}
-            transition={{ duration: 0.35, ease: [0.44, 0, 0.56, 1] }}
             aria-hidden={!is_active}
             style={{ pointerEvents: is_active ? "auto" : "none" }}
           >
             <SectionContent section={section} />
-          </motion.div>
+          </div>
         );
       })}
     </div>

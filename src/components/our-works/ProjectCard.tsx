@@ -56,7 +56,7 @@ function getLinkIcon(label: string): ReactNode {
     );
   }
 
-  if (lower === "source") {
+  if (lower.includes("source")) {
     return (
       <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
         <path

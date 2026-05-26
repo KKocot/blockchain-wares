@@ -51,8 +51,8 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "PostgreSQL-based push-model indexing layer for the Hive blockchain. Multiple HAF apps share a single server with automatic fork handling and efficient data access via sql_serializer plugin and hive_fork_manager extension.",
         deployments: [
-          { label: "Source", url: "https://gitlab.syncad.com/hive/haf" },
           { label: "Site", url: "https://haf-website-nine.vercel.app" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/haf" },
         ],
       },
       {
@@ -88,8 +88,8 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "HAF-based REST API providing account operation history, block and transaction lookup, without requiring blockchain replay. Over 5,353 commits and 68 contributors.",
         deployments: [
-          { label: "Source", url: "https://gitlab.syncad.com/hive/HAfAH" },
           { label: "Site", url: "https://hafah-website.vercel.app/" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/HAfAH" },
         ],
       },
       {
@@ -97,11 +97,11 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Comprehensive blockchain REST API built on HAF integrating balance tracking, reputation tracking, and account history. OpenAPI/Swagger docs with Docker Compose deployment.",
         deployments: [
+          { label: "Site", url: "https://hafbe-website.vercel.app" },
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/haf_block_explorer",
           },
-          { label: "Site", url: "https://hafbe-website.vercel.app" },
         ],
       },
     ],
@@ -121,8 +121,8 @@ export const SECTIONS: ProjectSection[] = [
           "Extension module bridging Hive's C++ core to Python (Cython) and TypeScript (WASM/Emscripten). Transaction building, signing, asset manipulation, and Protobuf integration. Security-audited by Hacken (May 2025).",
         deployments: [
           { label: "Site", url: "https://wax-website.vercel.app" },
-          { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
           { label: "Source", url: "https://gitlab.syncad.com/hive/wax" },
+          { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
           { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/wax" },
         ],
       },
@@ -131,8 +131,8 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Standalone key management daemon with HTTP/WebSocket API, session management, auto-lock timeout, and WASM bindings for browser environments. Published as @hiveio/beekeeper.",
         deployments: [
-          { label: "Source", url: "https://gitlab.syncad.com/hive/beekeeper" },
           { label: "Site", url: "https://beekeeper-website.vercel.app" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/beekeeper" },
           { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/beekeeper" },
         ],
       },
@@ -141,9 +141,9 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Event-based observer pattern library for building Hive bots and automation. 25+ filters, data providers, real-time and historical data, combined filter logic (AND/OR). 181 kB bundle.",
         deployments: [
-          { label: "Docs", url: "https://doc.openhive.network/workerbee/develop/" },
-          { label: "Source", url: "https://gitlab.syncad.com/hive/workerbee" },
           { label: "Site", url: "https://workerbee-landing.vercel.app" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/workerbee" },
+          { label: "Docs", url: "https://doc.openhive.network/workerbee/develop/" },
           { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/workerbee" },
         ],
       },
@@ -152,8 +152,8 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Browser authorization library using WebWorker isolation and IndexedDB for secure key storage. Dual client modes without exposing private keys. Published as @hiveio/hb-auth.",
         deployments: [
-          { label: "Source", url: "https://gitlab.syncad.com/hive/hb-auth" },
           { label: "Site", url: "https://hb-auth-website.vercel.app" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/hb-auth" },
           { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/hb-auth" },
         ],
       },
@@ -162,11 +162,11 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "MetaMask extension deriving Hive keys from MetaMask seed via BIP44, enabling transaction signing within the MetaMask security model. Passed Hacken security audit (May 2025). Published as @hiveio/metamask-snap.",
         deployments: [
+          { label: "Site", url: "https://hive-snap-landing.vercel.app" },
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/metamask-snap",
           },
-          { label: "Site", url: "https://hive-snap-landing.vercel.app" },
           { label: "NPM", url: "https://www.npmjs.com/package/@hiveio/metamask-snap" },
         ],
       },
@@ -197,11 +197,11 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Full-featured blockchain explorer with block and transaction search, account info, witness tracking, market data, and balance history visualization. Playwright E2E tests across 3 browser engines.",
         deployments: [
+          { label: "Site", url: "https://explore.openhive.network/" },
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/haf_block_explorer",
           },
-          { label: "Site", url: "https://explore.openhive.network/" },
         ],
       },
       {
@@ -219,11 +219,11 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Modern multi-auth wallet supporting MetaMask Snap, Keychain, PeakVault, and Google Wallet/Drive integration with dark mode.",
         deployments: [
+          { label: "Site", url: "https://auth.dev.openhive.network" },
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/wallet-dapp",
           },
-          { label: "Site", url: "https://auth.dev.openhive.network" },
         ],
       },
       {
@@ -231,11 +231,11 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Transaction analysis tool with multi-format input (hash/JSON/binary/file), authority graph visualization, hex viewer, and delegated authority detection up to 2 levels.",
         deployments: [
+          { label: "Site", url: "https://tx-inspector-website.vercel.app" },
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/tx-inspector",
           },
-          { label: "Site", url: "https://tx-inspector-website.vercel.app" },
         ],
       },
       {
@@ -243,8 +243,8 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Dual-mode command-line and terminal UI wallet with mouse support, Beekeeper integration, and profile system. Entry points: clive (TUI) and clive-dev (debug mode). Over 8,899 commits.",
         deployments: [
-          { label: "Source", url: "https://gitlab.syncad.com/hive/clive" },
           { label: "Site", url: "https://clive-website-alpha.vercel.app/" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/clive" },
         ],
       },
       {
@@ -252,8 +252,8 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "HAF-based semantic search over blockchain posts using OLLAMA ML embeddings, pgvector similarity, parallel LLM processing, and thematic contributor identification.",
         deployments: [
-          { label: "Source", url: "https://gitlab.syncad.com/hive/hivesense" },
           { label: "Site", url: "https://hivesense-website-nine.vercel.app" },
+          { label: "Source", url: "https://gitlab.syncad.com/hive/hivesense" },
         ],
       },
       {
@@ -261,11 +261,11 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "HAF application for graphing account balances (HIVE/HBD) over time. Dual backend support (PostgREST/Python) with React web UI and JMeter performance testing.",
         deployments: [
+          { label: "Site", url: "https://balance-tracker-landing.vercel.app" },
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/balance_tracker",
           },
-          { label: "Site", url: "https://balance-tracker-landing.vercel.app" },
         ],
       },
       {
@@ -315,8 +315,8 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Comprehensive documentation with multi-language code tabs and 71+ executable snippets. Deployed via GitLab Pages with branch-specific URLs for developer convenience.",
         deployments: [
-          { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
           { label: "Source", url: "https://gitlab.syncad.com/hive/wax-doc" },
+          { label: "Docs", url: "https://doc.openhive.network/wax/develop/manual/" },
         ],
       },
       {
@@ -336,11 +336,11 @@ export const SECTIONS: ProjectSection[] = [
           "Executable documentation examples: 71+ TypeScript snippets organized by category with built-in test runners, covering Beekeeper, filters, providers, and custom integration patterns.",
         deployments: [
           {
-            label: "Source",
+            label: "Source (Wax)",
             url: "https://gitlab.syncad.com/hive/wax-doc-snippets",
           },
           {
-            label: "Source",
+            label: "Source (WorkerBee)",
             url: "https://gitlab.syncad.com/hive/workerbee-doc-snippets/",
           },
         ],

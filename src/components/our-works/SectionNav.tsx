@@ -39,7 +39,7 @@ const SectionNavItem = memo(function SectionNavItem({
       aria-controls={`tabpanel-${section.id}`}
       onClick={() => on_select(section.id)}
       className={cn(
-        "w-full text-left px-4 py-3 rounded-lg relative overflow-hidden",
+        "w-full text-left px-4 py-3 rounded-r-lg relative overflow-hidden",
         "transition-all duration-300 cursor-pointer",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100",
         is_active

@@ -17,8 +17,8 @@
   --color-base-300: rgb(48, 50, 73);
   --color-base-300: oklch(27% 0.041 260.031);
 
-  --color-base-content: rgb(239, 241, 245);
-  --color-base-content: oklch(96% 0.007 247.896);
+  --color-base-content: rgb(225, 235, 255);
+  --color-base-content: oklch(94% 0.035 250);
 
   --color-primary: rgb(0, 0, 0);
   --color-primary: oklch(0% 0 0);
@@ -26,23 +26,23 @@
   --color-primary-content: rgb(255, 255, 255);
   --color-primary-content: oklch(100% 0 0);
 
-  --color-secondary: rgb(78, 180, 255);
-  --color-secondary: oklch(71% 0.143 215.221);
+  --color-secondary: rgb(60, 180, 255);
+  --color-secondary: oklch(72% 0.18 215.221);
 
   --color-secondary-content: rgb(245, 248, 251);
   --color-secondary-content: oklch(98% 0.019 200.873);
 
-  --color-accent: rgb(78, 180, 255);
-  --color-accent: oklch(71% 0.143 215.221);
+  --color-accent: rgb(60, 180, 255);
+  --color-accent: oklch(72% 0.18 215.221);
 
   --color-accent-content: rgb(245, 248, 251);
   --color-accent-content: oklch(98% 0.019 200.873);
 
-  --color-neutral: rgb(77, 79, 116);
-  --color-neutral: oklch(44% 0.043 257.281);
+  --color-neutral: rgb(70, 78, 125);
+  --color-neutral: oklch(44% 0.07 257.281);
 
-  --color-neutral-content: rgb(247, 248, 250);
-  --color-neutral-content: oklch(98% 0.003 247.858);
+  --color-neutral-content: rgb(220, 230, 250);
+  --color-neutral-content: oklch(92% 0.03 250);
 
   --color-info: rgb(73, 144, 235);
   --color-info: oklch(62% 0.214 259.815);

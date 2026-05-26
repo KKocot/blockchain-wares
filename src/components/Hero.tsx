@@ -18,16 +18,7 @@ export function Hero() {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle at 50% 50%, oklch(71% 0.143 215.221 / 0.15) 0%, transparent 50%)",
-          }}
-        />
-        <div
-          className="absolute top-20 right-20 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, oklch(71% 0.143 215.221 / 0.1) 0%, transparent 70%)",
-            width: "600px",
-            height: "600px",
+              "radial-gradient(circle at 50% 40%, oklch(72% 0.18 215.221 / 0.12) 0%, transparent 55%)",
           }}
         />
       </div>

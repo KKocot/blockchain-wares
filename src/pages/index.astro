@@ -12,45 +12,30 @@ import {
   Footer,
 } from "../components";
 
-const BLOB_CYAN = "oklch(71% 0.143 215.221";
-const BLOB_PURPLE = "oklch(65% 0.15 280";
+const BLOB_CYAN = "oklch(72% 0.18 215.221";
 
 type Blob = {
   top: string;
-  left?: string;
-  right?: string;
-  centerX?: boolean;
+  left: string;
   size: "sm" | "lg";
   color: string;
 };
 
 const blobs: Blob[] = [
-  { top: "0",   left: "15%",               size: "sm", color: `${BLOB_CYAN} / 0.12)` },
-  { top: "6%",  right: "10%",              size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
-  { top: "15%", centerX: true,             size: "lg", color: `${BLOB_CYAN} / 0.10)` },
-  { top: "25%", left: "5%",               size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
-  { top: "33%", right: "5%",              size: "lg", color: `${BLOB_CYAN} / 0.10)` },
-  { top: "42%", centerX: true,             size: "sm", color: `${BLOB_PURPLE} / 0.08)` },
-  { top: "50%", left: "10%",              size: "lg", color: `${BLOB_CYAN} / 0.10)` },
-  { top: "58%", right: "10%",             size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
-  { top: "66%", centerX: true,             size: "lg", color: `${BLOB_CYAN} / 0.10)` },
-  { top: "74%", left: "15%",              size: "sm", color: `${BLOB_PURPLE} / 0.10)` },
-  { top: "82%", right: "10%",             size: "lg", color: `${BLOB_CYAN} / 0.10)` },
-  { top: "90%", centerX: true,             size: "sm", color: `${BLOB_PURPLE} / 0.08)` },
+  { top: "0%",  left: "10%", size: "lg", color: `${BLOB_CYAN} / 0.14)` },
+  { top: "22%", left: "60%", size: "sm", color: `${BLOB_CYAN} / 0.10)` },
+  { top: "45%", left: "5%",  size: "lg", color: `${BLOB_CYAN} / 0.11)` },
+  { top: "65%", left: "55%", size: "sm", color: `${BLOB_CYAN} / 0.10)` },
+  { top: "85%", left: "25%", size: "lg", color: `${BLOB_CYAN} / 0.12)` },
 ];
 
 const blobSizeClass = {
-  sm: "w-[1000px] h-[1000px] md:w-[1400px] md:h-[1400px]",
-  lg: "w-[1100px] h-[1100px] md:w-[1500px] md:h-[1500px]",
+  sm: "w-[800px] h-[800px] md:w-[1100px] md:h-[1100px]",
+  lg: "w-[900px] h-[900px] md:w-[1200px] md:h-[1200px]",
 } as const;
 
 function blobStyle(blob: Blob): string {
-  const pos = blob.centerX
-    ? `left: 50%; transform: translateX(-50%);`
-    : blob.right
-      ? `right: ${blob.right};`
-      : `left: ${blob.left};`;
-  return `top: ${blob.top}; ${pos} background: radial-gradient(circle, ${blob.color} 0%, transparent 70%);`;
+  return `top: ${blob.top}; left: ${blob.left}; background: radial-gradient(circle, ${blob.color} 0%, transparent 70%);`;
 }
 ---
 

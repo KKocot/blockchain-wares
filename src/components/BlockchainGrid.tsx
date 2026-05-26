@@ -320,7 +320,7 @@ export function BlockchainGrid() {
 
       // Block glow effect (subtelniejszy) - only on confirmed blocks
       if (block.confirmed) {
-        const glow_intensity = 0.08 + Math.sin(time * 2 + block.pulse) * 0.04;
+        const glow_intensity = 0.04 + Math.sin(time * 2 + block.pulse) * 0.02;
         const glow_key = `glow-${block.rel_x.toFixed(2)}-${block.rel_y.toFixed(2)}`;
         const glow_gradient = get_or_create_gradient(glow_key, () => {
           const grad = ctx.createRadialGradient(

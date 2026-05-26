@@ -1,5 +1,5 @@
 import { cn } from "../lib/utils";
-import { CometEffect, SectionHeader, SectionWrapper } from "./ui";
+import { SectionHeader, SectionWrapper } from "./ui";
 import { useScrollAnimation } from "../hooks";
 
 interface ContactInfo {
@@ -70,7 +70,6 @@ export function Contact() {
               is_visible && "is-visible"
             )}
           >
-            <CometEffect />
             <h3 className="text-xl md:text-2xl font-bold mb-3">
               Contact Information
             </h3>
@@ -97,7 +96,6 @@ export function Contact() {
               is_visible && "is-visible"
             )}
           >
-            <CometEffect />
             <div className="h-[350px] rounded-xl overflow-hidden bg-base-100/50 relative z-10">
               <iframe
                 src="https://maps.google.com/maps?width=520&height=400&hl=en&q=Graniczna%2034B/U11%20D%C4%85browa%20G%C3%B3rnicza+(BlockchainWares)&t=&z=15&ie=UTF8&iwloc=B&output=embed"

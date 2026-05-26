@@ -1,5 +1,5 @@
 import { cn } from "../lib/utils";
-import { Button, CometEffect, SectionHeader, SectionWrapper } from "./ui";
+import { Button, SectionHeader, SectionWrapper } from "./ui";
 import { useScrollAnimation } from "../hooks";
 
 interface JobPosition {
@@ -110,7 +110,6 @@ function JobPositionCard({
         is_visible && "is-visible"
       )}
     >
-      <CometEffect />
       <div className="relative z-20 flex-1">
         <h3 className="text-xl md:text-2xl font-bold mb-3">
           {title}

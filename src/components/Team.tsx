@@ -1,5 +1,5 @@
 import { cn } from "../lib/utils";
-import { CometEffect, SectionHeader, SectionWrapper } from "./ui";
+import { SectionHeader, SectionWrapper } from "./ui";
 import { useScrollAnimation } from "../hooks";
 
 /**
@@ -43,7 +43,6 @@ export function Team() {
             is_visible && "is-visible"
           )}
         >
-          <CometEffect />
           <div className="relative overflow-hidden rounded-xl z-10">
             <div className="relative aspect-video md:aspect-[16/9] lg:aspect-[21/9] bg-base-100/50">
               <picture>

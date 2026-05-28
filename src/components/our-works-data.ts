@@ -219,7 +219,7 @@ export const SECTIONS: ProjectSection[] = [
         description:
           "Modern multi-auth wallet supporting MetaMask Snap, Keychain, PeakVault, and Google Wallet/Drive integration with dark mode.",
         deployments: [
-          { label: "Site", url: "https://auth.dev.openhive.network" },
+          { label: "Site", url: "https://auth.openhive.network" },
           {
             label: "Source",
             url: "https://gitlab.syncad.com/hive/wallet-dapp",

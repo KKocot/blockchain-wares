@@ -79,6 +79,18 @@ const logoURL = new URL("/assets/img/blockchainwares.svg", Astro.site);
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
+    <!-- Unregister legacy service workers from previous app -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(r) {
+          r.forEach(function(reg) { reg.unregister(); });
+        });
+        caches.keys().then(function(n) {
+          n.forEach(function(name) { caches.delete(name); });
+        });
+      }
+    </script>
+
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",

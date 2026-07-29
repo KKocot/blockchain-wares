@@ -1,0 +1,64 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Navigation, Markets, Footer } from "../components";
+
+const current_path = Astro.url.pathname;
+
+const title = "Markets & Events — BlockchainWares";
+const description =
+  "Meet BlockchainWares at industry trade fairs and conferences. We are going to the European Blockchain Convention 2026 in Barcelona, 16–17 September.";
+
+const event_schema = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: "European Blockchain Convention 2026",
+  startDate: "2026-09-16",
+  endDate: "2026-09-17",
+  eventStatus: "https://schema.org/EventScheduled",
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  url: "https://eblockchainconvention.com/",
+  location: {
+    "@type": "Place",
+    name: "Barcelona",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Barcelona",
+      addressCountry: "ES",
+    },
+  },
+  organizer: {
+    "@type": "Organization",
+    name: "European Blockchain Convention",
+    url: "https://eblockchainconvention.com/",
+  },
+};
+---
+
+<Layout title={title} description={description}>
+  <Navigation client:load currentPath={current_path} />
+
+  <div class="relative bg-base-100 overflow-clip">
+    <div class="absolute inset-0 pointer-events-none z-0">
+      <div
+        class="absolute top-[-10%] left-[5%] w-[800px] h-[800px] md:w-[1100px] md:h-[1100px] blob-contained"
+        style="background: radial-gradient(circle, oklch(72% 0.18 215.221 / 0.14) 0%, transparent 70%);"
+      >
+      </div>
+      <div
+        class="absolute top-[40%] left-[55%] w-[900px] h-[900px] md:w-[1200px] md:h-[1200px] blob-contained"
+        style="background: radial-gradient(circle, oklch(72% 0.18 215.221 / 0.1) 0%, transparent 70%);"
+      >
+      </div>
+    </div>
+
+    <div class="relative z-[1]">
+      <Markets client:load />
+      <Footer currentPath={current_path} />
+    </div>
+  </div>
+
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(event_schema)}
+  />
+</Layout>

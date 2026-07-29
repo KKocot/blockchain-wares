@@ -1,8 +1,15 @@
+interface FooterProps {
+  /** Current page path — pass Astro.url.pathname on subpages */
+  currentPath?: string;
+}
+
 /**
  * Footer component — minimal bar with company info and copyright
  */
-export function Footer() {
+export function Footer({ currentPath = "/" }: FooterProps) {
   const current_year = new Date().getFullYear();
+  const current_path = currentPath.replace(/\/+$/, "") || "/";
+  const is_home = current_path === "/";
 
   return (
     <footer className="relative bg-base-100 border-t border-white/5">
@@ -10,10 +17,20 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-3">
             <a
-              href="#"
+              href={is_home ? "#" : "/"}
               className="text-base font-bold text-base-content hover:text-secondary transition-colors duration-150"
             >
               BlockchainWares
+            </a>
+            <span className="text-xs text-base-content/70 hidden sm:inline">
+              |
+            </span>
+            <a
+              href="/markets"
+              aria-current={current_path === "/markets" ? "page" : undefined}
+              className="text-xs font-medium text-secondary/90 hover:text-secondary transition-colors duration-150"
+            >
+              Markets
             </a>
             <span className="text-xs text-base-content/70 hidden sm:inline">
               |

@@ -4,6 +4,8 @@ export { AnimatedLogo } from "./AnimatedLogo";
 export { Navigation } from "./Navigation";
 export { OurWorks } from "./OurWorks";
 export { EndUsers } from "./EndUsers";
+export { EventBanner } from "./EventBanner";
+export { Markets } from "./Markets";
 export { Team } from "./Team";
 export { Career } from "./Career";
 export { Contact } from "./Contact";

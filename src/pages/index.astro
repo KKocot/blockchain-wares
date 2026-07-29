@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import {
   Navigation,
   Hero,
+  EventBanner,
   About,
   OurWorks,
   EndUsers,
@@ -141,6 +142,7 @@ function blobStyle(blob: Blob): string {
 
     <div class="relative z-[1]">
       <Hero client:load />
+      <EventBanner client:visible />
       <About client:visible />
       <OurWorks client:visible />
       <EndUsers client:visible />

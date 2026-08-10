@@ -12,6 +12,9 @@ import {
   Contact,
   Footer,
 } from "../components";
+import { to_iso_day } from "../components/events-data";
+
+const today_iso = to_iso_day(new Date());
 
 const BLOB_CYAN = "oklch(72% 0.18 215.221";
 
@@ -154,7 +157,7 @@ function blobStyle(blob: Blob): string {
 
     <div class="relative z-[1]">
       <Hero client:load />
-      <EventBanner client:visible />
+      <EventBanner client:visible todayIso={today_iso} />
       <About client:visible />
       <OurWorks client:visible />
       <EndUsers client:visible />

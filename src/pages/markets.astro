@@ -1,37 +1,48 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { Navigation, Markets, Footer } from "../components";
+import { EVENTS, to_iso_day } from "../components/events-data";
 
 const current_path = Astro.url.pathname;
+const today_iso = to_iso_day(new Date());
 
 const title = "Markets & Events — BlockchainWares";
 const description =
   "Meet BlockchainWares at industry trade fairs and conferences. We are going to the European Blockchain Convention 2026 in Barcelona, 16–17 September.";
 
-const event_schema = {
+/** `</script>` inside any event field would break out of the JSON-LD block */
+const to_json_ld = (data: unknown): string =>
+  JSON.stringify(data).replace(
+    /[<>&]/g,
+    (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
+
+const event_schemas = EVENTS.map((event) => ({
   "@context": "https://schema.org",
   "@type": "Event",
-  name: "European Blockchain Convention 2026",
-  startDate: "2026-09-16",
-  endDate: "2026-09-17",
+  name: event.name,
+  description: event.description,
+  image: new URL(event.image, Astro.site).href,
+  startDate: event.startDate,
+  endDate: event.endDate,
   eventStatus: "https://schema.org/EventScheduled",
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-  url: "https://eblockchainconvention.com/",
+  url: event.url,
   location: {
     "@type": "Place",
-    name: "Barcelona",
+    name: event.city,
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Barcelona",
-      addressCountry: "ES",
+      addressLocality: event.city,
+      addressCountry: event.countryCode,
     },
   },
   organizer: {
     "@type": "Organization",
-    name: "European Blockchain Convention",
-    url: "https://eblockchainconvention.com/",
+    name: event.organizer.name,
+    url: event.organizer.url,
   },
-};
+}));
 ---
 
 <Layout title={title} description={description}>
@@ -52,13 +63,14 @@ const event_schema = {
     </div>
 
     <div class="relative z-[1]">
-      <Markets client:load />
+      <Markets client:load todayIso={today_iso} />
       <Footer currentPath={current_path} />
     </div>
   </div>
 
-  <script
-    type="application/ld+json"
-    set:html={JSON.stringify(event_schema)}
-  />
+  {
+    event_schemas.length > 0 && (
+      <script type="application/ld+json" set:html={to_json_ld(event_schemas)} />
+    )
+  }
 </Layout>

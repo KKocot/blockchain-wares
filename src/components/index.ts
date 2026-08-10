@@ -5,6 +5,7 @@ export { Navigation } from "./Navigation";
 export { OurWorks } from "./OurWorks";
 export { EndUsers } from "./EndUsers";
 export { EventBanner } from "./EventBanner";
+export { EventCard } from "./EventCard";
 export { Markets } from "./Markets";
 export { Team } from "./Team";
 export { Career } from "./Career";

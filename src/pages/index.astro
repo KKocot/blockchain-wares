@@ -102,10 +102,21 @@ function blobStyle(blob: Blob): string {
         var splash = document.getElementById('splash-screen');
         if (!splash) return;
 
+        function markSeen() {
+          try { sessionStorage.setItem('bw:intro-seen', '1'); } catch (e) {}
+        }
+
+        // Already played in this browser session — CSS in <head> keeps it hidden
+        if (document.documentElement.hasAttribute('data-intro-seen')) {
+          splash.remove();
+          return;
+        }
+
         // Respect prefers-reduced-motion
         var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reducedMotion) {
           splash.style.display = 'none';
+          markSeen();
           return;
         }
 
@@ -120,6 +131,7 @@ function blobStyle(blob: Blob): string {
 
           splash.addEventListener('transitionend', function() {
             splash.remove();
+            markSeen();
             document.body.style.overflow = '';
             document.documentElement.style.overflow = '';
           }, { once: true });

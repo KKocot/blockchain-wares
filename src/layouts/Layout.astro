@@ -22,6 +22,19 @@ const logoURL = new URL("/assets/img/blockchainwares.svg", Astro.site);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Splash gate: must run before body parses so the splash never paints on repeat visits -->
+    <script is:inline>
+      try {
+        if (sessionStorage.getItem('bw:intro-seen')) {
+          document.documentElement.setAttribute('data-intro-seen', 'true');
+        }
+      } catch (e) {}
+    </script>
+    <style is:inline>
+      html[data-intro-seen] #splash-screen { display: none !important; }
+    </style>
+
     <meta name="description" content={description} />
     <meta name="author" content="BlockchainWares" />
     <meta name="keywords" content="blockchain development, enterprise software, EDA, event-driven architecture, distributed systems, smart contracts, database optimization, software house, Dąbrowa Górnicza, Poland" />

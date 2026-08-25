@@ -4,9 +4,19 @@ services:
     container_name: blockchainwares
     restart: unless-stopped
     expose:
-      - "80"
+      - "4321"
+    environment:
+      # Format hasha: scrypt:N:r:p:salt_b64:key_b64 — separator ":", bo "$" z .env
+      # zostalby zinterpolowany przez Compose i parametry kosztu zniknelyby po cichu.
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ustaw ADMIN_PASSWORD_HASH w .env na hoscie (node scripts/hash_password.mjs)}
+      AUTH_SECRET: ${AUTH_SECRET:?ustaw AUTH_SECRET w .env na hoscie (openssl rand -base64 48)}
+      # Kill-switch sesji: ISO 8601 albo unix ms. Ustaw na "teraz", zeby uniewaznic
+      # wszystkie wydane ciasteczka bez rotacji AUTH_SECRET. Puste = brak progu.
+      SESSION_NOT_BEFORE: ${SESSION_NOT_BEFORE:-}
+    volumes:
+      - bw-data:/app/data
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:4321/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -23,9 +33,12 @@ services:
       - "traefik.http.routers.blockchainwares.tls=true"
       - "traefik.http.routers.blockchainwares.tls.certresolver=letsencrypt"
       - "traefik.http.routers.blockchainwares.entrypoints=websecure"
-      - "traefik.http.services.blockchainwares.loadbalancer.server.port=80"
+      - "traefik.http.services.blockchainwares.loadbalancer.server.port=4321"
     networks:
       - proxy
+
+volumes:
+  bw-data:
 
 networks:
   proxy:

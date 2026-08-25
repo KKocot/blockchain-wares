@@ -66,22 +66,22 @@ const SectionContent = memo(function SectionContent({
  * All sections are rendered simultaneously in the same grid cell (CSS grid overlay).
  * Container height = tallest section naturally — no layout shift when switching tabs.
  * Active section crossfades in, inactive sections are hidden with opacity 0.
+ * Each section owns a `tabpanel-{id}` panel so every tab's `aria-controls` resolves.
  */
 export const ContentPanel = memo(function ContentPanel({
   sections,
   active_id,
 }: ContentPanelProps) {
   return (
-    <div
-      role="tabpanel"
-      aria-labelledby={`tab-${active_id}`}
-      className="grid"
-    >
+    <div className="grid">
       {sections.map((section) => {
         const is_active = section.id === active_id;
         return (
           <div
             key={section.id}
+            id={`tabpanel-${section.id}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${section.id}`}
             className={cn(
               "col-start-1 row-start-1",
               "transition-opacity duration-350 ease-[cubic-bezier(0.44,0,0.56,1)]",

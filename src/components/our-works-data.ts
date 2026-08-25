@@ -1,6 +1,26 @@
 import { createElement, type ReactNode } from "react";
 import { DocsIcon, EngineeringIcon, HiveIcon, SdkIcon } from "./icons";
 
+/** Short URL aliases for tab deep-links: `/?docs` and `/?tab=docs` both open Documentation. */
+export const SECTION_SLUGS = [
+  "blockchain",
+  "hive",
+  "sdk",
+  "apps",
+  "eos",
+  "docs",
+  "eda",
+  "data",
+] as const;
+
+export type SectionSlug = (typeof SECTION_SLUGS)[number];
+
+const SLUG_SET: ReadonlySet<string> = new Set(SECTION_SLUGS);
+
+export function is_section_slug(value: string): value is SectionSlug {
+  return SLUG_SET.has(value);
+}
+
 export interface Deployment {
   label?: string; // np. "Blog", "Wallet" — opcjonalnie (przy single deployment zwykle pomijane)
   url: string;
@@ -14,6 +34,8 @@ export interface Project {
 
 export interface ProjectSection {
   id: string;
+  /** Deep-link alias, unique across SECTIONS — enforced by build_id_by_slug(). */
+  slug: SectionSlug;
   title: string;
   subtitle: string;
   description: string;
@@ -34,6 +56,7 @@ export interface ProjectSection {
 export const SECTIONS: ProjectSection[] = [
   {
     id: "blockchain-core",
+    slug: "blockchain",
     title: "Blockchain Core & Infrastructure",
     subtitle: "High-performance blockchain nodes and indexing infrastructure",
     description:
@@ -75,6 +98,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "hive-ecosystem-dev",
+    slug: "hive",
     title: "Hive Ecosystem Development",
     subtitle:
       "Backend services exposing Hive blockchain data via REST and JSON-RPC",
@@ -108,6 +132,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "developer-sdks",
+    slug: "sdk",
     title: "Developer SDKs & Libraries",
     subtitle: "Open-source tooling for the Hive developer ecosystem",
     description:
@@ -186,6 +211,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "user-applications",
+    slug: "apps",
     title: "User-Facing Applications",
     subtitle: "End-user blockchain experiences and decentralized applications",
     description:
@@ -277,6 +303,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "eos-ecosystem",
+    slug: "eos",
     title: "EOS Ecosystem",
     subtitle: "Governance tools and smart contracts for the EOS blockchain",
     description:
@@ -303,6 +330,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "documentation",
+    slug: "docs",
     title: "Documentation",
     subtitle: "Developer documentation and interactive code examples",
     description:
@@ -349,6 +377,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "eda-engineering",
+    slug: "eda",
     title: "EDA & Engineering",
     subtitle: "Electronic design automation tools and simulation software",
     description:
@@ -394,6 +423,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "data-systems",
+    slug: "data",
     title: "Data Systems",
     subtitle: "Database solutions and data center infrastructure management",
     description:
@@ -425,3 +455,32 @@ export const SECTIONS: ProjectSection[] = [
     ],
   },
 ];
+
+/**
+ * Prerendering `/` evaluates this module, so a duplicated alias fails the build
+ * instead of silently letting the first section win.
+ */
+function build_id_by_slug(): ReadonlyMap<SectionSlug, string> {
+  const by_slug = new Map<SectionSlug, string>();
+  for (const section of SECTIONS) {
+    const taken = by_slug.get(section.slug);
+    if (taken !== undefined) {
+      throw new Error(
+        `Duplicate section slug "${section.slug}": "${taken}" and "${section.id}"`
+      );
+    }
+    by_slug.set(section.slug, section.id);
+  }
+  return by_slug;
+}
+
+const ID_BY_SLUG = build_id_by_slug();
+
+export function section_id_from_slug(value: string): string | null {
+  if (!is_section_slug(value)) return null;
+  return ID_BY_SLUG.get(value) ?? null;
+}
+
+export function section_slug_from_id(id: string): SectionSlug | null {
+  return SECTIONS.find((section) => section.id === id)?.slug ?? null;
+}

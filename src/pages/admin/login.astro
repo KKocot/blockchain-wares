@@ -1,0 +1,59 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { LoginForm } from "../../components/admin/LoginForm";
+import { safe_target } from "../api/auth/login";
+
+export const prerender = false;
+
+const RATE_LIMIT_PREFIX = "Zbyt wiele prób logowania.";
+const MAX_RETRY_AFTER_SECONDS = 24 * 60 * 60;
+
+/** Mapa, nie obiekt: `?error=toString` nie moze trafic na klucz z prototypu. */
+const MESSAGES = new Map<string, string>([
+  ["invalid", "Nieprawidłowe hasło."],
+  ["empty", "Wpisz hasło."],
+  ["request", "Nieprawidłowe zapytanie — odśwież stronę i spróbuj ponownie."],
+  ["rate_limit", `${RATE_LIMIT_PREFIX} Odczekaj chwilę i spróbuj ponownie.`],
+  ["server", "Błąd serwera — spróbuj ponownie za chwilę."],
+]);
+const FALLBACK_MESSAGE = "Nie udało się zalogować — spróbuj ponownie.";
+
+function retry_seconds(raw: string | null): number | null {
+  if (raw === null || !/^\d{1,6}$/.test(raw)) return null;
+  const seconds = Number.parseInt(raw, 10);
+  return seconds >= 1 && seconds <= MAX_RETRY_AFTER_SECONDS ? seconds : null;
+}
+
+function format_wait(seconds: number): string {
+  return seconds < 60 ? `${seconds} s` : `${Math.ceil(seconds / 60)} min`;
+}
+
+/** Wartosc z query wybiera komunikat, nigdy go nie tworzy — renderujemy tylko wlasne teksty. */
+function message_for(
+  code: string | null,
+  raw_retry: string | null,
+): string | null {
+  if (code === null) return null;
+
+  const wait = code === "rate_limit" ? retry_seconds(raw_retry) : null;
+  if (wait !== null) {
+    return `${RATE_LIMIT_PREFIX} Spróbuj ponownie za ${format_wait(wait)}.`;
+  }
+  return MESSAGES.get(code) ?? FALLBACK_MESSAGE;
+}
+
+const params = Astro.url.searchParams;
+const error = message_for(params.get("error"), params.get("retry"));
+const redirect = safe_target(params.get("redirect"), Astro.url.origin);
+---
+
+<AdminLayout title="Logowanie">
+  <div class="mx-auto w-full max-w-sm py-10 sm:py-16">
+    <h1 class="text-lg font-semibold">Logowanie</h1>
+    <p class="mt-1 mb-4 text-sm text-base-content/60">
+      Panel jest dostępny wyłącznie dla zespołu BlockchainWares.
+    </p>
+
+    <LoginForm redirect={redirect} error={error} />
+  </div>
+</AdminLayout>

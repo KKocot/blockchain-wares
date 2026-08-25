@@ -1,0 +1,162 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { AdminDashboard, type HiddenField } from "../../components/admin";
+import { BUTTON_CLASS } from "../../components/admin/styles";
+import {
+  DEFAULT_SORT_DIR,
+  get_log_repository,
+  parse_log_query,
+  serialize_log_query,
+  get_log_source_status,
+  load_log_records,
+  type LogPage,
+  type LogQuery,
+  type LogStats,
+  type SortField,
+} from "../../lib/logs";
+
+export const prerender = false;
+
+const ADMIN_PATH = "/admin";
+const REFRESH_PARAM = "refresh";
+const REFRESH_VALUE = "1";
+
+const SOURCE_ERROR =
+  "Nie udało się pobrać logów ze źródła — nie ma czego pokazać. Spróbuj ponownie za chwilę.";
+const STALE_WARNING =
+  "Nie udało się odświeżyć logów ze źródła — poniżej ostatnie pobrane dane.";
+
+const FILTER_HIDDEN_KEYS = ["sort", "dir", "pageSize"] as const;
+const PAGE_SIZE_HIDDEN_KEYS = [
+  "path",
+  "search",
+  "dateFrom",
+  "dateTo",
+  "status",
+  "includeInternal",
+  "sort",
+  "dir",
+] as const;
+
+function message_of(cause: unknown): string {
+  return cause instanceof Error ? cause.message : "unknown error";
+}
+
+function href_for(params: URLSearchParams): string {
+  const search = params.toString();
+  return search === "" ? ADMIN_PATH : `${ADMIN_PATH}?${search}`;
+}
+
+function query_href(next: LogQuery): string {
+  return href_for(serialize_log_query(next));
+}
+
+function hidden_fields(
+  params: URLSearchParams,
+  keys: readonly string[],
+): HiddenField[] {
+  return keys.flatMap((name) => {
+    const value = params.get(name);
+    return value === null ? [] : [{ name, value }];
+  });
+}
+
+// Obrona w glab: gdyby middleware przestal obejmowac te trase, panel nie moze
+// wyrenderowac sie anonimowemu gosciowi. Format redirectu jak w middleware.
+if (!Astro.locals.isAuthenticated) {
+  const target = encodeURIComponent(`${Astro.url.pathname}${Astro.url.search}`);
+  return Astro.redirect(`/admin/login?redirect=${target}`, 302);
+}
+
+const repository = get_log_repository();
+const query = parse_log_query(Astro.url.searchParams);
+const current_params = serialize_log_query(query);
+
+// Wymuszone odswiezenie konczy sie redirectem na czysty adres — inaczej kazde F5
+// (i kazdy powrot z historii) pomijaloby cache jeszcze raz.
+if (Astro.url.searchParams.get(REFRESH_PARAM) === REFRESH_VALUE) {
+  try {
+    await load_log_records({ force: true });
+  } catch (cause) {
+    console.error("[admin/index] forced refresh failed:", message_of(cause));
+  }
+  return Astro.redirect(href_for(current_params), 303);
+}
+
+// Natywny formularz GET wysyla rowniez puste pola, a `dateTo=2026-08-20` znaczy co
+// innego niz to, czym filtruje repozytorium. Kanoniczny adres jest punktem stalym
+// `parse -> serialize`, wiec ten redirect wykonuje sie najwyzej raz.
+const canonical_search = current_params.toString();
+if (Astro.url.search.replace(/^\?/, "") !== canonical_search) {
+  return Astro.redirect(href_for(current_params), 303);
+}
+
+let page: LogPage | null = null;
+let stats: LogStats | null = null;
+let error: string | null = null;
+
+try {
+  [page, stats] = await Promise.all([
+    repository.list(query),
+    repository.stats(query),
+  ]);
+} catch (cause) {
+  console.error("[admin/index] log source failed:", message_of(cause));
+  error = SOURCE_ERROR;
+}
+
+// Status czyta sam cache, bez ruchu w siec — po powyzszym odczycie opisuje juz
+// swiezy stan. `error` z cache'u znaczy: dane sa, ale nie udalo sie ich odswiezyc.
+const source_status = get_log_source_status();
+const warning =
+  error === null && source_status.error !== null ? STALE_WARNING : null;
+const rendered_at = new Date().toISOString();
+
+const refresh_params = new URLSearchParams(current_params);
+refresh_params.set(REFRESH_PARAM, REFRESH_VALUE);
+
+const sort_href = (field: SortField): string =>
+  query_href({
+    ...query,
+    sort: field,
+    dir:
+      query.sort === field
+        ? query.dir === "asc"
+          ? "desc"
+          : "asc"
+        : DEFAULT_SORT_DIR,
+    page: 1,
+  });
+
+const page_href = (target: number): string =>
+  query_href({ ...query, page: Math.max(1, Math.trunc(target)) });
+---
+
+<AdminLayout
+  title="Logi ruchu"
+  description="Panel analityczny BlockchainWares — logi żądań."
+>
+  <form slot="actions" method="post" action="/api/auth/logout">
+    <button type="submit" class={BUTTON_CLASS}>Wyloguj</button>
+  </form>
+
+  <AdminDashboard
+    query={query}
+    page={page}
+    stats={stats}
+    error={error}
+    warning={warning}
+    freshness={{
+      generatedAt: rendered_at,
+      fetchedAt: source_status.fetchedAt,
+      stale: source_status.stale,
+    }}
+    refreshHref={href_for(refresh_params)}
+    filtersAction={ADMIN_PATH}
+    resetHref={ADMIN_PATH}
+    filterHidden={hidden_fields(current_params, FILTER_HIDDEN_KEYS)}
+    pageSizeHidden={hidden_fields(current_params, PAGE_SIZE_HIDDEN_KEYS)}
+    sortHref={sort_href}
+    pageHref={page_href}
+  />
+</AdminLayout>

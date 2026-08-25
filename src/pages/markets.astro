@@ -3,6 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import { Navigation, Markets, Footer } from "../components";
 import { EVENTS, to_iso_day } from "../components/events-data";
 
+export const prerender = true;
+
 const current_path = Astro.url.pathname;
 const today_iso = to_iso_day(new Date());
 

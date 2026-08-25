@@ -19,6 +19,12 @@ const DEFAULT_TAB = TABS[0].title;
 const DOCS_TAB = "Documentation";
 
 const SECTION_ANCHOR = "#what-we-do";
+/**
+ * Astro zdejmuje z `<astro-island>` atrybut `ssr` dopiero po hydracji wyspy.
+ * Wyspa jest `client:visible`, więc do tego momentu tabsy to statyczny HTML:
+ * klik w nie przepada, bo React nie ma jeszcze podpiętych handlerów.
+ */
+const HYDRATED_ISLAND = 'astro-island[component-export="OurWorks"]:not([ssr])';
 /** Wyspa jest `client:visible`, więc czekamy na hydrację po deep-linku. */
 const TAB_TIMEOUT = 15_000;
 /** useAutoRotate przeskakuje co 15 s — po deep-linku nie ma prawa tego zrobić. */
@@ -33,6 +39,9 @@ test.use({ contextOptions: { reducedMotion: "reduce" } });
 async function open_section(page: Page, search: string): Promise<void> {
   await page.goto(`/${search}`);
   await page.locator(SECTION_ANCHOR).scrollIntoViewIfNeeded();
+  await expect(page.locator(HYDRATED_ISLAND)).toBeAttached({
+    timeout: TAB_TIMEOUT,
+  });
 }
 
 async function expect_open_tab(page: Page, title: string): Promise<void> {
@@ -63,8 +72,8 @@ test.describe("Deep-linki sekcji What We Do", () => {
     await open_section(page, "?nie-ma-takiej-sekcji");
     await expect_open_tab(page, DEFAULT_TAB);
 
-    // Klik dowodzi, że wyspa jest już zhydratowana — a więc efekt deep-linku
-    // zdążył się wykonać i naprawdę nie wybrał żadnej zakładki.
+    // Wyspa jest już zhydratowana (gate w open_section), więc reakcja na klik
+    // dowodzi, że efekt deep-linku się wykonał i nie wybrał żadnej zakładki.
     await page.getByRole("tab", { name: DOCS_TAB }).click();
     await expect_open_tab(page, DOCS_TAB);
 

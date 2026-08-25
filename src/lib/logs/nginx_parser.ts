@@ -1,3 +1,4 @@
+import { lookup_country } from "../geo";
 import type { RequestLog } from "./types";
 import { parse_user_agent } from "./user_agent";
 
@@ -196,6 +197,7 @@ function parse_line(line: string, line_number: number): LineOutcome {
   }
 
   const user_agent = dash_to_null(ua);
+  const ip = dash_to_null(remote_addr);
   return {
     record: {
       // Log jest append-only, wiec numer linii w pliku jest stabilnym identyfikatorem
@@ -209,7 +211,8 @@ function parse_line(line: string, line_number: number): LineOutcome {
       bytes: bytes === "-" ? 0 : Number(bytes),
       // $remote_addr, nie X-Forwarded-For: naglowek jest spoofowalny i w logu sa juz
       // wpisy z podstawionym adresem.
-      ip: dash_to_null(remote_addr),
+      ip,
+      country: lookup_country(ip),
       lang: dash_to_null(lang),
       referrer: dash_to_null(referrer),
       ua: user_agent,

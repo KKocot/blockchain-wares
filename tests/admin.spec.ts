@@ -2,6 +2,10 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { E2E_ADMIN_PASSWORD, NO_JS_TAG } from "../playwright.config";
 import { DEFAULT_PAGE_SIZE } from "../src/lib/logs/types";
 import {
+  BARE_COUNTRY_CODE,
+  GEO_IPV4,
+  GEO_IPV6,
+  HIGHEST_COUNTRY,
   HIGHEST_PATH,
   HOSTILE_BROWSER,
   HOSTILE_MARKER,
@@ -11,6 +15,7 @@ import {
   INTERNAL_IP,
   INTERNAL_PATH,
   INTERNAL_TOTAL,
+  LOWEST_COUNTRY,
   LOWEST_NOT_FOUND_PATH,
   LOWEST_PATH,
   NOT_FOUND_TOTAL,
@@ -19,6 +24,7 @@ import {
   SPOOFED_XFF_HEADER_IP,
   SPOOFED_XFF_PATH,
   SPOOFED_XFF_REMOTE_ADDR,
+  UNMAPPED_COUNTRY_PATH,
 } from "./fixtures/access_log";
 
 const ADMIN_PATH = "/admin";
@@ -33,7 +39,14 @@ const LOGIN_REDIRECT = /\/admin\/login\?redirect=%2Fadmin$/;
 
 const TABLE_NAME = /Zarejestrowane żądania/;
 const TOTAL_LABEL = "Żądania łącznie";
-const COLUMN_COUNT = 9;
+const COLUMN_COUNT = 10;
+const ISO_CODE = /^[A-Z]{2}$/;
+
+/** Warunek licencji CC BY 4.0 zbioru DB-IP — brzmienie i link muszą zostać w panelu. */
+const GEOIP_DATASET = "DB-IP IP to Country Lite";
+const GEOIP_LINK_TEXT = "IP Geolocation by DB-IP";
+const GEOIP_URL = "https://db-ip.com";
+const GEOIP_LICENSE = "licencja CC BY 4.0";
 const FIRST_PAGE_ROWS = Math.min(PUBLIC_TOTAL, DEFAULT_PAGE_SIZE);
 const LAST_PAGE_ROWS = PUBLIC_TOTAL - FIRST_PAGE_ROWS;
 
@@ -351,6 +364,92 @@ test.describe("Admin — filtry", () => {
     await expect_restored();
     await page.reload();
     await expect_restored();
+  });
+});
+
+test.describe("Admin — geolokalizacja", () => {
+  test("kolumna „Kraj” pokazuje kod ISO dla IPv4 i IPv6, a placeholder dla adresu bez kraju", async ({
+    page,
+  }) => {
+    await log_in(page);
+
+    for (const source of [GEO_IPV4, GEO_IPV6]) {
+      await page.getByLabel("Ścieżka").fill(source.path);
+      await apply_filters(page);
+
+      await expect(table_rows(page)).toHaveCount(source.hits);
+      expect([...new Set(await column_values(page, "IP"))]).toEqual([
+        source.ip,
+      ]);
+      expect([...new Set(await column_values(page, "Kraj"))]).toEqual([
+        source.country,
+      ]);
+    }
+
+    await page.getByLabel("Ścieżka").fill(UNMAPPED_COUNTRY_PATH);
+    await apply_filters(page);
+    await expect(table_rows(page)).toHaveCount(1);
+
+    const [placeholder] = await column_values(page, "Kraj");
+    expect(placeholder).not.toBe("");
+    expect(["null", "undefined"]).not.toContain(placeholder);
+    expect(placeholder).not.toMatch(ISO_CODE);
+    await expect(
+      (await column_cells(page, "Kraj")).first().locator("[title]"),
+    ).toHaveAttribute("title", /\S/);
+  });
+
+  test("sortowanie po kraju zmienia aria-sort, kolejność wierszy i adres strony", async ({
+    page,
+  }) => {
+    await log_in(page);
+    await expect(column_header(page, "Kraj")).toHaveAttribute(
+      "aria-sort",
+      "none",
+    );
+
+    await sort_by(page, "Kraj");
+    await expect(page).toHaveURL(/\/admin\?sort=country$/);
+    await expect(column_header(page, "Kraj")).toHaveAttribute(
+      "aria-sort",
+      "descending",
+    );
+    expect((await column_values(page, "Kraj"))[0]).toBe(HIGHEST_COUNTRY);
+
+    await sort_by(page, "Kraj");
+    await expect(page).toHaveURL(/\/admin\?sort=country&dir=asc$/);
+    await expect(column_header(page, "Kraj")).toHaveAttribute(
+      "aria-sort",
+      "ascending",
+    );
+    expect((await column_values(page, "Kraj"))[0]).toBe(LOWEST_COUNTRY);
+  });
+
+  test("karta „Kraje” pokazuje pełne nazwy zamiast kodów ISO", async ({
+    page,
+  }) => {
+    await log_in(page);
+
+    const card = page.getByRole("region", { name: "Kraje" });
+    await expect(card.getByText("Polska", { exact: true })).toBeVisible();
+    await expect(
+      card.getByText("Stany Zjednoczone", { exact: true }),
+    ).toBeVisible();
+    expect(await card.innerText()).not.toMatch(BARE_COUNTRY_CODE);
+  });
+
+  // Atrybucja jest warunkiem licencji CC BY 4.0, a nie ozdobą stopki — ten test
+  // pilnuje, żeby refaktor panelu jej nie zgubił.
+  test("panel pokazuje atrybucję zbioru DB-IP razem z linkiem do źródła", async ({
+    page,
+  }) => {
+    await log_in(page);
+
+    const source_link = page.getByRole("link", { name: GEOIP_LINK_TEXT });
+    await expect(source_link).toBeVisible();
+    await expect(source_link).toHaveAttribute("href", GEOIP_URL);
+    await expect(page.getByText(GEOIP_DATASET)).toBeVisible();
+    await expect(page.getByText(GEOIP_LICENSE)).toBeVisible();
   });
 });
 

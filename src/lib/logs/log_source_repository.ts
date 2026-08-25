@@ -109,6 +109,8 @@ function sort_key(log: RequestLog, field: SortField): string | number | null {
       return log.path;
     case "ip":
       return log.ip;
+    case "country":
+      return log.country;
     case "lang":
       return log.lang;
     case "referrer":
@@ -238,6 +240,7 @@ export class LogSourceRepository implements LogRepository {
     const referrers = new Map<string, number>();
     const langs = new Map<string, number>();
     const browsers = new Map<string, number>();
+    const countries = new Map<string, number>();
     const days = new Map<string, number>();
 
     for (const log of filtered) {
@@ -249,6 +252,7 @@ export class LogSourceRepository implements LogRepository {
       bump(referrers, log.referrer ?? DIRECT_LABEL);
       bump(langs, log.lang ?? UNKNOWN_LABEL);
       bump(browsers, log.browser);
+      bump(countries, log.country ?? UNKNOWN_LABEL);
 
       const day = day_key(log.timestamp);
       if (day !== null) {
@@ -271,6 +275,7 @@ export class LogSourceRepository implements LogRepository {
       topReferrers: top_buckets(referrers),
       topLangs: top_buckets(langs),
       topBrowsers: top_buckets(browsers),
+      topCountries: top_buckets(countries),
       byDay,
     };
   }

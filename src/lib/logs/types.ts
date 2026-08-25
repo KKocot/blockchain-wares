@@ -7,6 +7,7 @@ export const SORT_FIELDS = [
   "path",
   "status",
   "ip",
+  "country",
   "lang",
   "referrer",
   "ua",
@@ -27,6 +28,8 @@ export interface RequestLog {
   status: number;
   bytes: number;
   ip: string | null;
+  /** ISO 3166-1 alpha-2; `null` gdy adresu nie da sie zmapowac. Jak `browser` — liczone przy parsowaniu. */
+  country: string | null;
   lang: string | null;
   referrer: string | null;
   ua: string | null;
@@ -76,6 +79,7 @@ export interface LogStats {
   topReferrers: LogStatBucket[];
   topLangs: LogStatBucket[];
   topBrowsers: LogStatBucket[];
+  topCountries: LogStatBucket[];
   byDay: LogDayBucket[];
 }
 

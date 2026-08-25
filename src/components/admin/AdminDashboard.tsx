@@ -1,12 +1,14 @@
+import { GEOIP_ATTRIBUTION } from "../../lib/geo";
 import type {
   LogPage,
   LogQuery,
+  LogStatBucket,
   LogStats,
   SortField,
 } from "../../lib/logs/types";
 import { cn } from "../../lib/utils";
 import { LogsFilters, type HiddenField } from "./LogsFilters";
-import { LogsTable } from "./LogsTable";
+import { LogsTable, country_name } from "./LogsTable";
 import { Pagination } from "./Pagination";
 import { RequestsChart } from "./RequestsChart";
 import { StatsCards } from "./StatsCards";
@@ -88,6 +90,42 @@ function freshness_label(freshness: DataFreshness): string {
   return age === null
     ? `Dane z ${clock}.${suffix}`
     : `Dane z ${clock} — ${age}.${suffix}`;
+}
+
+const UNKNOWN_COUNTRY = "Nieznany kraj";
+
+const ATTRIBUTION_LINK_CLASS =
+  "rounded-sm underline underline-offset-2 transition-colors duration-150 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary";
+
+/**
+ * CC BY 4.0 wymaga atrybucji na ekranie korzystajacym z danych — tekst i link
+ * musza zostac w oryginalnym brzmieniu i byc widoczne bez interakcji.
+ */
+function GeoAttribution() {
+  return (
+    <footer className="border-t border-base-300 pt-3 text-xs text-base-content/60">
+      <p>
+        Dane o krajach pochodzą ze zbioru DB-IP IP to Country Lite —{" "}
+        <a
+          href={GEOIP_ATTRIBUTION.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={ATTRIBUTION_LINK_CLASS}
+        >
+          {GEOIP_ATTRIBUTION.text}
+        </a>
+        , licencja {GEOIP_ATTRIBUTION.license}.
+      </p>
+    </footer>
+  );
+}
+
+/** W karcie jest miejsce na pelna nazwe — surowy kod ISO zostaje juz tylko w tabeli. */
+function country_buckets(stats: LogStats | null): LogStatBucket[] {
+  return (stats?.topCountries ?? []).map(({ label, count }) => ({
+    label: country_name(label) ?? UNKNOWN_COUNTRY,
+    count,
+  }));
 }
 
 const NOTICE_TONES = {
@@ -216,6 +254,11 @@ export function AdminDashboard({
           title="Języki przeglądarek"
           buckets={stats?.topLangs ?? []}
         />
+        <TopListCard
+          title="Kraje"
+          buckets={country_buckets(stats)}
+          emptyLabel="Brak danych o krajach w tym zakresie."
+        />
       </div>
 
       <LogsFilters
@@ -239,6 +282,8 @@ export function AdminDashboard({
         action={filtersAction}
         hidden={pageSizeHidden}
       />
+
+      <GeoAttribution />
     </div>
   );
 }

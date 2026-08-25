@@ -3,8 +3,10 @@
  * `$remote_addr - $remote_user [$time_local] "$request" $status $bytes "$referer" "$user_agent" "$xff" "$accept_language"`.
  *
  * Testy nie mogą uderzać w prawdziwe źródło logów, więc cały zbiór jest tutaj.
- * Adresy pochodzą wyłącznie z pul dokumentacyjnych RFC 5737 (192.0.2.0/24,
- * 198.51.100.0/24, 203.0.113.0/24) — żaden nie należy do realnego hosta.
+ * Ruch odwiedzających pochodzi z pul dokumentacyjnych RFC 5737 (192.0.2.0/24,
+ * 198.51.100.0/24, 203.0.113.0/24) — żaden adres nie należy do realnego hosta.
+ * Osobny blok GEO_SOURCES używa adresów publicznej infrastruktury, bo pule
+ * dokumentacyjne nie mają w zbiorze DB-IP przypisanego kraju.
  */
 
 export interface LogEntry {
@@ -72,6 +74,84 @@ const VISITORS: readonly Visitor[] = [
   { ip: "203.0.113.5", ua: EDGE_WIN, lang: "en-GB,en;q=0.7" },
 ];
 
+export interface GeoSource {
+  ip: string;
+  /** Kod ISO 3166-1 alpha-2, jaki `lookup_country` zwraca dla tego adresu. */
+  country: string;
+  /** Ścieżka wyłączna dla tego adresu — pozwala zawęzić tabelę filtrem „Ścieżka”. */
+  path: string;
+  hits: number;
+  ua: string;
+  lang: string;
+}
+
+/**
+ * Publiczna infrastruktura: resolwery DNS i węzły ISP. To nie są adresy
+ * odwiedzających, tylko powszechnie znane hosty, których kraj jest stały —
+ * bez nich kolumna „Kraj” i karta top-N mierzyłyby wyłącznie ścieżkę `null`.
+ * Kody zweryfikowane na `src/lib/geo/lookup.ts`.
+ */
+export const GEO_IPV4: GeoSource = {
+  ip: "8.8.8.8",
+  country: "US",
+  path: "/o-nas",
+  hits: 3,
+  ua: CHROME_WIN,
+  lang: "en-US,en;q=0.9",
+};
+
+/** Log nginx zapisuje IPv6 dosłownie, więc mapowanie musi działać i na dwukropkach. */
+export const GEO_IPV6: GeoSource = {
+  ip: "2a00:1450:401b:804::200e",
+  country: "PL",
+  path: "/kontakt",
+  hits: 2,
+  ua: SAFARI_MAC,
+  lang: "pl-PL,pl;q=0.9",
+};
+
+const GEO_SOURCES: readonly GeoSource[] = [
+  GEO_IPV4,
+  GEO_IPV6,
+  {
+    ip: "1.1.1.1",
+    country: "AU",
+    path: "/uslugi",
+    hits: 2,
+    ua: EDGE_WIN,
+    lang: "en-AU,en;q=0.9",
+  },
+  {
+    ip: "212.77.98.9",
+    country: "PL",
+    path: "/",
+    hits: 3,
+    ua: FIREFOX_LINUX,
+    lang: "pl-PL,pl;q=0.9",
+  },
+  {
+    ip: "2001:4860:4860::8888",
+    country: "CA",
+    path: "/nasz-zespol",
+    hits: 2,
+    ua: SAFARI_IOS,
+    lang: "en-CA,en;q=0.9",
+  },
+];
+
+const GEO_COUNTRY_CODES = [
+  ...new Set(GEO_SOURCES.map((source) => source.country)),
+].sort();
+
+/** Skrajne kody po sortowaniu kolumny „Kraj”; wpisy bez kraju lądują na końcu w obu kierunkach. */
+export const LOWEST_COUNTRY = GEO_COUNTRY_CODES[0];
+export const HIGHEST_COUNTRY = GEO_COUNTRY_CODES[GEO_COUNTRY_CODES.length - 1];
+
+/** Karta top-N ma pokazywać pełne nazwy, więc żaden z tych kodów nie może się w niej pojawić. */
+export const BARE_COUNTRY_CODE = new RegExp(
+  `\\b(?:${GEO_COUNTRY_CODES.join("|")})\\b`,
+);
+
 const REFERRERS: readonly string[] = [
   "-",
   "https://www.google.com/",
@@ -106,6 +186,27 @@ function page_views(spec: ViewsSpec): LogEntry[] {
       lang: visitor.lang,
     };
   });
+}
+
+/** Po kilka wejść na adres, żeby karta top-N krajów miała czym różnicować słupki. */
+function geo_views(): LogEntry[] {
+  return GEO_SOURCES.flatMap((source, source_index) =>
+    Array.from(
+      { length: source.hits },
+      (_, hit): LogEntry => ({
+        ip: source.ip,
+        minutes_ago: 4800 - source_index * 140 - hit * 37,
+        method: "GET",
+        target: source.path,
+        status: 200,
+        bytes: 13_880 + hit * 11,
+        referrer: REFERRERS[(source_index + hit) % REFERRERS.length],
+        ua: source.ua,
+        xff: "-",
+        lang: source.lang,
+      }),
+    ),
+  );
 }
 
 const HOME_TARGETS = [
@@ -156,6 +257,7 @@ const ENTRIES: readonly LogEntry[] = [
     status: 301,
     bytes: 178,
   }),
+  ...geo_views(),
   {
     ip: SPOOFED_XFF_REMOTE_ADDR,
     minutes_ago: 2600,
@@ -284,6 +386,8 @@ export const LOWEST_PATH = "/";
 export const HIGHEST_PATH = HOSTILE_PATH;
 /** Najniższa ścieżka wśród samych 404 — pierwszy wiersz przy `?status=404&sort=path&dir=asc`. */
 export const LOWEST_NOT_FOUND_PATH = "/old-oferta";
+/** Ten sam, jedyny wpis: adres z puli dokumentacyjnej, więc kraj wychodzi `null`. */
+export const UNMAPPED_COUNTRY_PATH = LOWEST_NOT_FOUND_PATH;
 
 const MONTHS = [
   "Jan",

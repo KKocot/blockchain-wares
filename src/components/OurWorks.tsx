@@ -12,8 +12,12 @@ import {
 import { SectionNav, ContentPanel, MobileTabs } from "./our-works";
 
 const SECTION_ANCHOR_ID = "what-we-do";
-/** Navigation.tsx renders a fixed h-16 bar — keep the section heading below it. */
+/** Deep-links land on the tab content, not on the section heading above it. */
+const CONTENT_ANCHOR_ID = "what-we-do-content";
+/** Navigation.tsx renders a fixed h-16 bar — keep the content below it. */
 const NAV_OFFSET_PX = 64;
+/** Breathing room between the navbar and the top of the opened category. */
+const CONTENT_GAP_PX = 16;
 /** Above this the page was scrolled by the user, so a deep-link jump would fight them. */
 const FRESH_LOAD_SCROLL_PX = 8;
 const SPLASH_WAIT_TIMEOUT_MS = 4000;
@@ -39,14 +43,24 @@ function build_tab_url(slug: SectionSlug): string {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-function scroll_to_section(element: HTMLElement): void {
+function scroll_to_content(element: HTMLElement): void {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const top =
-    element.getBoundingClientRect().top + window.scrollY - NAV_OFFSET_PX;
+    element.getBoundingClientRect().top +
+    window.scrollY -
+    NAV_OFFSET_PX -
+    CONTENT_GAP_PX;
   window.scrollTo({
     top: Math.max(top, 0),
     behavior: reduced ? "instant" : "smooth",
   });
+}
+
+/** Single scroll path for both the pre-hydration jump and the hydrated effect. */
+function scroll_to_deep_link_target(): () => void {
+  const element = document.getElementById(CONTENT_ANCHOR_ID);
+  if (!element || window.scrollY > FRESH_LOAD_SCROLL_PX) return () => {};
+  return when_scroll_unlocked(() => scroll_to_content(element));
 }
 
 /**
@@ -94,10 +108,7 @@ function bootstrap_deep_link_scroll(): void {
   const slug = read_tab_slug(window.location.search);
   if (slug === null || section_id_from_slug(slug) === null) return;
 
-  const element = document.getElementById(SECTION_ANCHOR_ID);
-  if (!element || window.scrollY > FRESH_LOAD_SCROLL_PX) return;
-
-  when_scroll_unlocked(() => scroll_to_section(element));
+  scroll_to_deep_link_target();
 }
 
 bootstrap_deep_link_scroll();
@@ -167,10 +178,8 @@ export function OurWorks() {
     // Same path as a click: opens the tab and stops auto-rotation for good.
     handle_user_select(index);
 
-    const element = ref.current;
-    if (!element || window.scrollY > FRESH_LOAD_SCROLL_PX) return;
-    return when_scroll_unlocked(() => scroll_to_section(element));
-  }, [handle_user_select, ref]);
+    return scroll_to_deep_link_target();
+  }, [handle_user_select]);
 
   return (
     <section
@@ -191,35 +200,39 @@ export function OurWorks() {
             className="mb-12 md:mb-16"
           />
 
-          {/* Mobile tabs — visible below md */}
-          <div className="md:hidden mb-6">
-            <MobileTabs
-              sections={SECTIONS}
-              active_id={active_id}
-              on_select={handle_select}
-              is_auto_playing={is_auto_playing}
-              progress_key={progress_key}
-            />
-          </div>
+          {/* Deep-link scroll target: on mobile it includes the tabs, so the
+              opened category stays identifiable once the heading is off-screen. */}
+          <div id={CONTENT_ANCHOR_ID}>
+            {/* Mobile tabs — visible below md */}
+            <div className="md:hidden mb-6">
+              <MobileTabs
+                sections={SECTIONS}
+                active_id={active_id}
+                on_select={handle_select}
+                is_auto_playing={is_auto_playing}
+                progress_key={progress_key}
+              />
+            </div>
 
-          {/* Two-panel layout — desktop */}
-          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 max-w-6xl mx-auto">
-            {/* Left sidebar — hidden on mobile, sticky on desktop */}
-            <aside className="hidden md:block md:w-[35%] lg:w-[32%] shrink-0">
-              <div className="sticky top-24">
-                <SectionNav
-                  sections={SECTIONS}
-                  active_id={active_id}
-                  on_select={handle_select}
-                  is_auto_playing={is_auto_playing}
-                  progress_key={progress_key}
-                />
+            {/* Two-panel layout — desktop */}
+            <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 max-w-6xl mx-auto">
+              {/* Left sidebar — hidden on mobile, sticky on desktop */}
+              <aside className="hidden md:block md:w-[35%] lg:w-[32%] shrink-0">
+                <div className="sticky top-24">
+                  <SectionNav
+                    sections={SECTIONS}
+                    active_id={active_id}
+                    on_select={handle_select}
+                    is_auto_playing={is_auto_playing}
+                    progress_key={progress_key}
+                  />
+                </div>
+              </aside>
+
+              {/* Right content panel */}
+              <div className="flex-1 min-w-0">
+                <ContentPanel sections={SECTIONS} active_id={active_id} />
               </div>
-            </aside>
-
-            {/* Right content panel */}
-            <div className="flex-1 min-w-0">
-              <ContentPanel sections={SECTIONS} active_id={active_id} />
             </div>
           </div>
       </SectionWrapper>

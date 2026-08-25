@@ -12,7 +12,7 @@ Strona internetowa dla firmy BlockchainWares - software development company z D�
 npm run dev                        # Dev server na localhost:4321
 npm run build                      # Build produkcyjny do .vercel/output/ (adapter @astrojs/vercel)
 npm run preview                    # Podgląd builda
-npm test                           # Playwright E2E, 28 testów (w tym admin.spec.ts)
+npm test                           # Playwright E2E, 33 testy (w tym admin.spec.ts)
 node scripts/hash_password.mjs     # Generuje ADMIN_PASSWORD_HASH z hasła podanego interaktywnie
 npx tsc --noEmit                   # Type check
 ```
@@ -39,7 +39,7 @@ Full-stack SSR (Astro + React Islands). Strony marketingowe (`index.astro`, `mar
 - `src/pages/index.astro`, `src/pages/markets.astro` - strony publiczne (prerenderowane), importują sekcje z `src/components/`
 - `src/components/` - sekcje strony jako React komponenty z Framer Motion
 - `src/components/ui/` - reużywalne komponenty UI (Button, etc.)
-- `src/components/our-works-data.ts` - dane sekcji "What We Do" + deep-linki do tabów: `?docs`, `?sdk`, `?blockchain`, `?hive`, `?apps`, `?eos`, `?eda`, `?data` (i `?tab=<alias>`). Duplikat aliasu **wywala build** celowo (`build_id_by_slug()`). Deep-link zatrzymuje auto-rotate
+- `src/components/our-works-data.ts` - dane sekcji "What We Do" + deep-linki do tabów: `?docs`, `?sdk`, `?core`, `?hive`, `?ufa`, `?eos`, `?eda`, `?data` (i `?tab=<alias>`). Duplikat aliasu **wywala build** celowo (`build_id_by_slug()`). Deep-link zatrzymuje auto-rotate i scrolluje do `#what-we-do-content` (treść kategorii pod navbarem), nie do nagłówka sekcji
 - `src/components/admin/` - dashboard panelu (kafelki, wykres, top-N, tabela z sortowaniem/filtrowaniem/paginacją i deep-linkami przez query string), renderowany serwerowo
 - `src/lib/utils.ts` - helper `cn()` do mergowania klas Tailwind
 - `src/middleware.ts` - na requestach do stron dynamicznych: guard sesji dla `/admin/*` i `/api/admin/*`, nagłówki bezpieczeństwa. Nie loguje już ruchu
@@ -72,7 +72,7 @@ Nigdy nie wpisywać realnych wartości tych zmiennych do repo/dokumentacji.
 
 ## Testy
 
-`npm test` (Playwright, 28 testów) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch.
+`npm test` (Playwright, 33 testy) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch.
 
 ## DaisyUI Theme
 

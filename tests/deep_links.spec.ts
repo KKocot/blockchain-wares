@@ -5,10 +5,10 @@ import { expect, test, type Page } from "@playwright/test";
  * tę samą zakładkę. Tytuł zakładki jest jej dostępną nazwą, więc po nim celujemy.
  */
 const TABS = [
-  { slug: "blockchain", title: "Blockchain Core & Infrastructure" },
+  { slug: "core", title: "Blockchain Core & Infrastructure" },
   { slug: "hive", title: "Hive Ecosystem Development" },
   { slug: "sdk", title: "Developer SDKs & Libraries" },
-  { slug: "apps", title: "User-Facing Applications" },
+  { slug: "ufa", title: "User-Facing Applications" },
   { slug: "eos", title: "EOS Ecosystem" },
   { slug: "docs", title: "Documentation" },
   { slug: "eda", title: "EDA & Engineering" },
@@ -19,6 +19,12 @@ const DEFAULT_TAB = TABS[0].title;
 const DOCS_TAB = "Documentation";
 
 const SECTION_ANCHOR = "#what-we-do";
+/** Deep-link cel scrolla: dwupanelowy layout, nie nagłówek sekcji. */
+const CONTENT_ANCHOR = "#what-we-do-content";
+/** Fixed navbar (h-16) + oddech — OurWorks.tsx: NAV_OFFSET_PX + CONTENT_GAP_PX. */
+const CONTENT_TOP_PX = 80;
+/** Zaokrąglenia layoutu i subpiksele — sam offset musi się zgadzać co do kilku px. */
+const CONTENT_TOP_TOLERANCE_PX = 8;
 /**
  * Astro zdejmuje z `<astro-island>` atrybut `ssr` dopiero po hydracji wyspy.
  * Wyspa jest `client:visible`, więc do tego momentu tabsy to statyczny HTML:
@@ -62,6 +68,36 @@ test.describe("Deep-linki sekcji What We Do", () => {
       }
     });
   }
+
+  test("deep-link zatrzymuje treść kategorii pod navbarem, nie nagłówek sekcji", async ({
+    page,
+  }) => {
+    // Bez scrollIntoViewIfNeeded: skok robi sama strona, inaczej test mierzyłby
+    // pozycję ustawioną przez Playwright.
+    await page.goto("/?ufa");
+    await expect(page.locator(HYDRATED_ISLAND)).toBeAttached({
+      timeout: TAB_TIMEOUT,
+    });
+    await expect_open_tab(page, "User-Facing Applications");
+
+    await expect
+      .poll(
+        async () => {
+          const top = await page
+            .locator(CONTENT_ANCHOR)
+            .evaluate((node) => node.getBoundingClientRect().top);
+          return Math.abs(top - CONTENT_TOP_PX);
+        },
+        { timeout: TAB_TIMEOUT },
+      )
+      .toBeLessThanOrEqual(CONTENT_TOP_TOLERANCE_PX);
+
+    // Nagłówek sekcji ma zostać nad kadrem — inaczej to stary cel scrolla.
+    const heading_top = await page
+      .locator(`${SECTION_ANCHOR} h2`)
+      .evaluate((node) => node.getBoundingClientRect().top);
+    expect(heading_top).toBeLessThan(0);
+  });
 
   test("nieznany alias zostawia zakładkę domyślną i nie wywala strony", async ({
     page,

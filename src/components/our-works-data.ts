@@ -3,10 +3,10 @@ import { DocsIcon, EngineeringIcon, HiveIcon, SdkIcon } from "./icons";
 
 /** Short URL aliases for tab deep-links: `/?docs` and `/?tab=docs` both open Documentation. */
 export const SECTION_SLUGS = [
-  "blockchain",
+  "core",
   "hive",
   "sdk",
-  "apps",
+  "ufa",
   "eos",
   "docs",
   "eda",
@@ -56,7 +56,7 @@ export interface ProjectSection {
 export const SECTIONS: ProjectSection[] = [
   {
     id: "blockchain-core",
-    slug: "blockchain",
+    slug: "core",
     title: "Blockchain Core & Infrastructure",
     subtitle: "High-performance blockchain nodes and indexing infrastructure",
     description:
@@ -211,7 +211,7 @@ export const SECTIONS: ProjectSection[] = [
   },
   {
     id: "user-applications",
-    slug: "apps",
+    slug: "ufa",
     title: "User-Facing Applications",
     subtitle: "End-user blockchain experiences and decentralized applications",
     description:

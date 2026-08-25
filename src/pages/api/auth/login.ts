@@ -70,7 +70,7 @@ export const POST: APIRoute = async (context) => {
   const { cookies, request, url } = context;
 
   try {
-    if (!is_same_site_request(request) || is_cross_site_fetch(request)) {
+    if (!is_same_site_request(request)) {
       return json_error(403, "Żądanie z obcej domeny.");
     }
 
@@ -120,16 +120,6 @@ export const POST: APIRoute = async (context) => {
 
 export const ALL: APIRoute = () =>
   json_error(405, "Metoda niedozwolona.", { Allow: "POST" });
-
-/**
- * Druga bariera CSRF w miejsce wymogu JSON-a: formularz z obcej domeny wysyla
- * `Sec-Fetch-Site: cross-site`. Brak naglowka (curl, healthcheck) przepuszczamy —
- * ocene przejmuje wtedy guard na `Origin`.
- */
-function is_cross_site_fetch(request: Request): boolean {
-  const site = request.headers.get("sec-fetch-site");
-  return site !== null && site !== "same-origin" && site !== "none";
-}
 
 function redirect_to(
   location: string,

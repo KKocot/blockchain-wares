@@ -68,7 +68,7 @@ export function EventCard({ event, status }: EventCardProps) {
   const theme = STATUS_THEME[status];
 
   return (
-    <div
+    <article
       className={cn(
         "group relative flex flex-col gap-6 p-6 md:flex-row md:gap-8 md:p-8",
         "rounded-[32px] md:rounded-[40px]",
@@ -158,7 +158,7 @@ export function EventCard({ event, status }: EventCardProps) {
           <span className="sr-only">{event.name} — opens in a new tab</span>
         </a>
       </div>
-    </div>
+    </article>
   );
 }
 

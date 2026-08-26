@@ -158,16 +158,14 @@ function blobStyle(blob: Blob): string {
     </div>
 
     <div class="relative z-[1]">
-      <main>
-        <Hero client:load />
-        <EventBanner client:visible todayIso={today_iso} />
-        <About client:visible />
-        <OurWorks client:visible />
-        <EndUsers client:visible />
-        <Team client:visible />
-        <Career client:visible />
-        <Contact client:visible />
-      </main>
+      <Hero client:load />
+      <EventBanner client:visible todayIso={today_iso} />
+      <About client:visible />
+      <OurWorks client:visible />
+      <EndUsers client:visible />
+      <Team client:visible />
+      <Career client:visible />
+      <Contact client:visible />
       <Footer />
     </div>
   </div>

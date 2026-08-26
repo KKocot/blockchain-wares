@@ -23,7 +23,7 @@ export const EXPERTISE_ITEMS: ExpertiseItem[] = [
     id: "blockchain",
     title: "Blockchain",
     description:
-      "Our first experience with blockchain technology dates back to 2013 when Keyhotee project started. By now the Hive blockchain related development is our main focus. Our in-house developed framework offers broad customization capabilities and impressive performance, leading to handling thousands of transactions per second, exceptionally short block generation times and various integration methods to traditional data sources.",
+      "Our first experience with blockchain technology dates back to 2014 when Keyhotee project started. By now the Hive blockchain related development is our main focus. Our in-house developed framework offers broad customization capabilities and impressive performance, leading to handling thousands of transactions per second, exceptionally short block generation times and various integration methods to traditional data sources.",
     icon: createElement(BlockchainIcon, { className: "w-full h-full" }),
   },
   {
@@ -44,7 +44,7 @@ export const EXPERTISE_ITEMS: ExpertiseItem[] = [
     id: "databases",
     title: "Databases",
     description:
-      "We are experienced in developing solutions based on both traditional RDBMS and modern high performance oriented non-SQL databases like RocksDB and Neo4j offering critical write throughput and most efficient object traversal, very useful at solving complex social network analysis problems.",
+      "We are experienced in developing solutions based on both traditional RDBMS and modern high performance oriented non-SQL databases like RocksDB and Neo4J offering critical write throughput and most efficient object traversal, very useful at solving complex social network analysis problems.",
     icon: createElement(DatabaseIcon, { className: "w-full h-full" }),
   },
   {

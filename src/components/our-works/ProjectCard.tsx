@@ -110,7 +110,7 @@ export const ProjectCard = memo(function ProjectCard({
   index,
 }: ProjectCardProps) {
   return (
-    <motion.div
+    <motion.article
       custom={index}
       variants={CARD_VARIANTS}
       initial="hidden"
@@ -144,7 +144,12 @@ export const ProjectCard = memo(function ProjectCard({
                     className="ml-auto shrink-0 text-base-content/30 group-hover:text-secondary transition-colors duration-150"
                     aria-hidden="true"
                   >
-                    <svg viewBox="0 0 10 10" fill="none" width="10" height="10">
+                    <svg
+                      viewBox="0 0 10 10"
+                      fill="none"
+                      width="10"
+                      height="10"
+                    >
                       <path
                         d="M2 8L8 2M8 2H3.5M8 2V6.5"
                         stroke="currentColor"
@@ -166,6 +171,6 @@ export const ProjectCard = memo(function ProjectCard({
           {description}
         </p>
       </div>
-    </motion.div>
+    </motion.article>
   );
 });

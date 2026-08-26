@@ -11,13 +11,13 @@ Founded in 2002 and working with blockchain since 2013. A team of 25+ engineers,
 
 ## What we do
 
-- [Blockchain Core & Infrastructure](https://blockchainwares.com.pl/?core): C++ node development (hived), HAF PostgreSQL-backed indexing, DPoS/Graphene platforms (BEOS, Peerplays) and exchange infrastructure (BlockTrades).
+- [Blockchain Core & Infrastructure](https://blockchainwares.com.pl/?core): C++ node development (hived), HAF PostgreSQL-backed indexing, DPoS platforms (Graphene-based Peerplays, EOSIO-based BEOS) and exchange infrastructure (BlockTrades).
 - [Hive Ecosystem Development](https://blockchainwares.com.pl/?hive): Production backend services on top of HAF - REST and JSON-RPC APIs such as HAfAH (account history) and the HAF Block Explorer API.
 - [Developer SDKs & Libraries](https://blockchainwares.com.pl/?sdk): Open-source Hive tooling - Wax multi-language API, Beekeeper wallet daemon, WorkerBee automation framework, hb-auth and a MetaMask Snap for Hive.
 - [User-Facing Applications](https://blockchainwares.com.pl/?ufa): End-user products including Block Explorer UI, Denser blogging dApp, Hive Bridge, TX Inspector, Clive CLI/TUI wallet, HiveSense semantic search and Balance Tracker.
 - [EOS Ecosystem](https://blockchainwares.com.pl/?eos): Governance tooling from the 2017-2019 EOS/BEOS era - EOS Voter desktop wallet, EOS Proxy Info and Producer JSON smart contracts.
 - [Documentation](https://blockchainwares.com.pl/?docs): Developer documentation sites for the Hive platform with multi-language code tabs, executable TypeScript snippets and Swagger API docs.
-- [EDA & Engineering](https://blockchainwares.com.pl/?eda): HDL compiler, simulation and debugging tools for large-scale SystemVerilog models, plus CAD/CAE software (SynaptiCAD Verilogger).
+- [EDA & Engineering](https://blockchainwares.com.pl/?eda): HDL compiler, simulation and debugging tools for large-scale SystemVerilog models (SynaptiCAD Verilogger, BugHunter Pro), plus CAD/CAE software (ModelCenter Integrate).
 - [Data Systems](https://blockchainwares.com.pl/?data): RDBMS work and modern non-SQL databases such as RocksDB and Neo4j, including data center infrastructure management systems.
 
 ## Company

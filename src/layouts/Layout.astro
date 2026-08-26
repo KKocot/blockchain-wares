@@ -24,7 +24,26 @@ const organizationID = new URL("#organization", Astro.site).href;
 const websiteID = new URL("#website", Astro.site).href;
 const localBusinessID = new URL("#localbusiness", Astro.site).href;
 const webPageID = new URL("#webpage", canonicalURL).href;
+const primaryImageID = new URL("#primaryimage", canonicalURL).href;
 const dateModified = new Date().toISOString();
+
+/** `</script>` inside a title/description prop would break out of the JSON-LD block */
+const to_json_ld = (data: unknown): string =>
+  JSON.stringify(data).replace(
+    /[<>&]/g,
+    (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
+
+const sameAsProfiles = ["https://pl.linkedin.com/company/blockchainwares-software-sp-z-o-o"];
+
+const postalAddress = {
+  "@type": "PostalAddress",
+  streetAddress: "Graniczna 34B/U11",
+  addressLocality: "Dąbrowa Górnicza",
+  addressRegion: "Śląskie",
+  postalCode: "41-303",
+  addressCountry: "PL",
+};
 ---
 
 <!doctype html>
@@ -130,7 +149,7 @@ const dateModified = new Date().toISOString();
     <!-- Schema.org JSON-LD -->
     {!noindex && (
       <Fragment>
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "Organization",
           "@id": organizationID,
@@ -138,10 +157,10 @@ const dateModified = new Date().toISOString();
           "url": siteURL,
           "logo": logoURL.href,
           "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software. Based in Dabrowa Gornicza, Poland.",
-          "foundingDate": "2013",
+          "foundingDate": "2002",
           "numberOfEmployees": {
             "@type": "QuantitativeValue",
-            "value": 25
+            "minValue": 25
           },
           "email": "contact@blockchainwares.pl",
           "contactPoint": {
@@ -150,16 +169,11 @@ const dateModified = new Date().toISOString();
             "email": "contact@blockchainwares.pl",
             "availableLanguage": ["en", "pl"]
           },
-          "sameAs": ["https://pl.linkedin.com/company/blockchainwares-software-sp-z-o-o"],
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "Graniczna 34B/U11",
-            "addressLocality": "Dąbrowa Górnicza",
-            "postalCode": "41-303",
-            "addressCountry": "PL"
-          }
+          "sameAs": sameAsProfiles,
+          "address": postalAddress,
+          "location": { "@id": localBusinessID }
         })} />
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "WebSite",
           "@id": websiteID,
@@ -167,9 +181,11 @@ const dateModified = new Date().toISOString();
           "url": siteURL,
           "description": "Blockchain & Enterprise Software Development Company",
           "inLanguage": pageLanguage,
-          "publisher": { "@id": organizationID }
+          "sameAs": sameAsProfiles,
+          "publisher": { "@id": organizationID },
+          "copyrightHolder": { "@id": organizationID }
         })} />
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "ProfessionalService",
           "@id": localBusinessID,
@@ -178,13 +194,8 @@ const dateModified = new Date().toISOString();
           "email": "contact@blockchainwares.pl",
           "description": "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software.",
           "image": logoURL.href,
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "Graniczna 34B/U11",
-            "addressLocality": "Dąbrowa Górnicza",
-            "postalCode": "41-303",
-            "addressCountry": "PL"
-          },
+          "areaServed": "Worldwide",
+          "address": postalAddress,
           "geo": {
             "@type": "GeoCoordinates",
             "latitude": 50.3390,
@@ -196,10 +207,10 @@ const dateModified = new Date().toISOString();
             "opens": "09:00",
             "closes": "17:00"
           },
-          "sameAs": ["https://pl.linkedin.com/company/blockchainwares-software-sp-z-o-o"],
+          "sameAs": sameAsProfiles,
           "priceRange": "$$"
         })} />
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "WebPage",
           "@id": webPageID,
@@ -208,11 +219,15 @@ const dateModified = new Date().toISOString();
           "description": description,
           "isPartOf": { "@id": websiteID },
           "about": { "@id": organizationID },
+          "publisher": { "@id": organizationID },
           "inLanguage": pageLanguage,
           "dateModified": dateModified,
-          "primaryImageOfPage": {
+          "primaryImageOfPage": { "@id": primaryImageID },
+          "image": {
             "@type": "ImageObject",
+            "@id": primaryImageID,
             "url": ogImageURL.href,
+            "contentUrl": ogImageURL.href,
             "width": 1200,
             "height": 630
           }

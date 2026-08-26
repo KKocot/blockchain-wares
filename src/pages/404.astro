@@ -1,0 +1,78 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Footer } from "../components";
+
+export const prerender = true;
+
+const title = "Page Not Found — BlockchainWares";
+const description =
+  "This page does not exist. Head back to the BlockchainWares homepage or see where you can meet us at upcoming industry events.";
+
+const cta_base =
+  "inline-flex items-center justify-center rounded-lg font-medium h-12 px-6 text-base transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary";
+const cta_primary =
+  "bg-secondary text-secondary-content hover:bg-secondary/90 shadow-md hover:shadow-lg";
+const cta_outline =
+  "border border-base-300 bg-transparent text-base-content hover:bg-base-300 shadow-sm hover:shadow-md";
+---
+
+<Layout title={title} description={description} noindex>
+  <div class="relative bg-base-100 overflow-clip">
+    <div class="absolute inset-0 pointer-events-none z-0">
+      <div
+        class="absolute top-[-15%] left-[10%] w-[800px] h-[800px] md:w-[1100px] md:h-[1100px] blob-contained"
+        style="background: radial-gradient(circle, oklch(72% 0.18 215.221 / 0.14) 0%, transparent 70%);"
+      >
+      </div>
+      <div
+        class="absolute top-[35%] left-[55%] w-[900px] h-[900px] md:w-[1200px] md:h-[1200px] blob-contained"
+        style="background: radial-gradient(circle, oklch(72% 0.18 215.221 / 0.1) 0%, transparent 70%);"
+      >
+      </div>
+    </div>
+
+    <div class="relative z-[1]">
+      <main
+        class="relative flex min-h-screen items-center justify-center px-4 py-16 md:py-24"
+      >
+        <div class="max-w-2xl mx-auto w-full text-center">
+          <span
+            class="text-secondary font-medium tracking-wider uppercase text-xs md:text-sm block mb-2 md:mb-4"
+          >
+            Error 404
+          </span>
+
+          <p
+            class="text-6xl md:text-8xl font-bold leading-none text-secondary drop-shadow-lg mb-4 md:mb-6"
+          >
+            404
+          </p>
+
+          <h1
+            class="text-3xl md:text-5xl font-bold leading-tight mb-4 md:mb-6 drop-shadow-lg"
+          >
+            Page <span class="text-secondary">not found</span>
+          </h1>
+
+          <p
+            class="text-base md:text-lg text-base-content/80 leading-relaxed max-w-xl mx-auto mb-8 md:mb-10"
+          >
+            The page you are looking for has been moved or never existed. Let's
+            get you back to something useful.
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/" class={`${cta_base} ${cta_primary}`}>
+              Back to homepage
+            </a>
+            <a href="/markets" class={`${cta_base} ${cta_outline}`}>
+              Markets &amp; events
+            </a>
+          </div>
+        </div>
+      </main>
+
+      <Footer currentPath="/404" />
+    </div>
+  </div>
+</Layout>

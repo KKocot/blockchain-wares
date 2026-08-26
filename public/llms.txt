@@ -1,0 +1,33 @@
+# BlockchainWares
+
+> Software development company from Dąbrowa Górnicza, Poland, building blockchain infrastructure, developer SDKs, EDA/engineering tools and database systems.
+
+Founded in 2002 and working with blockchain since 2013. A team of 25+ engineers, including security specialists, covering blockchain, event-driven architecture, databases, electronic design automation, Python automation, modern frontend and DevOps. Core contributors to the Hive blockchain (over 31,000 commits), with EDA and engineering software deployed by Fortune 500 companies, government agencies and technology pioneers. The site is in English; the "What We Do" tabs on the homepage are reachable through the query-string deep links listed below.
+
+## Main pages
+
+- [Homepage](https://blockchainwares.com.pl/): Company overview, project portfolio grouped into eight domains, clients, team, open positions and contact details.
+- [Markets & Events](https://blockchainwares.com.pl/markets): Trade fairs and conferences where the company exhibits, including the European Blockchain Convention 2026 in Barcelona (16-17 September).
+
+## What we do
+
+- [Blockchain Core & Infrastructure](https://blockchainwares.com.pl/?core): C++ node development (hived), HAF PostgreSQL-backed indexing, DPoS/Graphene platforms (BEOS, Peerplays) and exchange infrastructure (BlockTrades).
+- [Hive Ecosystem Development](https://blockchainwares.com.pl/?hive): Production backend services on top of HAF - REST and JSON-RPC APIs such as HAfAH (account history) and the HAF Block Explorer API.
+- [Developer SDKs & Libraries](https://blockchainwares.com.pl/?sdk): Open-source Hive tooling - Wax multi-language API, Beekeeper wallet daemon, WorkerBee automation framework, hb-auth and a MetaMask Snap for Hive.
+- [User-Facing Applications](https://blockchainwares.com.pl/?ufa): End-user products including Block Explorer UI, Denser blogging dApp, Hive Bridge, TX Inspector, Clive CLI/TUI wallet, HiveSense semantic search and Balance Tracker.
+- [EOS Ecosystem](https://blockchainwares.com.pl/?eos): Governance tooling from the 2017-2019 EOS/BEOS era - EOS Voter desktop wallet, EOS Proxy Info and Producer JSON smart contracts.
+- [Documentation](https://blockchainwares.com.pl/?docs): Developer documentation sites for the Hive platform with multi-language code tabs, executable TypeScript snippets and Swagger API docs.
+- [EDA & Engineering](https://blockchainwares.com.pl/?eda): HDL compiler, simulation and debugging tools for large-scale SystemVerilog models, plus CAD/CAE software (SynaptiCAD Verilogger).
+- [Data Systems](https://blockchainwares.com.pl/?data): RDBMS work and modern non-SQL databases such as RocksDB and Neo4j, including data center infrastructure management systems.
+
+## Company
+
+- [About](https://blockchainwares.com.pl/#about): Two decades of engineering, architecture built to scale, production-proven solutions and deep in-house expertise.
+- [Clients](https://blockchainwares.com.pl/#end-users): Organisations that have used the company's EDA tools and software, among them AT&T, Fujitsu, HP, IBM, Intel, Motorola, NASA, Texas Instruments, BlockTrades and Peerplays.
+- [Team](https://blockchainwares.com.pl/#team): Engineers and developers working on blockchain technology and high-performance software.
+- [Career](https://blockchainwares.com.pl/#career): Open positions - front-end developer, back-end developer (C++/Python), system administrator, UI designer and any good engineer.
+- [Contact](https://blockchainwares.com.pl/#contact): Email contact@blockchainwares.pl, office at Graniczna 34B/U11, 41-303 Dąbrowa Górnicza, Poland.
+
+## Optional
+
+- [LinkedIn](https://pl.linkedin.com/company/blockchainwares-software-sp-z-o-o): Company profile with news and job postings.

@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { to_json_ld } from "../lib/utils";
 
 interface Props {
   title?: string;
@@ -26,13 +27,6 @@ const localBusinessID = new URL("#localbusiness", Astro.site).href;
 const webPageID = new URL("#webpage", canonicalURL).href;
 const primaryImageID = new URL("#primaryimage", canonicalURL).href;
 const dateModified = new Date().toISOString();
-
-/** `</script>` inside a title/description prop would break out of the JSON-LD block */
-const to_json_ld = (data: unknown): string =>
-  JSON.stringify(data).replace(
-    /[<>&]/g,
-    (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
-  );
 
 const sameAsProfiles = ["https://pl.linkedin.com/company/blockchainwares-software-sp-z-o-o"];
 

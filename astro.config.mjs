@@ -15,7 +15,9 @@ const BUILD_DATE = new Date().toISOString();
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://blockchainwares.com.pl",
+  // Tymczasowo host Vercela: domena com.pl nie jest jeszcze przepieta, a rozjazd
+  // miedzy `site` a realnie serwowanym hostem psul canonical i sitemape.
+  site: "https://blockchain-wares.vercel.app",
   output: "server",
   adapter: vercel(),
 

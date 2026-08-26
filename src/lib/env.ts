@@ -7,9 +7,6 @@ export const MIN_AUTH_SECRET_LENGTH = 32;
 
 const DEFAULT_LOG_TTL_SECONDS = 300;
 
-/** Ostatnia deska ratunku, gdy ani SITE_ORIGIN, ani `site` z astro.config.mjs nie doszly. */
-const FALLBACK_ORIGIN = "https://blockchainwares.com.pl";
-
 const IS_SERVER_RUNTIME =
   typeof window === "undefined" &&
   typeof process !== "undefined" &&
@@ -69,7 +66,14 @@ export function get_auth_config(): AuthConfig {
  * nadpisuje go, gdy aplikacja stoi pod innym adresem (staging, podglad).
  */
 export function get_site_origin(): string {
-  const raw = read_env("SITE_ORIGIN") ?? read_astro_site() ?? FALLBACK_ORIGIN;
+  // Bez zrodla prawdy guard CSRF porownywalby do zgadnietego hosta i odrzucal
+  // kazde legalne zadanie — glosny blad diagnozuje sie szybciej niz ciche 403.
+  const raw = read_env("SITE_ORIGIN") ?? read_astro_site();
+  if (raw === undefined) {
+    throw new Error(
+      "Cannot resolve the canonical origin: neither SITE_ORIGIN nor `site` in astro.config.mjs is set.",
+    );
+  }
 
   let parsed: URL;
   try {

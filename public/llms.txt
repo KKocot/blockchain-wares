@@ -6,27 +6,27 @@ Founded in 2002 and working with blockchain since 2013. A team of 25+ engineers,
 
 ## Main pages
 
-- [Homepage](https://blockchainwares.com.pl/): Company overview, project portfolio grouped into eight domains, clients, team, open positions and contact details.
-- [Markets & Events](https://blockchainwares.com.pl/markets): Trade fairs and conferences where the company exhibits, including the European Blockchain Convention 2026 in Barcelona (16-17 September).
+- [Homepage](https://blockchain-wares.vercel.app/): Company overview, project portfolio grouped into eight domains, clients, team, open positions and contact details.
+- [Markets & Events](https://blockchain-wares.vercel.app/markets): Trade fairs and conferences where the company exhibits, including the European Blockchain Convention 2026 in Barcelona (16-17 September).
 
 ## What we do
 
-- [Blockchain Core & Infrastructure](https://blockchainwares.com.pl/?core): C++ node development (hived), HAF PostgreSQL-backed indexing, DPoS platforms (Graphene-based Peerplays, EOSIO-based BEOS) and exchange infrastructure (BlockTrades).
-- [Hive Ecosystem Development](https://blockchainwares.com.pl/?hive): Production backend services on top of HAF - REST and JSON-RPC APIs such as HAfAH (account history) and the HAF Block Explorer API.
-- [Developer SDKs & Libraries](https://blockchainwares.com.pl/?sdk): Open-source Hive tooling - Wax multi-language API, Beekeeper wallet daemon, WorkerBee automation framework, hb-auth and a MetaMask Snap for Hive.
-- [User-Facing Applications](https://blockchainwares.com.pl/?ufa): End-user products including Block Explorer UI, Denser blogging dApp, Hive Bridge, TX Inspector, Clive CLI/TUI wallet, HiveSense semantic search and Balance Tracker.
-- [EOS Ecosystem](https://blockchainwares.com.pl/?eos): Governance tooling from the 2017-2019 EOS/BEOS era - EOS Voter desktop wallet, EOS Proxy Info and Producer JSON smart contracts.
-- [Documentation](https://blockchainwares.com.pl/?docs): Developer documentation sites for the Hive platform with multi-language code tabs, executable TypeScript snippets and Swagger API docs.
-- [EDA & Engineering](https://blockchainwares.com.pl/?eda): HDL compiler, simulation and debugging tools for large-scale SystemVerilog models (SynaptiCAD Verilogger, BugHunter Pro), plus CAD/CAE software (ModelCenter Integrate).
-- [Data Systems](https://blockchainwares.com.pl/?data): RDBMS work and modern non-SQL databases such as RocksDB and Neo4j, including data center infrastructure management systems.
+- [Blockchain Core & Infrastructure](https://blockchain-wares.vercel.app/?core): C++ node development (hived), HAF PostgreSQL-backed indexing, DPoS platforms (Graphene-based Peerplays, EOSIO-based BEOS) and exchange infrastructure (BlockTrades).
+- [Hive Ecosystem Development](https://blockchain-wares.vercel.app/?hive): Production backend services on top of HAF - REST and JSON-RPC APIs such as HAfAH (account history) and the HAF Block Explorer API.
+- [Developer SDKs & Libraries](https://blockchain-wares.vercel.app/?sdk): Open-source Hive tooling - Wax multi-language API, Beekeeper wallet daemon, WorkerBee automation framework, hb-auth and a MetaMask Snap for Hive.
+- [User-Facing Applications](https://blockchain-wares.vercel.app/?ufa): End-user products including Block Explorer UI, Denser blogging dApp, Hive Bridge, TX Inspector, Clive CLI/TUI wallet, HiveSense semantic search and Balance Tracker.
+- [EOS Ecosystem](https://blockchain-wares.vercel.app/?eos): Governance tooling from the 2017-2019 EOS/BEOS era - EOS Voter desktop wallet, EOS Proxy Info and Producer JSON smart contracts.
+- [Documentation](https://blockchain-wares.vercel.app/?docs): Developer documentation sites for the Hive platform with multi-language code tabs, executable TypeScript snippets and Swagger API docs.
+- [EDA & Engineering](https://blockchain-wares.vercel.app/?eda): HDL compiler, simulation and debugging tools for large-scale SystemVerilog models (SynaptiCAD Verilogger, BugHunter Pro), plus CAD/CAE software (ModelCenter Integrate).
+- [Data Systems](https://blockchain-wares.vercel.app/?data): RDBMS work and modern non-SQL databases such as RocksDB and Neo4j, including data center infrastructure management systems.
 
 ## Company
 
-- [About](https://blockchainwares.com.pl/#about): Two decades of engineering, architecture built to scale, production-proven solutions and deep in-house expertise.
-- [Clients](https://blockchainwares.com.pl/#end-users): Organisations that have used the company's EDA tools and software, among them AT&T, Fujitsu, HP, IBM, Intel, Motorola, NASA, Texas Instruments, BlockTrades and Peerplays.
-- [Team](https://blockchainwares.com.pl/#team): Engineers and developers working on blockchain technology and high-performance software.
-- [Career](https://blockchainwares.com.pl/#career): Open positions - front-end developer, back-end developer (C++/Python), system administrator, UI designer and any good engineer.
-- [Contact](https://blockchainwares.com.pl/#contact): Email contact@blockchainwares.pl, office at Graniczna 34B/U11, 41-303 Dąbrowa Górnicza, Poland.
+- [About](https://blockchain-wares.vercel.app/#about): Two decades of engineering, architecture built to scale, production-proven solutions and deep in-house expertise.
+- [Clients](https://blockchain-wares.vercel.app/#end-users): Organisations that have used the company's EDA tools and software, among them AT&T, Fujitsu, HP, IBM, Intel, Motorola, NASA, Texas Instruments, BlockTrades and Peerplays.
+- [Team](https://blockchain-wares.vercel.app/#team): Engineers and developers working on blockchain technology and high-performance software.
+- [Career](https://blockchain-wares.vercel.app/#career): Open positions - front-end developer, back-end developer (C++/Python), system administrator, UI designer and any good engineer.
+- [Contact](https://blockchain-wares.vercel.app/#contact): Email contact@blockchainwares.pl, office at Graniczna 34B/U11, 41-303 Dąbrowa Górnicza, Poland.
 
 ## Optional
 

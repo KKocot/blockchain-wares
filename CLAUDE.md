@@ -26,22 +26,26 @@ npx tsc --noEmit                   # Type check
 
 ## Deploy
 
-Vercel, autodeploy z gita. Build wychodzi do `.vercel/output/` (adapter `@astrojs/vercel`), nie `dist/server/entry.mjs`.
+Vercel, autodeploy z gita. Build wychodzi do `.vercel/output/` (adapter `@astrojs/vercel`), nie `dist/server/entry.mjs`. **Produkcyjny artefakt Vercela stoi pod https://blockchain-wares.vercel.app/.**
 
 `Dockerfile` i `compose.yml` zostają w repo jako alternatywa dla VPS, ale są NIESPÓJNE z obecnym adapterem — `CMD`/`HEALTHCHECK` wskazują na `dist/server/entry.mjs`, który przy `@astrojs/vercel` w ogóle nie powstaje (Dockerfile ma na to komentarz ostrzegawczy). Powrót na VPS wymaga najpierw cofnięcia adaptera na `@astrojs/node`.
+
+**Pułapka audytu/testów: sprawdzaj domenę celu, nie tylko kod.** Domena `blockchainwares.com.pl` **nie musi wskazywać na aktualny deploy Vercela** — bywa serwowana przez zupełnie inny stack (np. nginx za Cloudflare z buildem sprzed tygodni). Każdy audyt/test uderzający w `com.pl` wtedy mierzy cudzy, nieaktualny artefakt, nie ten kod. Przed diagnozowaniem "regresji" po wdrożonej poprawce zweryfikuj najpierw, że target audytu faktycznie odpowiada aktualnemu deployowi (nagłówki serwera, `last-modified` sitemapy) — to tańsze niż runda debugowania kodu, który nie ma z wynikiem nic wspólnego.
+
+`site` w `astro.config.mjs` **celowo** wskazuje `https://blockchainwares.com.pl` (nie na `vercel.app`) — świadoma decyzja właściciela: to domena docelowa, `vercel.app` jest tymczasowe. Konsekwencja: canonical i sitemap zawsze emitują URL-e `com.pl`, więc audyt SEO uruchomiony na `vercel.app` **zawsze** pokaże `seo_canonical_self_referencing` jako fail — to znany false positive do czasu przepięcia domeny, nie bug do naprawienia.
 
 ## Architektura
 
 Full-stack SSR (Astro + React Islands). Strony marketingowe (`index.astro`, `markets.astro`) mają `prerender = true` — middleware **nie wykonuje się** dla stron prerenderowanych, dlatego ich nagłówki bezpieczeństwa (CSP, X-Frame-Options, HSTS, ...) są ustawione w `vercel.json`, nie w middleware.
 
-- `src/layouts/Layout.astro` - bazowy layout landingu z SEO, Open Graph, fontami (Quicksand)
+- `src/layouts/Layout.astro` - bazowy layout landingu z SEO, Open Graph, fontami (Quicksand). Emituje JSON-LD (`Organization`, `ProfessionalService`) przez `to_json_ld` — świadomie **bez** `telephone` (patrz niżej) i bez `Article`/`BlogPosting`
 - `src/layouts/AdminLayout.astro` - osobny layout panelu admina (noindex, font systemowy, `rounded-md`)
 - `src/pages/index.astro`, `src/pages/markets.astro` - strony publiczne (prerenderowane), importują sekcje z `src/components/`
 - `src/components/` - sekcje strony jako React komponenty z Framer Motion
 - `src/components/ui/` - reużywalne komponenty UI (Button, etc.)
-- `src/components/our-works-data.ts` - dane sekcji "What We Do" + deep-linki do tabów: `?docs`, `?sdk`, `?core`, `?hive`, `?ufa`, `?eos`, `?eda`, `?data` (i `?tab=<alias>`). Duplikat aliasu **wywala build** celowo (`build_id_by_slug()`). Deep-link zatrzymuje auto-rotate i scrolluje do `#what-we-do-content` (treść kategorii pod navbarem), nie do nagłówka sekcji
+- `src/components/our-works-data.ts` - typy, `SECTION_SLUGS` i guard `build_id_by_slug()` dla deep-linków do tabów: `?docs`, `?sdk`, `?core`, `?hive`, `?ufa`, `?eos`, `?eda`, `?data` (i `?tab=<alias>`). Duplikat aliasu **wywala build** celowo. Deep-link zatrzymuje auto-rotate i scrolluje do `#what-we-do-content` (treść kategorii pod navbarem), nie do nagłówka sekcji. Same dane sekcji są w `src/components/our-works/sections/{core,hive,sdk,ufa,eos,docs,eda,data}.ts`, scalone przez barrel `sections/index.ts`
 - `src/components/admin/` - dashboard panelu (kafelki, wykres, top-N, tabela z sortowaniem/filtrowaniem/paginacją i deep-linkami przez query string), renderowany serwerowo
-- `src/lib/utils.ts` - helper `cn()` do mergowania klas Tailwind
+- `src/lib/utils.ts` - `cn()` do mergowania klas Tailwind oraz `to_json_ld()` (używany przez `Layout.astro` i `markets.astro`) — escapuje `<`, `>`, `&` przez `\uXXXX` w bloku JSON-LD, żeby treść (np. zawierająca `</script>`) nie mogła wyjść z tagu `<script type="application/ld+json">` i wstrzyknąć HTML/JS. Nie upraszczać/usuwać tego escapowania
 - `src/middleware.ts` - na requestach do stron dynamicznych: guard sesji dla `/admin/*` i `/api/admin/*`, nagłówki bezpieczeństwa. Nie loguje już ruchu
 - `src/lib/logs/` - dane ruchu pochodzą ze **zdalnego pliku logu nginx** (`LOG_SOURCE_URL`), pobieranego serwerowo, cache'owanego w pamięci (`source.ts`, TTL `LOG_SOURCE_TTL_SECONDS`) i parsowanego (`nginx_parser.ts`, format `combined` + dwa dodatkowe cytowane pola: X-Forwarded-For i Accept-Language). `LogSourceRepository` jest **READ-ONLY** (bez `insert`) — własne logowanie w middleware, mocki i implementacja in-memory zostały usunięte
   - **Pułapka**: pole `ip` bierze się z `$remote_addr`, NIE z X-Forwarded-For — ten nagłówek jest sterowalny przez klienta
@@ -51,6 +55,10 @@ Full-stack SSR (Astro + React Islands). Strony marketingowe (`index.astro`, `mar
 - `src/pages/admin/*` - strony panelu (`/admin`, `/admin/login`)
 
 **Panel admina jest czysto serwerowy — to wymóg właściciela, nie detal implementacyjny.** Zero requestów z przeglądarki: dane pobiera frontmatter `src/pages/admin/index.astro`, filtry to `<form method="get">`, sortowanie i paginacja to linki, logowanie/wylogowanie to natywne formularze POST. Endpointy `/api/admin/logs`, `/api/admin/stats` i hook `use_admin_logs` zostały usunięte. Panel działa przy wyłączonym JavaScripcie — nie dodawać `fetch`/`XHR` przy kolejnych zmianach.
+
+**Firma nie ma publicznego numeru telefonu — to decyzja właściciela, nie przeoczenie.** Kontakt jest wyłącznie mailowy (`contact@blockchainwares.pl`). `telephone` NIE jest i nie ma być w JSON-LD (`Organization`, `ProfessionalService`) — kolejne audyty SEO/schema będą zgłaszać `schema_localbusiness_nap` jako częściowo otwarty; nie uzupełniać tego placeholderem.
+
+**Schema `Article`/`BlogPosting` świadomie nieobecna.** Repo nie ma content collections, bloga ani case studies (`src/content/` nie istnieje). Finding `schema_tier2_article` w audytach SEO zostaje otwarty celowo — dodanie tej schemy bez realnej treści artykułowej to structured data spam karany przez Google. Do rewizji dopiero gdy powstanie blog.
 
 Sekcje strony głównej (w kolejności): Navigation, Hero, OurWorks (What We Do + Portfolio), Services, EndUsers, Team, Career, Contact, Footer
 

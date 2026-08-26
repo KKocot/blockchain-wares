@@ -31,14 +31,22 @@ export function Hero() {
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
             <span className="text-secondary">Blockchain</span>Wares
             <span className="sr-only">
-              {" "}— Blockchain & Enterprise Software Development Company
+              {" "}
+              — Blockchain & Enterprise Software Development Company
             </span>
           </h1>
         </div>
 
         {/* Tagline */}
-        <p className="text-lg md:text-xl lg:text-2xl text-base-content/80 max-w-2xl mx-auto leading-relaxed hero-fade-in-delayed">
-          Software development company from Poland
+        <p className="text-base sm:text-lg lg:text-xl text-base-content/80 max-w-3xl mx-auto leading-relaxed text-pretty hero-fade-in-delayed">
+          BlockchainWares is a software development company from Dabrowa
+          Gornicza, Poland, delivering blockchain, EDA, engineering, and
+          database systems since 2002. Blockchain has been our main focus since
+          2013. Our 25+ engineers develop an in-house Hive blockchain framework,
+          HDL compilers and SystemVerilog verification tools, CAD and CAE
+          applications used across aviation and industry, and high-throughput
+          data layers on RocksDB and Neo4j. Intel, IBM, Fujitsu, Motorola, and
+          NASA are among the end users of our work.
         </p>
       </div>
     </section>

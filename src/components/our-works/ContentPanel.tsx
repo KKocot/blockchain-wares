@@ -33,7 +33,7 @@ const SectionContent = memo(function SectionContent({
             className={cn(
               "shrink-0 text-secondary",
               "w-20 h-20 md:w-28 md:h-28",
-              "drop-shadow-[0_0_24px_rgba(34,211,238,0.18)]"
+              "drop-shadow-[0_0_24px_rgba(34,211,238,0.18)]",
             )}
             aria-hidden="true"
           >
@@ -51,7 +51,16 @@ const SectionContent = memo(function SectionContent({
       </p>
 
       {/* Projects list */}
-      <div className="flex flex-col divide-y divide-white/5 md:max-h-[30rem] md:overflow-y-auto scrollbar-thin pr-2">
+      <div
+        role="group"
+        aria-label={`${section.title} projects`}
+        tabIndex={0}
+        className={cn(
+          "flex flex-col divide-y divide-white/5 pr-2 rounded-sm",
+          "md:max-h-[45rem] md:overflow-y-auto scrollbar-thin",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
+        )}
+      >
         {section.projects.map((project, index) => (
           <ProjectCard key={project.title} {...project} index={index} />
         ))}
@@ -64,7 +73,8 @@ const SectionContent = memo(function SectionContent({
  * Content panel for Our Works section
  *
  * All sections are rendered simultaneously in the same grid cell (CSS grid overlay).
- * Container height = tallest section naturally — no layout shift when switching tabs.
+ * Container height = tallest section, so the per-list `md:max-h` is what keeps the
+ * cell from jumping ~1.2k px between a 2-card and an 8-card tab on every auto-rotate tick.
  * Active section crossfades in, inactive sections are hidden with opacity 0.
  * Each section owns a `tabpanel-{id}` panel so every tab's `aria-controls` resolves.
  */
@@ -85,10 +95,12 @@ export const ContentPanel = memo(function ContentPanel({
             className={cn(
               "col-start-1 row-start-1",
               "transition-opacity duration-350 ease-[cubic-bezier(0.44,0,0.56,1)]",
-              is_active ? "opacity-100" : "hidden md:block md:opacity-0 md:pointer-events-none"
+              is_active
+                ? "opacity-100"
+                : "hidden md:block md:opacity-0 md:pointer-events-none",
             )}
             aria-hidden={!is_active}
-            style={{ pointerEvents: is_active ? "auto" : "none" }}
+            inert={!is_active}
           >
             <SectionContent section={section} />
           </div>

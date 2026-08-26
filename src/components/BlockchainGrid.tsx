@@ -20,7 +20,6 @@ interface Transaction {
   y_offset: number;
 }
 
-
 /**
  * Animated blockchain visualization - blocks, transactions and network nodes
  * Grid is handled by InteractiveBackground component
@@ -34,16 +33,22 @@ export function BlockchainGrid() {
   const is_visible_ref = useRef(true);
   const draw_fn_ref = useRef<(() => void) | null>(null);
 
-  const is_in_exclusion_zone = useCallback((rel_x: number, rel_y: number) => {
-    const center_x = 0.5;
-    const center_y = 0.45;
-    const zone_width = 0.4;
-    const zone_height = 0.25;
-    return (
-      Math.abs(rel_x - center_x) < zone_width / 2 &&
-      Math.abs(rel_y - center_y) < zone_height / 2
-    );
-  }, []);
+  // Zmierzone na renderze hero: tresc (logo -> koniec leada) zajmuje y 0.28-0.72
+  // i x 0.23-0.77 na 1440, a na 375 rozlewa sie na cala szerokosc (y 0.23-0.77).
+  const is_in_exclusion_zone = useCallback(
+    (rel_x: number, rel_y: number, canvas_width: number) => {
+      const is_narrow = canvas_width < 640;
+      const center_x = 0.5;
+      const center_y = 0.5;
+      const zone_width = is_narrow ? 1 : 0.6;
+      const zone_height = is_narrow ? 0.6 : 0.56;
+      return (
+        Math.abs(rel_x - center_x) < zone_width / 2 &&
+        Math.abs(rel_y - center_y) < zone_height / 2
+      );
+    },
+    [],
+  );
 
   // Pause/resume canvas animation based on viewport visibility
   useEffect(() => {
@@ -65,7 +70,7 @@ export function BlockchainGrid() {
           animation_ref.current = 0;
         }
       },
-      { threshold: 0 }
+      { threshold: 0 },
     );
 
     // Observe the canvas parent (Hero section container)
@@ -90,7 +95,7 @@ export function BlockchainGrid() {
     const is_low_end_device =
       (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) ||
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
+        navigator.userAgent,
       );
 
     // Frame skip logic: on low-end devices, render every 2nd or 3rd frame
@@ -102,7 +107,7 @@ export function BlockchainGrid() {
 
     const get_or_create_gradient = (
       key: string,
-      create_fn: () => CanvasGradient
+      create_fn: () => CanvasGradient,
     ) => {
       if (gradient_cache.has(key)) {
         // Move to end (refresh LRU position)
@@ -175,9 +180,11 @@ export function BlockchainGrid() {
             attempts++;
           } while (
             attempts < 100 &&
-            (is_in_exclusion_zone(rel_x, rel_y) ||
+            (is_in_exclusion_zone(rel_x, rel_y, width) ||
               existing_positions.some(
-                (p) => Math.hypot(p.rel_x - rel_x, p.rel_y - rel_y) < min_rel_distance
+                (p) =>
+                  Math.hypot(p.rel_x - rel_x, p.rel_y - rel_y) <
+                  min_rel_distance,
               ))
           );
 
@@ -266,7 +273,7 @@ export function BlockchainGrid() {
     const draw_chain_connection = (
       ctx: CanvasRenderingContext2D,
       from: Block,
-      to: Block
+      to: Block,
     ) => {
       const gradient_key = `chain-${from.x.toFixed(0)}-${from.y.toFixed(0)}-${to.x.toFixed(0)}-${to.y.toFixed(0)}`;
       const gradient = get_or_create_gradient(gradient_key, () => {
@@ -291,8 +298,10 @@ export function BlockchainGrid() {
 
     const draw_block = (ctx: CanvasRenderingContext2D, block: Block) => {
       const { width: canvas_width } = dimensions_ref.current;
-      const block_width = canvas_width < 640 ? Math.min(90, canvas_width * 0.2) : 90;
-      const block_height = canvas_width < 640 ? Math.min(54, canvas_width * 0.12) : 54;
+      const block_width =
+        canvas_width < 640 ? Math.min(90, canvas_width * 0.2) : 90;
+      const block_height =
+        canvas_width < 640 ? Math.min(54, canvas_width * 0.12) : 54;
       const x = block.x - block_width / 2;
       const y = block.y - block_height / 2 + Math.sin(time + block.pulse) * 3;
 
@@ -306,7 +315,7 @@ export function BlockchainGrid() {
           0,
           block.x,
           block.y + 8,
-          shadow_radius
+          shadow_radius,
         );
         grad.addColorStop(0, "rgba(0, 0, 0, 0.25)");
         grad.addColorStop(0.4, "rgba(0, 0, 0, 0.1)");
@@ -329,7 +338,7 @@ export function BlockchainGrid() {
             0,
             block.x,
             block.y,
-            block_width * 0.9
+            block_width * 0.9,
           );
           grad.addColorStop(0, `rgba(100, 200, 255, ${glow_intensity})`);
           grad.addColorStop(1, "rgba(100, 200, 255, 0)");
@@ -471,7 +480,7 @@ export function BlockchainGrid() {
     const draw_network_nodes = (
       ctx: CanvasRenderingContext2D,
       width: number,
-      height: number
+      height: number,
     ) => {
       const blocks = blocks_ref.current;
       if (blocks.length === 0) return;
@@ -578,7 +587,10 @@ export function BlockchainGrid() {
       const drawn_connections = new Set<string>();
       for (let i = 0; i < blocks.length; i++) {
         const distances = blocks
-          .map((b, idx) => ({ idx, dist: Math.hypot(b.x - blocks[i].x, b.y - blocks[i].y) }))
+          .map((b, idx) => ({
+            idx,
+            dist: Math.hypot(b.x - blocks[i].x, b.y - blocks[i].y),
+          }))
           .filter((d) => d.idx !== i)
           .sort((a, b) => a.dist - b.dist)
           .slice(0, 2);
@@ -613,10 +625,5 @@ export function BlockchainGrid() {
     };
   }, [is_in_exclusion_zone]);
 
-  return (
-    <canvas
-      ref={canvas_ref}
-      className="absolute inset-0 w-full h-full"
-    />
-  );
+  return <canvas ref={canvas_ref} className="absolute inset-0 w-full h-full" />;
 }

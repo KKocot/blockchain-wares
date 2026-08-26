@@ -6,6 +6,9 @@ import sitemap from "@astrojs/sitemap";
 import vercel from "@astrojs/vercel";
 import tailwindcss from "@tailwindcss/vite";
 
+// Panel admina jest noindex (AdminLayout.astro) — sitemap nie moze go reklamowac.
+const SITEMAP_EXCLUDED = /^\/(admin(\/|$)|404\/?$)/;
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://blockchainwares.com.pl",
@@ -16,7 +19,12 @@ export default defineConfig({
   // jako `https://localhost` (Astro ufa Host dopiero przez security.allowedDomains).
   // Ochrone CSRF trzyma is_same_site_request() — porownuje do originu z konfiguracji.
   security: { checkOrigin: false },
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    sitemap({
+      filter: (page) => !SITEMAP_EXCLUDED.test(new URL(page).pathname),
+    }),
+  ],
 
   vite: {
     plugins: [tailwindcss()],

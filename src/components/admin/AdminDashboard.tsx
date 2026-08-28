@@ -13,6 +13,7 @@ import { Pagination } from "./Pagination";
 import { RequestsChart } from "./RequestsChart";
 import { StatsCards } from "./StatsCards";
 import { TopListCard } from "./TopListCard";
+import { TrafficToggle } from "./TrafficToggle";
 import { BUTTON_CLASS } from "./styles";
 
 export interface DataFreshness {
@@ -33,6 +34,8 @@ interface AdminDashboardProps {
   warning: string | null;
   freshness: DataFreshness;
   refreshHref: string;
+  /** Adres odwracajacy `excludeBots` — kontrolka jest linkiem, nie polem formularza. */
+  excludeBotsHref: string;
   filtersAction: string;
   resetHref: string;
   filterHidden: readonly HiddenField[];
@@ -186,6 +189,7 @@ export function AdminDashboard({
   warning,
   freshness,
   refreshHref,
+  excludeBotsHref,
   filtersAction,
   resetHref,
   filterHidden,
@@ -229,6 +233,8 @@ export function AdminDashboard({
           refreshHref={refreshHref}
         />
       )}
+
+      <TrafficToggle active={query.excludeBots} href={excludeBotsHref} />
 
       <StatsCards stats={stats} />
 

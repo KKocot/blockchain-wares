@@ -6,3 +6,4 @@ export { Pagination } from "./Pagination";
 export { RequestsChart } from "./RequestsChart";
 export { StatsCards } from "./StatsCards";
 export { TopListCard } from "./TopListCard";
+export { TrafficToggle } from "./TrafficToggle";

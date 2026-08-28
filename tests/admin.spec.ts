@@ -149,6 +149,15 @@ async function sort_by(page: Page, label: string): Promise<void> {
   );
 }
 
+function bots_switch(page: Page): Locator {
+  return page.getByRole("switch", { name: BOTS_LABEL });
+}
+
+/** Przełącznik jest linkiem — jedno kliknięcie przeładowuje panel, bez „Zastosuj filtry”. */
+async function toggle_bots(page: Page): Promise<void> {
+  await navigate(page, () => bots_switch(page).click());
+}
+
 test.describe("Admin — dostęp i logowanie", () => {
   test("/admin bez sesji przekierowuje na logowanie z parametrem redirect", async ({
     page,
@@ -365,10 +374,11 @@ test.describe("Admin — filtry", () => {
       UNKNOWN_BROWSER,
     ]);
 
-    await page.getByLabel(BOTS_LABEL).check();
-    await apply_filters(page);
+    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "false");
+    await toggle_bots(page);
 
     await expect(page).toHaveURL(/[?&]excludeBots=1\b/);
+    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
     await expect(logs_table(page).getByText("Brak wyników")).toBeVisible();
 
     await page.getByLabel("Ścieżka").fill(BOT_PATH);
@@ -393,7 +403,7 @@ test.describe("Admin — filtry", () => {
     await page.goto("/admin?includeInternal=1&excludeBots=1");
 
     await expect(page.getByLabel("Ruch wewnętrzny (localhost)")).toBeChecked();
-    await expect(page.getByLabel(BOTS_LABEL)).toBeChecked();
+    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
     // Health-checki loopbacku ida z Wgeta, wiec sam excludeBots je zdejmuje.
     await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
       String(PUBLIC_TOTAL + INTERNAL_TOTAL - NON_HUMAN_TOTAL),
@@ -402,9 +412,32 @@ test.describe("Admin — filtry", () => {
 
     await sort_by(page, "Ścieżka");
     await expect(page).toHaveURL(/[?&]excludeBots=1\b/);
+    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
     await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
       String(PUBLIC_TOTAL + INTERNAL_TOTAL - NON_HUMAN_TOTAL),
     );
+  });
+
+  test("przełącznik botów wraca na pierwszą stronę i nie gubi reszty adresu", async ({
+    page,
+  }) => {
+    await log_in(page);
+    await page.goto("/admin?includeInternal=1&sort=path&dir=asc&page=2");
+
+    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "false");
+    await toggle_bots(page);
+
+    await expect(page).toHaveURL(
+      /\/admin\?includeInternal=1&excludeBots=1&sort=path&dir=asc$/,
+    );
+    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
+
+    await toggle_bots(page);
+
+    await expect(page).toHaveURL(
+      /\/admin\?includeInternal=1&sort=path&dir=asc$/,
+    );
+    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "false");
   });
 
   test("filtr i sortowanie z adresu strony przeżywają przeładowanie", async ({

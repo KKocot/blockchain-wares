@@ -12,7 +12,7 @@ Strona internetowa dla firmy BlockchainWares - software development company z D�
 npm run dev                        # Dev server na localhost:4321
 npm run build                      # Build produkcyjny do .vercel/output/ (adapter @astrojs/vercel)
 npm run preview                    # Podgląd builda
-npm test                           # Playwright E2E, 33 testy (w tym admin.spec.ts)
+npm test                           # Playwright E2E, 36 testów (w tym admin.spec.ts)
 node scripts/hash_password.mjs     # Generuje ADMIN_PASSWORD_HASH z hasła podanego interaktywnie
 npx tsc --noEmit                   # Type check
 ```
@@ -72,7 +72,7 @@ Nigdy nie wpisywać realnych wartości tych zmiennych do repo/dokumentacji.
 
 ## Testy
 
-`npm test` (Playwright, 33 testy) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch.
+`npm test` (Playwright, 36 testów) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch.
 
 ## DaisyUI Theme
 

@@ -17,6 +17,8 @@ const MAX_SERIES_DAYS = 366;
 const DIRECT_LABEL = "(direct)";
 const UNKNOWN_LABEL = "(unknown)";
 const STATUS_CLASS_SUFFIX = "xx";
+/** Etykieta `parse_user_agent` dla UA, ktorego nie da sie przypisac do przegladarki. */
+const UNKNOWN_BROWSER = "Unknown";
 
 /** Health-checki z loopbacku ida co ~30 s i zaglusza kazda statystyke. */
 const LOOPBACK_PREFIXES = ["127.", "::ffff:127."];
@@ -41,6 +43,15 @@ function is_internal(log: RequestLog): boolean {
     LOOPBACK_ADDRESSES.has(ip) ||
     LOOPBACK_PREFIXES.some((prefix) => ip.startsWith(prefix))
   );
+}
+
+/**
+ * Filtr `excludeBots` ma chowac caly ruch nie-ludzki: rozpoznane boty i skanery
+ * (`is_bot`) oraz wpisy, ktorych UA nie da sie przypisac do zadnej przegladarki
+ * (puste albo nieznane) — te ostatnie `is_bot` nie lapie.
+ */
+function is_non_human(log: RequestLog): boolean {
+  return log.is_bot || log.browser === UNKNOWN_BROWSER;
 }
 
 function matches_range(log: RequestLog, query: LogQuery): boolean {
@@ -77,6 +88,9 @@ function matches_search(log: RequestLog, needle: string): boolean {
 
 function matches(log: RequestLog, query: LogQuery): boolean {
   if (!query.includeInternal && is_internal(log)) {
+    return false;
+  }
+  if (query.excludeBots && is_non_human(log)) {
     return false;
   }
   if (

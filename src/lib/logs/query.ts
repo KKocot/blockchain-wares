@@ -101,6 +101,7 @@ export function parse_log_query(params: URLSearchParams): LogQuery {
     dateTo: read_date(params, "dateTo", "end"),
     search: read_text(params, "search"),
     includeInternal: read_flag(params, "includeInternal"),
+    excludeBots: read_flag(params, "excludeBots"),
     sort: sort !== null && is_sort_field(sort) ? sort : DEFAULT_SORT_FIELD,
     dir: dir !== null && is_sort_dir(dir) ? dir : DEFAULT_SORT_DIR,
     page: page === null ? 1 : Math.max(page, 1),
@@ -123,6 +124,9 @@ export function serialize_log_query(query: LogQuery): URLSearchParams {
   }
   if (query.includeInternal) {
     params.set("includeInternal", "1");
+  }
+  if (query.excludeBots) {
+    params.set("excludeBots", "1");
   }
   if (query.dateFrom !== null) {
     params.set("dateFrom", query.dateFrom);

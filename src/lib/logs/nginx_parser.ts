@@ -197,6 +197,7 @@ function parse_line(line: string, line_number: number): LineOutcome {
   }
 
   const user_agent = dash_to_null(ua);
+  const agent = parse_user_agent(user_agent);
   const ip = dash_to_null(remote_addr);
   return {
     record: {
@@ -216,7 +217,8 @@ function parse_line(line: string, line_number: number): LineOutcome {
       lang: dash_to_null(lang),
       referrer: dash_to_null(referrer),
       ua: user_agent,
-      browser: parse_user_agent(user_agent).browser,
+      browser: agent.browser,
+      is_bot: agent.is_bot,
     },
   };
 }

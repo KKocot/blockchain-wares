@@ -3,6 +3,8 @@ import { E2E_ADMIN_PASSWORD, NO_JS_TAG } from "../playwright.config";
 import { DEFAULT_PAGE_SIZE } from "../src/lib/logs/types";
 import {
   BARE_COUNTRY_CODE,
+  BOT_BROWSER,
+  BOT_PATH,
   GEO_IPV4,
   GEO_IPV6,
   HIGHEST_COUNTRY,
@@ -16,6 +18,9 @@ import {
   INTERNAL_PATH,
   INTERNAL_TOTAL,
   LOWEST_COUNTRY,
+  NO_UA_PATH,
+  NON_HUMAN_TOTAL,
+  PUBLIC_HUMAN_TOTAL,
   LOWEST_NOT_FOUND_PATH,
   LOWEST_PATH,
   NOT_FOUND_TOTAL,
@@ -24,6 +29,7 @@ import {
   SPOOFED_XFF_HEADER_IP,
   SPOOFED_XFF_PATH,
   SPOOFED_XFF_REMOTE_ADDR,
+  UNKNOWN_BROWSER,
   UNMAPPED_COUNTRY_PATH,
 } from "./fixtures/access_log";
 
@@ -39,6 +45,7 @@ const LOGIN_REDIRECT = /\/admin\/login\?redirect=%2Fadmin$/;
 
 const TABLE_NAME = /Zarejestrowane żądania/;
 const TOTAL_LABEL = "Żądania łącznie";
+const BOTS_LABEL = "Ukryj boty i nierozpoznany ruch";
 const COLUMN_COUNT = 10;
 const ISO_CODE = /^[A-Z]{2}$/;
 
@@ -341,6 +348,63 @@ test.describe("Admin — filtry", () => {
     expect([...new Set(await column_values(page, "Przeglądarka"))]).toEqual([
       INTERNAL_BROWSER,
     ]);
+  });
+
+  test("wykluczenie botów chowa skanery i ruch bez rozpoznanego UA", async ({
+    page,
+  }) => {
+    await log_in(page);
+
+    await page.getByLabel("Ścieżka").fill(BOT_PATH);
+    await apply_filters(page);
+    expect(await column_values(page, "Przeglądarka")).toEqual([BOT_BROWSER]);
+
+    await page.getByLabel("Ścieżka").fill(NO_UA_PATH);
+    await apply_filters(page);
+    expect(await column_values(page, "Przeglądarka")).toEqual([
+      UNKNOWN_BROWSER,
+    ]);
+
+    await page.getByLabel(BOTS_LABEL).check();
+    await apply_filters(page);
+
+    await expect(page).toHaveURL(/[?&]excludeBots=1\b/);
+    await expect(logs_table(page).getByText("Brak wyników")).toBeVisible();
+
+    await page.getByLabel("Ścieżka").fill(BOT_PATH);
+    await apply_filters(page);
+    await expect(logs_table(page).getByText("Brak wyników")).toBeVisible();
+
+    await page.getByLabel("Ścieżka").fill("");
+    await apply_filters(page);
+
+    await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
+      String(PUBLIC_HUMAN_TOTAL),
+    );
+    const browsers = new Set(await column_values(page, "Przeglądarka"));
+    expect([...browsers]).not.toContain(BOT_BROWSER);
+    expect([...browsers]).not.toContain(UNKNOWN_BROWSER);
+  });
+
+  test("wykluczenie botów działa razem z ruchem wewnętrznym", async ({
+    page,
+  }) => {
+    await log_in(page);
+    await page.goto("/admin?includeInternal=1&excludeBots=1");
+
+    await expect(page.getByLabel("Ruch wewnętrzny (localhost)")).toBeChecked();
+    await expect(page.getByLabel(BOTS_LABEL)).toBeChecked();
+    // Health-checki loopbacku ida z Wgeta, wiec sam excludeBots je zdejmuje.
+    await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
+      String(PUBLIC_TOTAL + INTERNAL_TOTAL - NON_HUMAN_TOTAL),
+    );
+    expect(await column_values(page, "IP")).not.toContain(INTERNAL_IP);
+
+    await sort_by(page, "Ścieżka");
+    await expect(page).toHaveURL(/[?&]excludeBots=1\b/);
+    await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
+      String(PUBLIC_TOTAL + INTERNAL_TOTAL - NON_HUMAN_TOTAL),
+    );
   });
 
   test("filtr i sortowanie z adresu strony przeżywają przeładowanie", async ({

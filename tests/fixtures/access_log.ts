@@ -57,8 +57,14 @@ const HOSTILE_REFERRER_RAW =
 export const HOSTILE_UA = 'e2e-scanner "quoted" <script>alert(1)</script>';
 export const HOSTILE_REFERRER =
   'http://198.51.100.9/<script>alert(1)</script>?q="x"';
+/** Etykieta dla UA, którego nie da się przypisać do przeglądarki — także dla pustego UA. */
+export const UNKNOWN_BROWSER = "Unknown";
 /** Skaner nie pasuje do żadnej reguły `parse_user_agent`. */
-export const HOSTILE_BROWSER = "Unknown";
+export const HOSTILE_BROWSER = UNKNOWN_BROWSER;
+
+/** Wpis bez User-Agenta (`-` w logu nginx): `is_bot` go nie łapie, `browser` to `Unknown`. */
+export const NO_UA_PATH = "/oferta";
+const NO_UA = "-";
 
 interface Visitor {
   ip: string;
@@ -228,6 +234,10 @@ const MARKETS_TARGETS = [
 
 const SCANNER_IP = "203.0.113.99";
 const SCANNER_UA = "python-requests/2.32.3";
+/** Etykieta, jaką `parse_user_agent` nadaje skanerowi z fixture'u. */
+export const BOT_BROWSER = "python-requests";
+/** Ścieżka wyłączna dla skanera — pozwala zawęzić tabelę do samego bota. */
+export const BOT_PATH = "/phpmyadmin/index.php";
 
 const ENTRIES: readonly LogEntry[] = [
   ...page_views({
@@ -354,6 +364,18 @@ const ENTRIES: readonly LogEntry[] = [
     xff: "-",
     lang: "-",
   },
+  {
+    ip: "192.0.2.11",
+    minutes_ago: 1500,
+    method: "GET",
+    target: NO_UA_PATH,
+    status: 200,
+    bytes: 12_402,
+    referrer: "-",
+    ua: NO_UA,
+    xff: "-",
+    lang: "-",
+  },
   ...Array.from(
     { length: 8 },
     (_, index): LogEntry => ({
@@ -380,6 +402,16 @@ export const PUBLIC_UNIQUE_IPS = new Set(PUBLIC_ENTRIES.map((e) => e.ip)).size;
 export const NOT_FOUND_TOTAL = PUBLIC_ENTRIES.filter(
   (entry) => entry.status === 404,
 ).length;
+
+/** Dokładnie to, co ukrywa filtr `excludeBots`: boty oraz wpisy bez rozpoznanego UA. */
+const NON_HUMAN_UAS = new Set([SCANNER_UA, INTERNAL_UA, HOSTILE_UA_RAW, NO_UA]);
+const is_non_human = (entry: LogEntry): boolean => NON_HUMAN_UAS.has(entry.ua);
+
+/** „Żądania łącznie” przy `?excludeBots=1` na czystym `/admin`. */
+export const PUBLIC_HUMAN_TOTAL = PUBLIC_ENTRIES.filter(
+  (entry) => !is_non_human(entry),
+).length;
+export const NON_HUMAN_TOTAL = ENTRIES.filter(is_non_human).length;
 
 /** Skrajne ścieżki po posortowaniu kolumny „Ścieżka” (bez ruchu wewnętrznego). */
 export const LOWEST_PATH = "/";

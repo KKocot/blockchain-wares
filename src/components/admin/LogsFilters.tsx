@@ -168,6 +168,23 @@ export function LogsFilters({
             Ruch wewnętrzny (localhost)
           </label>
         </div>
+
+        <div className="flex items-end">
+          <label
+            htmlFor="admin-filter-bots"
+            className="flex items-center gap-2 text-sm text-base-content"
+          >
+            <input
+              id="admin-filter-bots"
+              name="excludeBots"
+              type="checkbox"
+              value="1"
+              defaultChecked={query.excludeBots}
+              className="size-4 rounded-md border-base-300 bg-base-200 accent-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            />
+            Ukryj boty i nierozpoznany ruch
+          </label>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

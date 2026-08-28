@@ -35,6 +35,8 @@ export interface RequestLog {
   ua: string | null;
   /** Wyliczana z `ua` przy parsowaniu, zeby statystyki nie parsowaly UA przy kazdym odczycie. */
   browser: string;
+  /** Jak `browser` — z tego samego przebiegu `parse_user_agent`, bez ponownego parsowania. */
+  is_bot: boolean;
 }
 
 export interface LogQuery {
@@ -46,6 +48,8 @@ export interface LogQuery {
   search: string | null;
   /** Ruch z loopbacku (health-checki) jest szumem — domyslnie odfiltrowany. */
   includeInternal: boolean;
+  /** Boty, skanery i ruch z nierozpoznanym UA sa domyslnie widoczne; flaga je ukrywa. */
+  excludeBots: boolean;
   sort: SortField;
   dir: SortDir;
   page: number;

@@ -2,8 +2,10 @@ import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_SORT_DIR,
   DEFAULT_SORT_FIELD,
+  EXCLUSION_FLAGS,
   MAX_PAGE_SIZE,
   SORT_FIELDS,
+  type ExclusionFlag,
   type LogQuery,
   type SortDir,
   type SortField,
@@ -76,6 +78,28 @@ function read_flag(params: URLSearchParams, key: string): boolean {
   return raw !== null && TRUTHY_FLAGS.has(raw.toLowerCase());
 }
 
+/**
+ * `excludeBots=1` to poprzednik tych szesciu flag. Zostaje parsowany, zeby zapisane
+ * linki i zakladki nadal ukrywaly to samo, ale `serialize_log_query` wypisuje juz
+ * wylacznie flagi granularne — starego parametru nie ma w zadnym generowanym URL-u.
+ */
+function read_exclusions(
+  params: URLSearchParams,
+): Pick<LogQuery, ExclusionFlag> {
+  const legacy = read_flag(params, "excludeBots");
+  const read = (key: ExclusionFlag): boolean =>
+    legacy || read_flag(params, key);
+
+  return {
+    excludeCrawlers: read("excludeCrawlers"),
+    excludeSeoTools: read("excludeSeoTools"),
+    excludeScripts: read("excludeScripts"),
+    excludeHeadless: read("excludeHeadless"),
+    excludeUnknownUa: read("excludeUnknownUa"),
+    excludeNoUa: read("excludeNoUa"),
+  };
+}
+
 function is_sort_field(value: string): value is SortField {
   return (SORT_FIELDS as readonly string[]).includes(value);
 }
@@ -93,6 +117,7 @@ export function parse_log_query(params: URLSearchParams): LogQuery {
   const dir = read_text(params, "dir");
   const page = read_integer(params, "page");
   const pageSize = read_integer(params, "pageSize");
+  const exclusions = read_exclusions(params);
 
   return {
     path: read_text(params, "path"),
@@ -101,7 +126,8 @@ export function parse_log_query(params: URLSearchParams): LogQuery {
     dateTo: read_date(params, "dateTo", "end"),
     search: read_text(params, "search"),
     includeInternal: read_flag(params, "includeInternal"),
-    excludeBots: read_flag(params, "excludeBots"),
+    ...exclusions,
+    showCountryIps: read_flag(params, "showCountryIps"),
     sort: sort !== null && is_sort_field(sort) ? sort : DEFAULT_SORT_FIELD,
     dir: dir !== null && is_sort_dir(dir) ? dir : DEFAULT_SORT_DIR,
     page: page === null ? 1 : Math.max(page, 1),
@@ -125,8 +151,13 @@ export function serialize_log_query(query: LogQuery): URLSearchParams {
   if (query.includeInternal) {
     params.set("includeInternal", "1");
   }
-  if (query.excludeBots) {
-    params.set("excludeBots", "1");
+  for (const key of EXCLUSION_FLAGS) {
+    if (query[key]) {
+      params.set(key, "1");
+    }
+  }
+  if (query.showCountryIps) {
+    params.set("showCountryIps", "1");
   }
   if (query.dateFrom !== null) {
     params.set("dateFrom", query.dateFrom);

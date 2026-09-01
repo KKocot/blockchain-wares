@@ -2,6 +2,7 @@
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import { AdminDashboard, type HiddenField } from "../../components/admin";
 import { BUTTON_CLASS } from "../../components/admin/styles";
+import type { TrafficFlag } from "../../components/admin/TrafficFilters";
 import {
   DEFAULT_SORT_DIR,
   get_log_repository,
@@ -26,19 +27,19 @@ const SOURCE_ERROR =
 const STALE_WARNING =
   "Nie udało się odświeżyć logów ze źródła — poniżej ostatnie pobrane dane.";
 
-// `excludeBots` nie ma juz pola w formularzu filtrow — bez tego submit gasilby flage.
-const FILTER_HIDDEN_KEYS = ["excludeBots", "sort", "dir", "pageSize"] as const;
-const PAGE_SIZE_HIDDEN_KEYS = [
+// Kazdy formularz GET wysyla wylacznie wlasne pola, wiec cala reszta adresu musi
+// pojsc z nim jako `hidden`. Listy sa wyliczane odwrotnie — z tego, co formularz
+// posiada — zeby nowy parametr nie wymagal recznej synchronizacji i nie gasl przy
+// submicie (na tym polegly wczesniej flagi spoza formularza).
+const FILTER_FORM_KEYS = [
   "path",
   "search",
+  "status",
   "dateFrom",
   "dateTo",
-  "status",
-  "includeInternal",
-  "excludeBots",
-  "sort",
-  "dir",
+  "page",
 ] as const;
+const PAGE_SIZE_FORM_KEYS = ["pageSize", "page"] as const;
 
 function message_of(cause: unknown): string {
   return cause instanceof Error ? cause.message : "unknown error";
@@ -53,14 +54,19 @@ function query_href(next: LogQuery): string {
   return href_for(serialize_log_query(next));
 }
 
-function hidden_fields(
+/** Wszystkie parametry adresu poza tymi, ktore formularz wysyla z wlasnych pol. */
+function hidden_except(
   params: URLSearchParams,
-  keys: readonly string[],
+  owned: readonly string[],
 ): HiddenField[] {
-  return keys.flatMap((name) => {
-    const value = params.get(name);
-    return value === null ? [] : [{ name, value }];
+  const skip = new Set<string>(owned);
+  const fields: HiddenField[] = [];
+  params.forEach((value, name) => {
+    if (!skip.has(name)) {
+      fields.push({ name, value });
+    }
   });
+  return fields;
 }
 
 // Obrona w glab: gdyby middleware przestal obejmowac te trase, panel nie moze
@@ -133,11 +139,19 @@ const sort_href = (field: SortField): string =>
 const page_href = (target: number): string =>
   query_href({ ...query, page: Math.max(1, Math.trunc(target)) });
 
-// Zmiana zakresu danych zmienia liczbe stron — bez resetu mozna wyladowac na pustej.
-const exclude_bots_href = query_href({
+// Flagi ruchu zmieniaja zbior wynikow, wiec po przelaczeniu biezaca strona moze juz
+// nie istniec — dlatego wracaja na pierwsza.
+const flag_href = (flag: TrafficFlag): string => {
+  const next: LogQuery = { ...query, page: 1 };
+  next[flag] = !next[flag];
+  return query_href(next);
+};
+
+// `showCountryIps` tylko rozwija liste IP w karcie krajow — zbior wynikow zostaje ten
+// sam, wiec reset strony wyrzucalby admina z miejsca, w ktorym czytal tabele.
+const country_ips_href = query_href({
   ...query,
-  excludeBots: !query.excludeBots,
-  page: 1,
+  showCountryIps: !query.showCountryIps,
 });
 ---
 
@@ -161,11 +175,12 @@ const exclude_bots_href = query_href({
       stale: source_status.stale,
     }}
     refreshHref={href_for(refresh_params)}
-    excludeBotsHref={exclude_bots_href}
+    flagHref={flag_href}
+    countryIpsHref={country_ips_href}
     filtersAction={ADMIN_PATH}
     resetHref={ADMIN_PATH}
-    filterHidden={hidden_fields(current_params, FILTER_HIDDEN_KEYS)}
-    pageSizeHidden={hidden_fields(current_params, PAGE_SIZE_HIDDEN_KEYS)}
+    filterHidden={hidden_except(current_params, FILTER_FORM_KEYS)}
+    pageSizeHidden={hidden_except(current_params, PAGE_SIZE_FORM_KEYS)}
     sortHref={sort_href}
     pageHref={page_href}
   />

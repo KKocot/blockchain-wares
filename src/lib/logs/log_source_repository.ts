@@ -1,5 +1,7 @@
 import { load_log_records } from "./source";
+import { is_missing_user_agent } from "./user_agent";
 import type {
+  CountryIpBucket,
   LogDayBucket,
   LogPage,
   LogQuery,
@@ -12,6 +14,8 @@ import type {
 } from "./types";
 
 const TOP_LIMIT = 10;
+/** Kraj potrafi miec setki adresow — bez limitu payload panelu rosnie bez kontroli. */
+const COUNTRY_IP_LIMIT = 8;
 const DAY_MILLIS = 86_400_000;
 const MAX_SERIES_DAYS = 366;
 const DIRECT_LABEL = "(direct)";
@@ -46,12 +50,27 @@ function is_internal(log: RequestLog): boolean {
 }
 
 /**
- * Filtr `excludeBots` ma chowac caly ruch nie-ludzki: rozpoznane boty i skanery
- * (`is_bot`) oraz wpisy, ktorych UA nie da sie przypisac do zadnej przegladarki
- * (puste albo nieznane) — te ostatnie `is_bot` nie lapie.
+ * Kazdy wpis nalezy do najwyzej jednej kategorii: rozpoznany bot, UA bez dopasowania
+ * albo brak naglowka UA. Wlaczenie wszystkich szesciu flag chowa dokladnie to samo,
+ * co dawny `excludeBots`.
  */
-function is_non_human(log: RequestLog): boolean {
-  return log.is_bot || log.browser === UNKNOWN_BROWSER;
+function is_excluded_agent(log: RequestLog, query: LogQuery): boolean {
+  switch (log.botCategory) {
+    case "crawler":
+      return query.excludeCrawlers;
+    case "seo":
+      return query.excludeSeoTools;
+    case "script":
+      return query.excludeScripts;
+    case "headless":
+      return query.excludeHeadless;
+    case null:
+      break;
+  }
+  if (is_missing_user_agent(log.ua)) {
+    return query.excludeNoUa;
+  }
+  return query.excludeUnknownUa && log.browser === UNKNOWN_BROWSER;
 }
 
 function matches_range(log: RequestLog, query: LogQuery): boolean {
@@ -90,7 +109,7 @@ function matches(log: RequestLog, query: LogQuery): boolean {
   if (!query.includeInternal && is_internal(log)) {
     return false;
   }
-  if (query.excludeBots && is_non_human(log)) {
+  if (is_excluded_agent(log, query)) {
     return false;
   }
   if (
@@ -192,6 +211,68 @@ function bump(counts: Map<string, number>, label: string): void {
   counts.set(label, (counts.get(label) ?? 0) + 1);
 }
 
+function count_ip(
+  by_country: Map<string, Map<string, number>>,
+  country: string,
+  ip: string,
+): void {
+  let ips = by_country.get(country);
+  if (ips === undefined) {
+    ips = new Map<string, number>();
+    by_country.set(country, ips);
+  }
+  bump(ips, ip);
+}
+
+function country_bucket(
+  label: string,
+  total: number,
+  ips: Map<string, number> | undefined,
+): CountryIpBucket {
+  const ranked = [...(ips?.entries() ?? [])]
+    .map(([ip, count]) => ({ ip, count }))
+    .sort((left, right) =>
+      right.count !== left.count
+        ? right.count - left.count
+        : compare_text(left.ip, right.ip),
+    );
+  const hidden = ranked.slice(COUNTRY_IP_LIMIT);
+
+  return {
+    country: label === UNKNOWN_LABEL ? null : label,
+    total,
+    ips: ranked.slice(0, COUNTRY_IP_LIMIT),
+    hiddenIps: hidden.length,
+    hiddenHits: hidden.reduce((sum, entry) => sum + entry.count, 0),
+  };
+}
+
+/**
+ * Idzie po tych samych krajach i w tej samej kolejnosci co `topCountries`, ale adresy
+ * nierozpoznane przez GeoIP dostaja bucket zawsze — dla diagnostyki sa najciekawsze,
+ * a w top 10 czesto sie nie miesza.
+ */
+function build_country_ips(
+  top: LogStatBucket[],
+  totals: Map<string, number>,
+  by_country: Map<string, Map<string, number>>,
+): CountryIpBucket[] {
+  const buckets = top.map(({ label, count }) =>
+    country_bucket(label, count, by_country.get(label)),
+  );
+
+  const unknown = totals.get(UNKNOWN_LABEL);
+  if (
+    unknown !== undefined &&
+    !top.some((entry) => entry.label === UNKNOWN_LABEL)
+  ) {
+    buckets.push(
+      country_bucket(UNKNOWN_LABEL, unknown, by_country.get(UNKNOWN_LABEL)),
+    );
+  }
+  return buckets;
+}
+
 function range_day(bound: string | null): string | undefined {
   return bound === null ? undefined : (day_key(bound) ?? undefined);
 }
@@ -255,6 +336,7 @@ export class LogSourceRepository implements LogRepository {
     const langs = new Map<string, number>();
     const browsers = new Map<string, number>();
     const countries = new Map<string, number>();
+    const country_ips = new Map<string, Map<string, number>>();
     const days = new Map<string, number>();
 
     for (const log of filtered) {
@@ -266,7 +348,12 @@ export class LogSourceRepository implements LogRepository {
       bump(referrers, log.referrer ?? DIRECT_LABEL);
       bump(langs, log.lang ?? UNKNOWN_LABEL);
       bump(browsers, log.browser);
-      bump(countries, log.country ?? UNKNOWN_LABEL);
+
+      const country = log.country ?? UNKNOWN_LABEL;
+      bump(countries, country);
+      if (log.ip !== null) {
+        count_ip(country_ips, country, log.ip);
+      }
 
       const day = day_key(log.timestamp);
       if (day !== null) {
@@ -274,6 +361,7 @@ export class LogSourceRepository implements LogRepository {
       }
     }
 
+    const topCountries = top_buckets(countries);
     const byDay = build_day_series(days, query);
     const avgPerDay =
       byDay.length === 0
@@ -289,7 +377,8 @@ export class LogSourceRepository implements LogRepository {
       topReferrers: top_buckets(referrers),
       topLangs: top_buckets(langs),
       topBrowsers: top_buckets(browsers),
-      topCountries: top_buckets(countries),
+      topCountries,
+      countryIps: build_country_ips(topCountries, countries, country_ips),
       byDay,
     };
   }

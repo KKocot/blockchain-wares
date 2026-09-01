@@ -1,3 +1,7 @@
+import type { BotCategory } from "./user_agent";
+
+export type { BotCategory };
+
 export const DEFAULT_PAGE_SIZE = 50;
 export const MAX_PAGE_SIZE = 500;
 
@@ -19,6 +23,18 @@ export type SortDir = "asc" | "desc";
 export const DEFAULT_SORT_FIELD: SortField = "timestamp";
 export const DEFAULT_SORT_DIR: SortDir = "desc";
 
+/** Flagi ukrywajace poszczegolne rodzaje ruchu nie-ludzkiego; kolejnosc = kolejnosc w UI. */
+export const EXCLUSION_FLAGS = [
+  "excludeCrawlers",
+  "excludeSeoTools",
+  "excludeScripts",
+  "excludeHeadless",
+  "excludeUnknownUa",
+  "excludeNoUa",
+] as const;
+
+export type ExclusionFlag = (typeof EXCLUSION_FLAGS)[number];
+
 export interface RequestLog {
   id: string;
   timestamp: string;
@@ -32,11 +48,14 @@ export interface RequestLog {
   country: string | null;
   lang: string | null;
   referrer: string | null;
+  /** `null` = zadania przyszly bez naglowka User-Agent (`-` w logu nginx). */
   ua: string | null;
   /** Wyliczana z `ua` przy parsowaniu, zeby statystyki nie parsowaly UA przy kazdym odczycie. */
   browser: string;
   /** Jak `browser` — z tego samego przebiegu `parse_user_agent`, bez ponownego parsowania. */
   is_bot: boolean;
+  /** Rodzina bota; `null` dla ludzi oraz dla UA, ktorego zadna regula nie lapie. */
+  botCategory: BotCategory | null;
 }
 
 export interface LogQuery {
@@ -48,8 +67,20 @@ export interface LogQuery {
   search: string | null;
   /** Ruch z loopbacku (health-checki) jest szumem — domyslnie odfiltrowany. */
   includeInternal: boolean;
-  /** Boty, skanery i ruch z nierozpoznanym UA sa domyslnie widoczne; flaga je ukrywa. */
-  excludeBots: boolean;
+  /** Googlebot, Bingbot, YandexBot, DuckDuckBot, Baiduspider. */
+  excludeCrawlers: boolean;
+  /** Crawlery narzedzi i podgladow: AhrefsBot, SemrushBot, facebookexternalhit. */
+  excludeSeoTools: boolean;
+  /** Klienci skryptowe: python-requests, curl, Wget. */
+  excludeScripts: boolean;
+  /** UA zawiera "headless" (HeadlessChrome, HeadlessFirefox); sam string "Puppeteer" nie łapie się. */
+  excludeHeadless: boolean;
+  /** UA jest, ale nie pasuje do zadnej reguly (`browser === "Unknown"`). */
+  excludeUnknownUa: boolean;
+  /** Zadania bez naglowka User-Agent. */
+  excludeNoUa: boolean;
+  /** Czysto prezentacyjna: rozwija liste IP pod krajami, nie zmienia zbioru danych. */
+  showCountryIps: boolean;
   sort: SortField;
   dir: SortDir;
   page: number;
@@ -74,6 +105,16 @@ export interface LogDayBucket {
   count: number;
 }
 
+export interface CountryIpBucket {
+  /** `null` = GeoIP nie rozpoznal adresu. */
+  country: string | null;
+  /** Trafienia kraju, jak w `topCountries`; wpisy bez IP licza sie tu, ale nie w `ips`. */
+  total: number;
+  ips: { ip: string; count: number }[];
+  hiddenIps: number;
+  hiddenHits: number;
+}
+
 export interface LogStats {
   totalRequests: number;
   uniqueIps: number;
@@ -84,6 +125,11 @@ export interface LogStats {
   topLangs: LogStatBucket[];
   topBrowsers: LogStatBucket[];
   topCountries: LogStatBucket[];
+  /**
+   * Te same kraje i kolejnosc co `topCountries`; bucket `country: null` stoi tam, gdzie
+   * wypadl w rankingu, a dopisywany na koncu jest tylko wtedy, gdy nie wszedl do top 10.
+   */
+  countryIps: CountryIpBucket[];
   byDay: LogDayBucket[];
 }
 

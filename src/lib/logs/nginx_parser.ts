@@ -219,6 +219,7 @@ function parse_line(line: string, line_number: number): LineOutcome {
       ua: user_agent,
       browser: agent.browser,
       is_bot: agent.is_bot,
+      botCategory: agent.bot_category,
     },
   };
 }

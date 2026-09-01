@@ -11,7 +11,7 @@ interface LogsFiltersProps {
   query: LogQuery;
   action: string;
   resetHref: string;
-  /** Sortowanie i rozmiar strony — bez nich submit filtra zresetowalby oba. */
+  /** Wszystko, czego ten formularz nie ma w polach — bez tego submit gasilby przelaczniki, sortowanie i rozmiar strony. */
   hidden: readonly HiddenField[];
 }
 
@@ -150,23 +150,6 @@ export function LogsFilters({
             defaultValue={date_to_day}
             className={cn(FIELD_CLASS, "admin-mono [color-scheme:dark]")}
           />
-        </div>
-
-        <div className="flex items-end">
-          <label
-            htmlFor="admin-filter-internal"
-            className="flex items-center gap-2 text-sm text-base-content"
-          >
-            <input
-              id="admin-filter-internal"
-              name="includeInternal"
-              type="checkbox"
-              value="1"
-              defaultChecked={query.includeInternal}
-              className="size-4 rounded-md border-base-300 bg-base-200 accent-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
-            />
-            Ruch wewnętrzny (localhost)
-          </label>
         </div>
       </div>
 

@@ -1,18 +1,12 @@
 import { useId } from "react";
 import type { LogStatBucket } from "../../lib/logs/types";
+import { bar_width, format_integer } from "./stats_format";
 import { CARD_CLASS } from "./styles";
 
 interface TopListCardProps {
   title: string;
   buckets: LogStatBucket[];
   emptyLabel?: string;
-}
-
-const integer_formatter = new Intl.NumberFormat("pl-PL");
-
-function bar_width(count: number, max_count: number): number {
-  if (max_count <= 0 || count <= 0) return 0;
-  return Math.max(2, Math.min(100, (count / max_count) * 100));
 }
 
 export function TopListCard({
@@ -53,7 +47,7 @@ export function TopListCard({
                 {bucket.label}
               </span>
               <span className="admin-tnum relative shrink-0 text-sm font-medium text-base-content/80">
-                {integer_formatter.format(bucket.count)}
+                {format_integer(bucket.count)}
               </span>
             </li>
           ))}

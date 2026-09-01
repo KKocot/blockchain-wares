@@ -2,18 +2,18 @@ import { GEOIP_ATTRIBUTION } from "../../lib/geo";
 import type {
   LogPage,
   LogQuery,
-  LogStatBucket,
   LogStats,
   SortField,
 } from "../../lib/logs/types";
 import { cn } from "../../lib/utils";
+import { CountryCard } from "./CountryCard";
 import { LogsFilters, type HiddenField } from "./LogsFilters";
-import { LogsTable, country_name } from "./LogsTable";
+import { LogsTable } from "./LogsTable";
 import { Pagination } from "./Pagination";
 import { RequestsChart } from "./RequestsChart";
 import { StatsCards } from "./StatsCards";
 import { TopListCard } from "./TopListCard";
-import { TrafficToggle } from "./TrafficToggle";
+import { TrafficFilters, type TrafficFlag } from "./TrafficFilters";
 import { BUTTON_CLASS } from "./styles";
 
 export interface DataFreshness {
@@ -34,8 +34,10 @@ interface AdminDashboardProps {
   warning: string | null;
   freshness: DataFreshness;
   refreshHref: string;
-  /** Adres odwracajacy `excludeBots` — kontrolka jest linkiem, nie polem formularza. */
-  excludeBotsHref: string;
+  /** Adres odwracajacy pojedyncza flage ruchu — kontrolki sa linkami, nie polami formularza. */
+  flagHref: (flag: TrafficFlag) => string;
+  /** Adres odwracajacy `showCountryIps`. */
+  countryIpsHref: string;
   filtersAction: string;
   resetHref: string;
   filterHidden: readonly HiddenField[];
@@ -95,8 +97,6 @@ function freshness_label(freshness: DataFreshness): string {
     : `Dane z ${clock} — ${age}.${suffix}`;
 }
 
-const UNKNOWN_COUNTRY = "Nieznany kraj";
-
 const ATTRIBUTION_LINK_CLASS =
   "rounded-sm underline underline-offset-2 transition-colors duration-150 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary";
 
@@ -121,14 +121,6 @@ function GeoAttribution() {
       </p>
     </footer>
   );
-}
-
-/** W karcie jest miejsce na pelna nazwe — surowy kod ISO zostaje juz tylko w tabeli. */
-function country_buckets(stats: LogStats | null): LogStatBucket[] {
-  return (stats?.topCountries ?? []).map(({ label, count }) => ({
-    label: country_name(label) ?? UNKNOWN_COUNTRY,
-    count,
-  }));
 }
 
 const NOTICE_TONES = {
@@ -189,7 +181,8 @@ export function AdminDashboard({
   warning,
   freshness,
   refreshHref,
-  excludeBotsHref,
+  flagHref,
+  countryIpsHref,
   filtersAction,
   resetHref,
   filterHidden,
@@ -203,8 +196,8 @@ export function AdminDashboard({
         <div>
           <h1 className="text-lg font-semibold">Logi ruchu</h1>
           <p className="text-sm text-base-content/60">
-            Żądania zarejestrowane przez middleware — filtry i sortowanie
-            zapisują się w adresie strony.
+            Żądania z logu nginx pobieranego ze źródła (LOG_SOURCE_URL) — filtry
+            i sortowanie zapisują się w adresie strony.
           </p>
           <p className="admin-tnum mt-1 text-xs text-base-content/60">
             {freshness_label(freshness)}
@@ -234,7 +227,7 @@ export function AdminDashboard({
         />
       )}
 
-      <TrafficToggle active={query.excludeBots} href={excludeBotsHref} />
+      <TrafficFilters query={query} flagHref={flagHref} />
 
       <StatsCards stats={stats} />
 
@@ -260,10 +253,10 @@ export function AdminDashboard({
           title="Języki przeglądarek"
           buckets={stats?.topLangs ?? []}
         />
-        <TopListCard
-          title="Kraje"
-          buckets={country_buckets(stats)}
-          emptyLabel="Brak danych o krajach w tym zakresie."
+        <CountryCard
+          buckets={stats?.countryIps ?? []}
+          showIps={query.showCountryIps}
+          toggleHref={countryIpsHref}
         />
       </div>
 

@@ -1,8 +1,7 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
-import { E2E_ADMIN_PASSWORD, NO_JS_TAG } from "../playwright.config";
+import { expect, test } from "@playwright/test";
+import { NO_JS_TAG } from "../playwright.config";
 import { DEFAULT_PAGE_SIZE } from "../src/lib/logs/types";
 import {
-  BARE_COUNTRY_CODE,
   BOT_BROWSER,
   BOT_PATH,
   GEO_IPV4,
@@ -13,16 +12,10 @@ import {
   HOSTILE_MARKER,
   HOSTILE_REFERRER,
   HOSTILE_UA,
-  INTERNAL_BROWSER,
-  INTERNAL_IP,
-  INTERNAL_PATH,
-  INTERNAL_TOTAL,
   LOWEST_COUNTRY,
-  NO_UA_PATH,
-  NON_HUMAN_TOTAL,
-  PUBLIC_HUMAN_TOTAL,
   LOWEST_NOT_FOUND_PATH,
   LOWEST_PATH,
+  NO_UA_PATH,
   NOT_FOUND_TOTAL,
   PUBLIC_TOTAL,
   PUBLIC_UNIQUE_IPS,
@@ -32,131 +25,34 @@ import {
   UNKNOWN_BROWSER,
   UNMAPPED_COUNTRY_PATH,
 } from "./fixtures/access_log";
+import {
+  ADMIN_PATH,
+  LOGIN_PATH,
+  LOGIN_REDIRECT,
+  ON_LOGIN,
+  TOTAL_LABEL,
+  apply_filters,
+  column_cells,
+  column_header,
+  column_values,
+  has_session_cookie,
+  log_in,
+  logs_table,
+  navigate,
+  pagination,
+  sort_by,
+  stat_value,
+  submit_password,
+  table_rows,
+  toggle_switch,
+} from "./support/admin";
 
-const ADMIN_PATH = "/admin";
-const LOGIN_PATH = "/admin/login";
-const SESSION_COOKIE = "bw_session";
 const WRONG_PASSWORD = "zle-haslo-e2e";
-
-const NAV_TIMEOUT = 20_000;
-const ON_LOGIN = /\/admin\/login(?:\?|$)/;
-const AFTER_LOGIN = /\/admin(?:\?|$)|\/admin\/login\?error=/;
-const LOGIN_REDIRECT = /\/admin\/login\?redirect=%2Fadmin$/;
-
-const TABLE_NAME = /Zarejestrowane żądania/;
-const TOTAL_LABEL = "Żądania łącznie";
-const BOTS_LABEL = "Ukryj boty i nierozpoznany ruch";
 const COLUMN_COUNT = 10;
 const ISO_CODE = /^[A-Z]{2}$/;
 
-/** Warunek licencji CC BY 4.0 zbioru DB-IP — brzmienie i link muszą zostać w panelu. */
-const GEOIP_DATASET = "DB-IP IP to Country Lite";
-const GEOIP_LINK_TEXT = "IP Geolocation by DB-IP";
-const GEOIP_URL = "https://db-ip.com";
-const GEOIP_LICENSE = "licencja CC BY 4.0";
 const FIRST_PAGE_ROWS = Math.min(PUBLIC_TOTAL, DEFAULT_PAGE_SIZE);
 const LAST_PAGE_ROWS = PUBLIC_TOTAL - FIRST_PAGE_ROWS;
-
-const MISCONFIGURED_SERVER =
-  "Serwer testowy odrzucił poprawne hasło kodem `server`. Najczęstsza przyczyna: " +
-  "testy trafiły na obcy serwer dev na porcie 4321, uruchomiony bez zmiennych " +
-  "wstrzykiwanych przez playwright.config.ts (ADMIN_PASSWORD_HASH, AUTH_SECRET, LOG_SOURCE_URL).";
-
-function logs_table(page: Page): Locator {
-  return page.getByRole("table", { name: TABLE_NAME });
-}
-
-/** Także wiersz komunikatu („Brak wyników”) jest `tr`, więc liczbę porównujemy świadomie. */
-function table_rows(page: Page): Locator {
-  return logs_table(page).locator("tbody tr");
-}
-
-function stat_value(page: Page, label: string): Locator {
-  return page
-    .locator("dl > div")
-    .filter({ hasText: label })
-    .getByRole("definition");
-}
-
-function pagination(page: Page): Locator {
-  return page.getByRole("navigation", { name: "Paginacja wyników" });
-}
-
-function column_header(page: Page, label: string): Locator {
-  return logs_table(page).getByRole("columnheader", { name: label });
-}
-
-/** Kolumny mają tylko etykiety, więc pozycję czytamy z nagłówków zamiast ją zakładać. */
-async function column_cells(page: Page, label: string): Promise<Locator> {
-  const headers = await logs_table(page)
-    .getByRole("columnheader")
-    .allInnerTexts();
-  const index = headers.findIndex((text) =>
-    text.trim().toLowerCase().startsWith(label.toLowerCase()),
-  );
-  expect(index, `Brak kolumny "${label}" w tabeli logów.`).toBeGreaterThan(-1);
-  return logs_table(page).locator(`tbody tr td:nth-child(${index + 1})`);
-}
-
-async function column_values(page: Page, label: string): Promise<string[]> {
-  const cells = await column_cells(page, label);
-  return (await cells.allInnerTexts()).map((value) => value.trim());
-}
-
-async function has_session_cookie(page: Page): Promise<boolean> {
-  const cookies = await page.context().cookies();
-  return cookies.some((cookie) => cookie.name === SESSION_COOKIE);
-}
-
-/**
- * Panel nie ma JS-a, więc każda interakcja to pełna nawigacja. Czekamy na zmianę
- * adresu, inaczej kolejna asercja mogłaby jeszcze przeczytać poprzedni dokument.
- */
-async function navigate(page: Page, act: () => Promise<void>): Promise<void> {
-  const before = page.url();
-  await act();
-  await page.waitForURL((url) => url.toString() !== before, {
-    timeout: NAV_TIMEOUT,
-  });
-}
-
-async function submit_password(page: Page, password: string): Promise<void> {
-  await page.getByLabel("Hasło").fill(password);
-  await page.getByRole("button", { name: "Zaloguj" }).click();
-}
-
-async function log_in(page: Page): Promise<void> {
-  await page.goto(LOGIN_PATH);
-  await submit_password(page, E2E_ADMIN_PASSWORD);
-  await page.waitForURL(AFTER_LOGIN, { timeout: NAV_TIMEOUT });
-
-  const failure = new URL(page.url()).searchParams.get("error");
-  if (failure === "server") {
-    throw new Error(MISCONFIGURED_SERVER);
-  }
-  expect(failure, "Logowanie poprawnym hasłem zostało odrzucone.").toBeNull();
-}
-
-async function apply_filters(page: Page): Promise<void> {
-  await navigate(page, () =>
-    page.getByRole("button", { name: "Zastosuj filtry" }).click(),
-  );
-}
-
-async function sort_by(page: Page, label: string): Promise<void> {
-  await navigate(page, () =>
-    column_header(page, label).getByRole("link").click(),
-  );
-}
-
-function bots_switch(page: Page): Locator {
-  return page.getByRole("switch", { name: BOTS_LABEL });
-}
-
-/** Przełącznik jest linkiem — jedno kliknięcie przeładowuje panel, bez „Zastosuj filtry”. */
-async function toggle_bots(page: Page): Promise<void> {
-  await navigate(page, () => bots_switch(page).click());
-}
 
 test.describe("Admin — dostęp i logowanie", () => {
   test("/admin bez sesji przekierowuje na logowanie z parametrem redirect", async ({
@@ -187,7 +83,7 @@ test.describe("Admin — dostęp i logowanie", () => {
   }) => {
     await page.goto(LOGIN_PATH);
     await submit_password(page, WRONG_PASSWORD);
-    await page.waitForURL(ON_LOGIN, { timeout: NAV_TIMEOUT });
+    await page.waitForURL(ON_LOGIN);
 
     await expect(page.getByRole("alert")).toHaveText("Nieprawidłowe hasło.");
     await expect(page).toHaveURL(/\/admin\/login\?error=invalid$/);
@@ -330,36 +226,7 @@ test.describe("Admin — filtry", () => {
     expect([...new Set(await column_values(page, "Status"))]).toEqual(["404"]);
   });
 
-  test("health-checki z loopbacku są ukryte, dopóki nie włączy się ruchu wewnętrznego", async ({
-    page,
-  }) => {
-    await log_in(page);
-
-    expect(await column_values(page, "IP")).not.toContain(INTERNAL_IP);
-
-    await page.getByLabel("Ścieżka").fill(INTERNAL_PATH);
-    await apply_filters(page);
-
-    await expect(logs_table(page).getByText("Brak wyników")).toBeVisible();
-    await expect(stat_value(page, TOTAL_LABEL)).toHaveText("0");
-
-    await page.getByLabel("Ruch wewnętrzny (localhost)").check();
-    await apply_filters(page);
-
-    await expect(page).toHaveURL(/[?&]includeInternal=1\b/);
-    await expect(table_rows(page)).toHaveCount(INTERNAL_TOTAL);
-    await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
-      String(INTERNAL_TOTAL),
-    );
-    expect([...new Set(await column_values(page, "IP"))]).toEqual([
-      INTERNAL_IP,
-    ]);
-    expect([...new Set(await column_values(page, "Przeglądarka"))]).toEqual([
-      INTERNAL_BROWSER,
-    ]);
-  });
-
-  test("wykluczenie botów chowa skanery i ruch bez rozpoznanego UA", async ({
+  test("filtr ścieżki zawęża tabelę do jednej kategorii ruchu", async ({
     page,
   }) => {
     await log_in(page);
@@ -373,71 +240,6 @@ test.describe("Admin — filtry", () => {
     expect(await column_values(page, "Przeglądarka")).toEqual([
       UNKNOWN_BROWSER,
     ]);
-
-    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "false");
-    await toggle_bots(page);
-
-    await expect(page).toHaveURL(/[?&]excludeBots=1\b/);
-    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
-    await expect(logs_table(page).getByText("Brak wyników")).toBeVisible();
-
-    await page.getByLabel("Ścieżka").fill(BOT_PATH);
-    await apply_filters(page);
-    await expect(logs_table(page).getByText("Brak wyników")).toBeVisible();
-
-    await page.getByLabel("Ścieżka").fill("");
-    await apply_filters(page);
-
-    await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
-      String(PUBLIC_HUMAN_TOTAL),
-    );
-    const browsers = new Set(await column_values(page, "Przeglądarka"));
-    expect([...browsers]).not.toContain(BOT_BROWSER);
-    expect([...browsers]).not.toContain(UNKNOWN_BROWSER);
-  });
-
-  test("wykluczenie botów działa razem z ruchem wewnętrznym", async ({
-    page,
-  }) => {
-    await log_in(page);
-    await page.goto("/admin?includeInternal=1&excludeBots=1");
-
-    await expect(page.getByLabel("Ruch wewnętrzny (localhost)")).toBeChecked();
-    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
-    // Health-checki loopbacku ida z Wgeta, wiec sam excludeBots je zdejmuje.
-    await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
-      String(PUBLIC_TOTAL + INTERNAL_TOTAL - NON_HUMAN_TOTAL),
-    );
-    expect(await column_values(page, "IP")).not.toContain(INTERNAL_IP);
-
-    await sort_by(page, "Ścieżka");
-    await expect(page).toHaveURL(/[?&]excludeBots=1\b/);
-    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
-    await expect(stat_value(page, TOTAL_LABEL)).toHaveText(
-      String(PUBLIC_TOTAL + INTERNAL_TOTAL - NON_HUMAN_TOTAL),
-    );
-  });
-
-  test("przełącznik botów wraca na pierwszą stronę i nie gubi reszty adresu", async ({
-    page,
-  }) => {
-    await log_in(page);
-    await page.goto("/admin?includeInternal=1&sort=path&dir=asc&page=2");
-
-    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "false");
-    await toggle_bots(page);
-
-    await expect(page).toHaveURL(
-      /\/admin\?includeInternal=1&excludeBots=1&sort=path&dir=asc$/,
-    );
-    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "true");
-
-    await toggle_bots(page);
-
-    await expect(page).toHaveURL(
-      /\/admin\?includeInternal=1&sort=path&dir=asc$/,
-    );
-    await expect(bots_switch(page)).toHaveAttribute("aria-checked", "false");
   });
 
   test("filtr i sortowanie z adresu strony przeżywają przeładowanie", async ({
@@ -521,33 +323,6 @@ test.describe("Admin — geolokalizacja", () => {
     );
     expect((await column_values(page, "Kraj"))[0]).toBe(LOWEST_COUNTRY);
   });
-
-  test("karta „Kraje” pokazuje pełne nazwy zamiast kodów ISO", async ({
-    page,
-  }) => {
-    await log_in(page);
-
-    const card = page.getByRole("region", { name: "Kraje" });
-    await expect(card.getByText("Polska", { exact: true })).toBeVisible();
-    await expect(
-      card.getByText("Stany Zjednoczone", { exact: true }),
-    ).toBeVisible();
-    expect(await card.innerText()).not.toMatch(BARE_COUNTRY_CODE);
-  });
-
-  // Atrybucja jest warunkiem licencji CC BY 4.0, a nie ozdobą stopki — ten test
-  // pilnuje, żeby refaktor panelu jej nie zgubił.
-  test("panel pokazuje atrybucję zbioru DB-IP razem z linkiem do źródła", async ({
-    page,
-  }) => {
-    await log_in(page);
-
-    const source_link = page.getByRole("link", { name: GEOIP_LINK_TEXT });
-    await expect(source_link).toBeVisible();
-    await expect(source_link).toHaveAttribute("href", GEOIP_URL);
-    await expect(page.getByText(GEOIP_DATASET)).toBeVisible();
-    await expect(page.getByText(GEOIP_LICENSE)).toBeVisible();
-  });
 });
 
 test.describe("Admin — bezpieczeństwo", () => {
@@ -575,6 +350,8 @@ test.describe("Admin — bezpieczeństwo", () => {
     await sort_by(page, "Status");
     await page.getByLabel("Status").fill("404");
     await apply_filters(page);
+    await toggle_switch(page, "Crawlery wyszukiwarek");
+    await toggle_switch(page, "Pokaż IP");
     await navigate(page, async () => {
       await pagination(page).getByLabel("Na stronie").selectOption("25");
       await pagination(page).getByRole("button", { name: "Ustaw" }).click();

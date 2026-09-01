@@ -12,7 +12,7 @@ Strona internetowa dla firmy BlockchainWares - software development company z D�
 npm run dev                        # Dev server na localhost:4321
 npm run build                      # Build produkcyjny do .vercel/output/ (adapter @astrojs/vercel)
 npm run preview                    # Podgląd builda
-npm test                           # Playwright E2E, 36 testów (w tym admin.spec.ts)
+npm test                           # Playwright E2E, 48 testów (chromium 45 + chromium-no-js 3)
 node scripts/hash_password.mjs     # Generuje ADMIN_PASSWORD_HASH z hasła podanego interaktywnie
 npx tsc --noEmit                   # Type check
 ```
@@ -40,12 +40,14 @@ Full-stack SSR (Astro + React Islands). Strony marketingowe (`index.astro`, `mar
 - `src/components/` - sekcje strony jako React komponenty z Framer Motion
 - `src/components/ui/` - reużywalne komponenty UI (Button, etc.)
 - `src/components/our-works-data.ts` - dane sekcji "What We Do" + deep-linki do tabów: `?docs`, `?sdk`, `?core`, `?hive`, `?ufa`, `?eos`, `?eda`, `?data` (i `?tab=<alias>`). Duplikat aliasu **wywala build** celowo (`build_id_by_slug()`). Deep-link zatrzymuje auto-rotate i scrolluje do `#what-we-do-content` (treść kategorii pod navbarem), nie do nagłówka sekcji
-- `src/components/admin/` - dashboard panelu (kafelki, wykres, top-N, tabela z sortowaniem/filtrowaniem/paginacją i deep-linkami przez query string), renderowany serwerowo
+- `src/components/admin/` - dashboard panelu (kafelki, wykres, top-N, tabela z sortowaniem/filtrowaniem/paginacją i deep-linkami przez query string), renderowany serwerowo. `TrafficFilters.tsx` + `SwitchLink.tsx` renderują 7 przełączników ruchu (polaryzacja jednolita: switch ON = kategoria widoczna, w URL zapisana jako odwrócona flaga `exclude*`/`includeInternal`). `CountryCard.tsx` doklada `showCountryIps` (top IP per kraj, prezentacyjne — nie zeruje `page`, w odróżnieniu od pozostałych 6 flag ruchu)
 - `src/lib/utils.ts` - helper `cn()` do mergowania klas Tailwind
 - `src/middleware.ts` - na requestach do stron dynamicznych: guard sesji dla `/admin/*` i `/api/admin/*`, nagłówki bezpieczeństwa. Nie loguje już ruchu
 - `src/lib/logs/` - dane ruchu pochodzą ze **zdalnego pliku logu nginx** (`LOG_SOURCE_URL`), pobieranego serwerowo, cache'owanego w pamięci (`source.ts`, TTL `LOG_SOURCE_TTL_SECONDS`) i parsowanego (`nginx_parser.ts`, format `combined` + dwa dodatkowe cytowane pola: X-Forwarded-For i Accept-Language). `LogSourceRepository` jest **READ-ONLY** (bez `insert`) — własne logowanie w middleware, mocki i implementacja in-memory zostały usunięte
   - **Pułapka**: pole `ip` bierze się z `$remote_addr`, NIE z X-Forwarded-For — ten nagłówek jest sterowalny przez klienta
-  - Ruch z loopbacku (health-checki, ~40% wpisów) jest domyślnie odfiltrowany; przełącznik `includeInternal` go pokazuje
+  - `user_agent.ts` kategoryzuje ruch nie-ludzki na 4 rodziny botów (`BotCategory`: crawler/seo/script/headless, pole `RequestLog.botCategory`) plus UA nierozpoznany i brak nagłówka UA — razem 6 niezależnych flag URL (`excludeCrawlers`, `excludeSeoTools`, `excludeScripts`, `excludeHeadless`, `excludeUnknownUa`, `excludeNoUa`) zamiast dawnego jednego `excludeBots`. Stary `excludeBots=1` nadal jest parsowany jako alias wszystkich sześciu i przekierowuje (303) na URL kanoniczny — zapisane linki nie psują się
+  - **Pułapka**: klasyfikacja UA i predykat filtra muszą czytać z jednego źródła (`is_missing_user_agent()` w `user_agent.ts`) — dwie osobne kopie tego warunku się rozjeżdżały (pusty string wpadał do `unknownUa` zamiast `noUa`)
+  - Ruch z loopbacku (health-checki, ~40% wpisów) to jeden z 7 przełączników w bloku "Filtry ruchu" (`includeInternal`), nie samotna flaga
 - `src/lib/auth/` - jeden admin, hasło jako hash scrypt w zmiennej środowiskowej, sesja jako podpisane HMAC ciasteczko `bw_session` (TTL 7 dni)
 - `src/pages/api/auth/*` - logowanie/wylogowanie, obsługiwane przez natywne formularze POST
 - `src/pages/admin/*` - strony panelu (`/admin`, `/admin/login`)
@@ -72,7 +74,7 @@ Nigdy nie wpisywać realnych wartości tych zmiennych do repo/dokumentacji.
 
 ## Testy
 
-`npm test` (Playwright, 36 testów) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch.
+`npm test` (Playwright, 48 testów: chromium 45 + chromium-no-js 3) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch. Specy panelu: `tests/admin.spec.ts` (ogólny przepływ), `tests/admin_traffic.spec.ts` (7 flag filtrów ruchu), `tests/admin_countries.spec.ts` (karta krajów + `showCountryIps`); wspólne locatory i kroki w `tests/support/`, fixture UA/logów w `tests/fixtures/user_agents.ts` i `tests/fixtures/log_entries.ts`.
 
 ## DaisyUI Theme
 

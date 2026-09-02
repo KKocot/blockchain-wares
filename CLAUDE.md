@@ -12,7 +12,7 @@ Strona internetowa dla firmy BlockchainWares - software development company z D�
 npm run dev                        # Dev server na localhost:4321
 npm run build                      # Build produkcyjny do .vercel/output/ (adapter @astrojs/vercel)
 npm run preview                    # Podgląd builda
-npm test                           # Playwright E2E, 48 testów (chromium 45 + chromium-no-js 3)
+npm test                           # Playwright E2E, 53 testy (chromium 50 + chromium-no-js 3)
 node scripts/hash_password.mjs     # Generuje ADMIN_PASSWORD_HASH z hasła podanego interaktywnie
 npx tsc --noEmit                   # Type check
 ```
@@ -48,6 +48,8 @@ Full-stack SSR (Astro + React Islands). Strony marketingowe (`index.astro`, `mar
   - `user_agent.ts` kategoryzuje ruch nie-ludzki na 4 rodziny botów (`BotCategory`: crawler/seo/script/headless, pole `RequestLog.botCategory`) plus UA nierozpoznany i brak nagłówka UA — razem 6 niezależnych flag URL (`excludeCrawlers`, `excludeSeoTools`, `excludeScripts`, `excludeHeadless`, `excludeUnknownUa`, `excludeNoUa`) zamiast dawnego jednego `excludeBots`. Stary `excludeBots=1` nadal jest parsowany jako alias wszystkich sześciu i przekierowuje (303) na URL kanoniczny — zapisane linki nie psują się
   - **Pułapka**: klasyfikacja UA i predykat filtra muszą czytać z jednego źródła (`is_missing_user_agent()` w `user_agent.ts`) — dwie osobne kopie tego warunku się rozjeżdżały (pusty string wpadał do `unknownUa` zamiast `noUa`)
   - Ruch z loopbacku (health-checki, ~40% wpisów) to jeden z 7 przełączników w bloku "Filtry ruchu" (`includeInternal`), nie samotna flaga
+  - Panel mieli **cały** log, nie okno najnowszych wpisów. `RECORD_BUDGET` w `nginx_parser.ts` (500 000 rekordów, ~300 MB) to zabezpieczenie przed OOM, nie limit prezentacji: po jego wyczerpaniu parser zostawia najnowsze wpisy (czyta plik od końca), zwraca `truncated` i panel dokleja adnotację "Widoczna jest tylko najnowsza część historii: X z Y linii logu". Budżet jest parametrem `parse_nginx_log()` — testy wstrzykują małą wartość zamiast hodować fixture
+  - **Pułapka**: `FETCH_TIMEOUT_MS` (60 s) i `maxDuration` adaptera w `astro.config.mjs` (90 s) to para — Vercel ubija funkcję po `maxDuration`, więc podniesienie timeoutu fetcha bez tego drugiego jest martwe w produkcji
 - `src/lib/auth/` - jeden admin, hasło jako hash scrypt w zmiennej środowiskowej, sesja jako podpisane HMAC ciasteczko `bw_session` (TTL 7 dni)
 - `src/pages/api/auth/*` - logowanie/wylogowanie, obsługiwane przez natywne formularze POST
 - `src/pages/admin/*` - strony panelu (`/admin`, `/admin/login`)
@@ -74,7 +76,7 @@ Nigdy nie wpisywać realnych wartości tych zmiennych do repo/dokumentacji.
 
 ## Testy
 
-`npm test` (Playwright, 48 testów: chromium 45 + chromium-no-js 3) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch. Specy panelu: `tests/admin.spec.ts` (ogólny przepływ), `tests/admin_traffic.spec.ts` (7 flag filtrów ruchu), `tests/admin_countries.spec.ts` (karta krajów + `showCountryIps`); wspólne locatory i kroki w `tests/support/`, fixture UA/logów w `tests/fixtures/user_agents.ts` i `tests/fixtures/log_entries.ts`.
+`npm test` (Playwright, 53 testy: chromium 50 + chromium-no-js 3) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch. Specy panelu: `tests/admin.spec.ts` (ogólny przepływ), `tests/admin_traffic.spec.ts` (7 flag filtrów ruchu), `tests/admin_countries.spec.ts` (karta krajów + `showCountryIps`), `tests/nginx_parser.spec.ts` (budżet rekordów — degradacja na wstrzykniętej małej wartości, bez przeglądarki); wspólne locatory i kroki w `tests/support/`, fixture UA/logów w `tests/fixtures/user_agents.ts` i `tests/fixtures/log_entries.ts`.
 
 ## DaisyUI Theme
 

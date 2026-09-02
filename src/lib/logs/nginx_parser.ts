@@ -35,11 +35,24 @@ const MONTHS: Readonly<Record<string, number>> = {
 const MINUTE_MILLIS = 60_000;
 const HOUR_MILLIS = 3_600_000;
 
+/**
+ * Budzet pamieci, nie limit prezentacji: docelowo caly log ma sie zmiescic w
+ * procesie. ~600 B na `RequestLog` x 500k = ~300 MB, plus surowy tekst pliku —
+ * miesci sie w domyslnym ~1 GB pamieci funkcji na Vercelu. Po przekroczeniu
+ * budzetu panel dostaje najnowszy wycinek i baner o obcieciu, zamiast OOM.
+ */
+const RECORD_BUDGET = 500_000;
+
 export interface NginxParseResult {
   /** Najstarszy pierwszy — repozytorium sortuje samo, ale agregacje lubia porzadek. */
   records: RequestLog[];
-  parsedLines: number;
+  /** Ile linii ma zrodlo — razem z tymi, ktorych budzet nie pozwolil przeczytac. */
+  sourceLines: number;
+  /** Ile niepustych linii faktycznie przeczytano od konca: rekordy + pominiete. */
+  readLines: number;
   skippedLines: number;
+  /** Budzet wyczerpany — starsze linie zostaly poza wynikiem. */
+  truncated: boolean;
   skipReasons: {
     malformed: number;
     timestamp: number;
@@ -224,26 +237,41 @@ function parse_line(line: string, line_number: number): LineOutcome {
   };
 }
 
+/** Koncowy `\n` daje po splicie pusty ogon — nie jest linia logu i nie moze zawyzac licznika. */
+function count_source_lines(lines: readonly string[]): number {
+  let total = lines.length;
+  while (total > 0 && lines[total - 1].trim() === "") {
+    total -= 1;
+  }
+  return total;
+}
+
 /**
- * Czyta od konca, bo panel pokazuje najnowszy ruch, a plik rosnie bez rotacji —
- * przy limicie `max_records` starsze linie nie sa nawet dotykane.
+ * Czyta od konca, bo panel pokazuje najnowszy ruch, a plik rosnie bez rotacji.
+ * `max_records` jest budzetem pamieci: dopoki plik sie w nim miesci, wynik ma
+ * caly log, a po jego wyczerpaniu starsze linie nie sa nawet dotykane i wynik
+ * jest oznaczony jako `truncated`.
  */
 export function parse_nginx_log(
   text: string,
-  max_records: number,
+  max_records: number = RECORD_BUDGET,
 ): NginxParseResult {
   const lines = text.split("\n");
   const records: RequestLog[] = [];
   const skipReasons = { malformed: 0, timestamp: 0, request: 0 };
   let skippedLines = 0;
+  let truncated = false;
 
   for (let index = lines.length - 1; index >= 0; index -= 1) {
-    if (records.length >= max_records) {
-      break;
-    }
     const line = lines[index].trim();
     if (line === "") {
       continue;
+    }
+    // Budzet sprawdzany dopiero na niepustej linii: plik dokladnie na budzet
+    // (i jego koncowy `\n`) nie ma prawa zglaszac obciecia.
+    if (records.length >= max_records) {
+      truncated = true;
+      break;
     }
 
     const outcome = parse_line(line, index + 1);
@@ -258,8 +286,10 @@ export function parse_nginx_log(
   records.reverse();
   return {
     records,
-    parsedLines: records.length,
+    sourceLines: count_source_lines(lines),
+    readLines: records.length + skippedLines,
     skippedLines,
+    truncated,
     skipReasons,
   };
 }

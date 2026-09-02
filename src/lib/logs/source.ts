@@ -2,9 +2,13 @@ import { get_log_source_ttl_millis, get_log_source_url } from "../env";
 import { parse_nginx_log } from "./nginx_parser";
 import type { RequestLog } from "./types";
 
-const FETCH_TIMEOUT_MS = 10_000;
-/** Log rosnie bez rotacji — panel i tak pokazuje najnowszy ruch. */
-const MAX_RECORDS = 20_000;
+/**
+ * Log rosnie bez rotacji i ma juz kilkadziesiat MB — 10 s nie starczalo na jego
+ * pobranie. Para z `maxDuration` adaptera w `astro.config.mjs` (90 s): platforma
+ * ubija funkcje po `maxDuration`, wiec musi byc ono wyzsze niz ten timeout,
+ * inaczej fetch nigdy nie zdazy sie poddac sam.
+ */
+const FETCH_TIMEOUT_MS = 60_000;
 
 export interface LogSourceStatus {
   /** ISO ostatniego UDANEGO pobrania; null gdy cache jest pusty. */
@@ -15,8 +19,13 @@ export interface LogSourceStatus {
   /** Komunikat ostatniej nieudanej proby; dane w snapshocie sa wtedy z cache. */
   error: string | null;
   records: number;
-  parsedLines: number;
+  /** Ile linii mialo zrodlo — mianownik adnotacji o obcieciu. */
+  sourceLines: number;
+  /** Ile linii przeczytano od konca: rekordy + pominiete. */
+  readLines: number;
   skippedLines: number;
+  /** Budzet rekordow wyczerpany — w panelu jest tylko najnowszy wycinek historii. */
+  truncated: boolean;
 }
 
 export interface LogSnapshot {
@@ -27,8 +36,10 @@ export interface LogSnapshot {
 interface CacheEntry {
   records: RequestLog[];
   fetchedAt: number;
-  parsedLines: number;
+  sourceLines: number;
+  readLines: number;
   skippedLines: number;
+  truncated: boolean;
 }
 
 let cache: CacheEntry | null = null;
@@ -75,12 +86,15 @@ async function fetch_entry(): Promise<CacheEntry> {
     throw new Error(describe_network_error(error));
   }
 
-  const parsed = parse_nginx_log(text, MAX_RECORDS);
+  // Bez limitu z zewnatrz — parser sam pilnuje budzetu pamieci (`RECORD_BUDGET`).
+  const parsed = parse_nginx_log(text);
   return {
     records: parsed.records,
     fetchedAt: Date.now(),
-    parsedLines: parsed.parsedLines,
+    sourceLines: parsed.sourceLines,
+    readLines: parsed.readLines,
     skippedLines: parsed.skippedLines,
+    truncated: parsed.truncated,
   };
 }
 
@@ -105,8 +119,10 @@ function describe(entry: CacheEntry | null, ttl: number): LogSourceStatus {
       stale: true,
       error: last_error,
       records: 0,
-      parsedLines: 0,
+      sourceLines: 0,
+      readLines: 0,
       skippedLines: 0,
+      truncated: false,
     };
   }
   const age = Date.now() - entry.fetchedAt;
@@ -116,8 +132,10 @@ function describe(entry: CacheEntry | null, ttl: number): LogSourceStatus {
     stale: age > ttl,
     error: last_error,
     records: entry.records.length,
-    parsedLines: entry.parsedLines,
+    sourceLines: entry.sourceLines,
+    readLines: entry.readLines,
     skippedLines: entry.skippedLines,
+    truncated: entry.truncated,
   };
 }
 

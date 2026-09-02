@@ -173,6 +173,9 @@ const country_ips_href = query_href({
       generatedAt: rendered_at,
       fetchedAt: source_status.fetchedAt,
       stale: source_status.stale,
+      truncated: source_status.truncated,
+      records: source_status.records,
+      sourceLines: source_status.sourceLines,
     }}
     refreshHref={href_for(refresh_params)}
     flagHref={flag_href}

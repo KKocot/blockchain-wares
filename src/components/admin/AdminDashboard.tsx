@@ -22,6 +22,11 @@ export interface DataFreshness {
   /** ISO ostatniego udanego pobrania ze zrodla; null gdy cache jest pusty. */
   fetchedAt: string | null;
   stale: boolean;
+  /** Budzet pamieci wyczerpany — panel ma tylko najnowszy wycinek logu. */
+  truncated: boolean;
+  /** Licznik i mianownik adnotacji o obcieciu: wpisy w panelu i linie zrodla. */
+  records: number;
+  sourceLines: number;
 }
 
 interface AdminDashboardProps {
@@ -80,6 +85,21 @@ function format_age(from_iso: string, to_iso: string): string | null {
     return `${Math.floor(delta / HOUR_MILLIS)} godz. temu`;
   }
   return `${Math.floor(delta / DAY_MILLIS)} dni temu`;
+}
+
+const count_formatter = new Intl.NumberFormat("pl-PL");
+
+/**
+ * Bez tego zdania obciete liczby wygladaja jak caly ruch serwisu — a to najgorszy
+ * mozliwy blad panelu analitycznego.
+ */
+function truncation_label(freshness: DataFreshness): string | null {
+  if (!freshness.truncated) {
+    return null;
+  }
+  const shown = count_formatter.format(freshness.records);
+  const total = count_formatter.format(freshness.sourceLines);
+  return `Widoczna jest tylko najnowsza część historii: ${shown} z ${total} linii logu. Starsze wpisy nie zmieściły się w pamięci.`;
 }
 
 function freshness_label(freshness: DataFreshness): string {
@@ -190,6 +210,8 @@ export function AdminDashboard({
   sortHref,
   pageHref,
 }: AdminDashboardProps) {
+  const truncation = truncation_label(freshness);
+
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -202,6 +224,9 @@ export function AdminDashboard({
           <p className="admin-tnum mt-1 text-xs text-base-content/60">
             {freshness_label(freshness)}
           </p>
+          {truncation !== null && (
+            <p className="admin-tnum mt-1 text-xs text-warning">{truncation}</p>
+          )}
         </div>
 
         <a href={refreshHref} className={BUTTON_CLASS}>

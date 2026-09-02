@@ -48,6 +48,8 @@ import {
 } from "./support/admin";
 
 const WRONG_PASSWORD = "zle-haslo-e2e";
+/** Adnotacja z AdminDashboard.tsx; fixture jest o rzędy wielkości mniejszy niż budżet rekordów. */
+const TRUNCATION_NOTICE = /Widoczna jest tylko najnowsza część historii/;
 const COLUMN_COUNT = 10;
 const ISO_CODE = /^[A-Z]{2}$/;
 
@@ -118,6 +120,14 @@ test.describe("Admin — dostęp i logowanie", () => {
     await expect(table_rows(page).first().getByRole("cell")).toHaveCount(
       COLUMN_COUNT,
     );
+  });
+
+  test("log mieszczący się w budżecie nie dokleja adnotacji o obciętej historii", async ({
+    page,
+  }) => {
+    await log_in(page);
+
+    await expect(page.getByText(TRUNCATION_NOTICE)).toHaveCount(0);
   });
 
   test("wylogowanie kasuje ciasteczko i zamyka panel", async ({ page }) => {

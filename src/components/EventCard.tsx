@@ -1,6 +1,11 @@
 import { cn } from "../lib/utils";
 import {
+  format_admission,
   format_event_date,
+  format_venue_address,
+  get_event_end_datetime,
+  get_event_start_datetime,
+  get_venue_map_url,
   type EventStatus,
   type TradeFairEvent,
 } from "./events-data";
@@ -56,6 +61,48 @@ const STATUS_THEME: Record<EventStatus, StatusTheme> = {
   },
 };
 
+/** Workshops are ours, so the badge states hosting instead of attendance */
+const WORKSHOP_LABEL: Record<EventStatus, string> = {
+  ongoing: "Happening now",
+  upcoming: "We are hosting",
+  past: "We hosted",
+};
+
+interface EventLink {
+  href: string;
+  label: string;
+  sr_label: string;
+}
+
+/**
+ * Own website when the event has one, otherwise directions to the venue we booked.
+ * Directions are dropped once the event is over — nobody needs to get there any more.
+ */
+function get_event_link(
+  event: TradeFairEvent,
+  status: EventStatus,
+): EventLink | null {
+  if (event.url) {
+    return {
+      href: event.url,
+      label: "Event website",
+      sr_label: `${event.name} — opens in a new tab`,
+    };
+  }
+
+  const map_url = get_venue_map_url(event);
+
+  if (map_url && event.venue && status !== "past") {
+    return {
+      href: map_url,
+      label: "Venue & directions",
+      sr_label: `${event.venue.name} on the map — opens in a new tab`,
+    };
+  }
+
+  return null;
+}
+
 interface EventCardProps {
   event: TradeFairEvent;
   status: EventStatus;
@@ -63,9 +110,14 @@ interface EventCardProps {
 
 /**
  * Single event card — date block, details and a link to the event website
+ * or, for events of our own, to the venue we booked
  */
 export function EventCard({ event, status }: EventCardProps) {
   const theme = STATUS_THEME[status];
+  const badge_label =
+    event.kind === "workshop" ? WORKSHOP_LABEL[status] : theme.label;
+  const link = get_event_link(event, status);
+  const venue_address = format_venue_address(event);
 
   return (
     <article
@@ -94,7 +146,7 @@ export function EventCard({ event, status }: EventCardProps) {
               className={cn("h-1.5 w-1.5 rounded-full", theme.dot)}
               aria-hidden="true"
             />
-            {theme.label}
+            {badge_label}
           </span>
 
           {event.edition ? (
@@ -105,6 +157,17 @@ export function EventCard({ event, status }: EventCardProps) {
               )}
             >
               {event.edition}
+            </span>
+          ) : null}
+
+          {event.admission ? (
+            <span
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-semibold",
+                theme.topic,
+              )}
+            >
+              {format_admission(event.admission)}
             </span>
           ) : null}
         </div>
@@ -121,6 +184,46 @@ export function EventCard({ event, status }: EventCardProps) {
             <PinIcon />
             {event.city}, {event.country}
           </p>
+
+          {event.schedule ? (
+            <p
+              className={cn(
+                "mt-1 flex items-center gap-2 text-sm font-medium",
+                theme.accent,
+              )}
+            >
+              <ClockIcon />
+              <span>
+                <time dateTime={get_event_start_datetime(event)}>
+                  {event.schedule.startTime}
+                </time>
+                –
+                <time dateTime={get_event_end_datetime(event)}>
+                  {event.schedule.endTime}
+                </time>{" "}
+                {event.schedule.timeZoneLabel}
+              </span>
+            </p>
+          ) : null}
+
+          {event.venue ? (
+            <p
+              className={cn(
+                "mt-1 flex items-start gap-2 text-sm font-medium",
+                theme.accent,
+              )}
+            >
+              <VenueIcon />
+              <span className="min-w-0">
+                {event.venue.name}
+                {venue_address ? (
+                  <span className="block text-xs font-normal text-base-content/70">
+                    {venue_address}
+                  </span>
+                ) : null}
+              </span>
+            </p>
+          ) : null}
         </div>
 
         <p className="text-sm leading-relaxed text-base-content/80 md:text-base">
@@ -141,22 +244,24 @@ export function EventCard({ event, status }: EventCardProps) {
           ))}
         </ul>
 
-        <a
-          href={event.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            "inline-flex w-fit items-center gap-2 rounded-full px-1 py-1 text-sm font-semibold",
-            "transition-[color,transform] duration-150",
-            "hover:translate-x-0.5",
-            "focus-visible:outline-none focus-visible:ring-2",
-            theme.link,
-          )}
-        >
-          Event website
-          <ArrowUpRightIcon />
-          <span className="sr-only">{event.name} — opens in a new tab</span>
-        </a>
+        {link ? (
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "inline-flex w-fit items-center gap-2 rounded-full px-1 py-1 text-sm font-semibold",
+              "transition-[color,transform] duration-150",
+              "hover:translate-x-0.5",
+              "focus-visible:outline-none focus-visible:ring-2",
+              theme.link,
+            )}
+          >
+            {link.label}
+            <ArrowUpRightIcon />
+            <span className="sr-only">{link.sr_label}</span>
+          </a>
+        ) : null}
       </div>
     </article>
   );
@@ -186,10 +291,11 @@ function DateBlock({
       )}
     >
       <span className="text-2xl font-bold leading-none md:text-3xl">
-        <time dateTime={event.startDate}>{date.start_day}</time>
+        <time dateTime={get_event_start_datetime(event)}>{date.start_day}</time>
         {is_range ? (
           <>
-            –<time dateTime={event.endDate}>{date.end_day}</time>
+            –
+            <time dateTime={get_event_end_datetime(event)}>{date.end_day}</time>
           </>
         ) : null}
       </span>
@@ -217,6 +323,46 @@ function PinIcon() {
     >
       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
       <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+function VenueIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="mt-0.5 shrink-0"
+    >
+      <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M16 10h3a2 2 0 0 1 2 2v9" />
+      <path d="M9 7h3M9 11h3M9 15h3" />
     </svg>
   );
 }

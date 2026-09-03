@@ -52,7 +52,8 @@ interface MarketsProps {
 }
 
 /**
- * Markets page content — company presence at trade fairs and conferences.
+ * Markets page content — trade fairs and conferences we attend
+ * plus the workshops we host ourselves.
  * Splits events into ongoing / upcoming / past against the current day.
  */
 export function Markets({ todayIso }: MarketsProps) {
@@ -77,7 +78,7 @@ export function Markets({ todayIso }: MarketsProps) {
   const outro =
     sections.length === 0
       ? {
-          lead: "No trade fair is on our calendar right now. ",
+          lead: "Nothing is on our calendar right now. ",
           tail: " and we will let you know where to find us next.",
         }
       : {
@@ -104,9 +105,10 @@ export function Markets({ todayIso }: MarketsProps) {
           </h1>
 
           <p className="max-w-2xl text-base leading-relaxed text-base-content/80 md:text-lg">
-            We attend industry trade fairs and conferences across Europe to meet
-            the people we build for. Catch us on site to discuss blockchain
-            infrastructure, engineering tooling or a project of your own.
+            We travel across Europe for industry trade fairs and conferences,
+            and we run workshops of our own along the way. Catch us on site to
+            discuss blockchain infrastructure, engineering tooling or a project
+            of your own.
           </p>
         </motion.header>
 

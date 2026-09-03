@@ -3,9 +3,13 @@ import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { cn } from "../lib/utils";
 import {
   format_event_date,
+  get_event_end_datetime,
+  get_event_start_datetime,
   get_event_status,
-  get_next_event,
+  get_promoted_events,
   parse_iso_day,
+  type EventKind,
+  type TradeFairEvent,
 } from "./events-data";
 
 const EASE: [number, number, number, number] = [0.44, 0, 0.56, 1];
@@ -43,13 +47,31 @@ const ONGOING_ACCENT: BannerAccent = {
     "border-success/35 hover:border-success/60 focus-visible:border-success/60",
 };
 
+/** Attendance for events we visit, hosting for our own workshops */
+function get_banner_headline(
+  label: string,
+  kind: EventKind | undefined,
+  is_ongoing: boolean,
+): string {
+  if (kind === "workshop") {
+    return is_ongoing
+      ? `Our ${label} is running right now`
+      : `We are hosting our ${label}`;
+  }
+
+  return is_ongoing
+    ? `We are at ${label} right now`
+    : `We are going to ${label}`;
+}
+
 interface EventBannerProps {
   /** Build-time local day (`YYYY-MM-DD`), corrected to the visitor's day after mount */
   todayIso: string;
 }
 
 /**
- * Narrow announcement strip promoting the event we are at or heading to.
+ * Narrow announcement strip promoting the closest events we are at or heading to
+ * — as many as `get_promoted_events()` returns, at most two.
  * Whole strip is a single link to /markets.
  * Renders nothing when no event is scheduled.
  */
@@ -64,19 +86,19 @@ export function EventBanner({ todayIso }: EventBannerProps) {
     set_is_hydrated(true);
   }, []);
 
-  const event = get_next_event(now);
+  const events = get_promoted_events(now);
 
-  if (!event) {
+  if (events.length === 0) {
     return null;
   }
 
   const variants =
     is_hydrated && prefers_reduced_motion ? STATIC_VARIANTS : MOTION_VARIANTS;
-  const event_label = event.shortName ?? event.name;
-  const is_ongoing = get_event_status(event, now) === "ongoing";
-  const accent = is_ongoing ? ONGOING_ACCENT : UPCOMING_ACCENT;
-  const date = format_event_date(event);
-  const is_range = event.startDate !== event.endDate;
+  const has_ongoing = events.some(
+    (event) => get_event_status(event, now) === "ongoing",
+  );
+  const accent = has_ongoing ? ONGOING_ACCENT : UPCOMING_ACCENT;
+  const is_single = events.length === 1;
 
   return (
     <motion.aside
@@ -84,7 +106,7 @@ export function EventBanner({ todayIso }: EventBannerProps) {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.4 }}
-      aria-label={is_ongoing ? "Event happening now" : "Upcoming event"}
+      aria-label="Where to meet us"
       className="relative px-4 py-8 md:py-12"
     >
       <a
@@ -92,7 +114,9 @@ export function EventBanner({ todayIso }: EventBannerProps) {
         className={cn(
           "group mx-auto flex w-full max-w-6xl flex-col gap-4",
           "rounded-[28px] px-5 py-5",
-          "md:flex-row md:items-center md:justify-between md:gap-8 md:rounded-full md:px-8 md:py-4",
+          "md:flex-row md:items-center md:justify-between md:gap-8 md:px-8",
+          // One entry keeps the original pill; two need the height of a rounded card
+          is_single ? "md:rounded-full md:py-4" : "md:rounded-[32px] md:py-5",
           "bg-base-200/30 backdrop-blur-sm",
           "border",
           accent.border,
@@ -101,37 +125,19 @@ export function EventBanner({ todayIso }: EventBannerProps) {
           "hover:shadow-card-hover",
         )}
       >
-        <span className="flex min-w-0 items-start gap-3 md:items-center md:gap-4">
-          <DiamondIcon className={accent.text} />
-
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <span
-              className={cn(
-                "flex flex-wrap items-center gap-x-2 text-xs font-semibold uppercase tracking-wider md:text-sm",
-                accent.text,
-              )}
-            >
-              <span>
-                {date.month}{" "}
-                <time dateTime={event.startDate}>{date.start_day}</time>
-                {is_range ? (
-                  <>
-                    –<time dateTime={event.endDate}>{date.end_day}</time>
-                  </>
-                ) : null}
-                {`, ${date.year}`}
-              </span>
-              <span aria-hidden="true">·</span>
-              <span>{event.city}</span>
-            </span>
-
-            <span className="text-base font-bold text-base-content md:text-lg">
-              {is_ongoing
-                ? `We are at ${event_label} right now`
-                : `We are going to ${event_label}`}
-            </span>
-          </span>
+        <span className="flex min-w-0 flex-col gap-4 md:flex-1 md:flex-row md:items-center md:gap-6">
+          {events.map((event, index) => (
+            <BannerEntry
+              key={event.id}
+              event={event}
+              is_ongoing={get_event_status(event, now) === "ongoing"}
+              is_single={is_single}
+              is_first={index === 0}
+            />
+          ))}
         </span>
+
+        <span className="sr-only">. </span>
 
         {/* Mobile indent keeps the CTA aligned with the text column: icon + gap */}
         <span
@@ -145,6 +151,90 @@ export function EventBanner({ todayIso }: EventBannerProps) {
         </span>
       </a>
     </motion.aside>
+  );
+}
+
+interface BannerEntryProps {
+  event: TradeFairEvent;
+  is_ongoing: boolean;
+  /** Lone entry keeps the original pill: full-round strip and its larger type */
+  is_single: boolean;
+  /** Later entries get the divider rule and the spoken separator before them */
+  is_first: boolean;
+}
+
+/** One promoted event: dates, place and what we are doing there */
+function BannerEntry({
+  event,
+  is_ongoing,
+  is_single,
+  is_first,
+}: BannerEntryProps) {
+  const accent = is_ongoing ? ONGOING_ACCENT : UPCOMING_ACCENT;
+  const date = format_event_date(event);
+  const is_range = event.startDate !== event.endDate;
+  const event_label = event.shortName ?? event.name;
+
+  return (
+    <span
+      className={cn(
+        "flex min-w-0 flex-1 items-start gap-3 md:items-center",
+        !is_first &&
+          "border-t border-white/10 pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-6",
+      )}
+    >
+      {/* The strip is one link: without spoken punctuation its name runs the entries together */}
+      {is_first ? null : <span className="sr-only">. </span>}
+      <DiamondIcon className={accent.text} />
+
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span
+          className={cn(
+            "flex flex-wrap items-center gap-x-2 text-xs font-semibold uppercase tracking-wider",
+            is_single && "md:text-sm",
+            accent.text,
+          )}
+        >
+          <span>
+            {date.month}{" "}
+            <time dateTime={get_event_start_datetime(event)}>
+              {date.start_day}
+            </time>
+            {is_range ? (
+              <>
+                –
+                <time dateTime={get_event_end_datetime(event)}>
+                  {date.end_day}
+                </time>
+              </>
+            ) : null}
+            {`, ${date.year}`}
+          </span>
+          {event.schedule ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                {event.schedule.startTime}–{event.schedule.endTime}{" "}
+                {event.schedule.timeZoneLabel}
+              </span>
+            </>
+          ) : null}
+          <span aria-hidden="true">·</span>
+          <span>{event.city}</span>
+        </span>
+
+        <span className="sr-only">: </span>
+
+        <span
+          className={cn(
+            "text-base font-bold text-base-content",
+            is_single && "md:text-lg",
+          )}
+        >
+          {get_banner_headline(event_label, event.kind, is_ongoing)}
+        </span>
+      </span>
+    </span>
   );
 }
 

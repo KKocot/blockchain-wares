@@ -12,7 +12,7 @@ Strona internetowa dla firmy BlockchainWares - software development company z D�
 npm run dev                        # Dev server na localhost:4321
 npm run build                      # Build produkcyjny do .vercel/output/ (adapter @astrojs/vercel)
 npm run preview                    # Podgląd builda
-npm test                           # Playwright E2E, 53 testy (chromium 50 + chromium-no-js 3)
+npm test                           # Playwright E2E, 78 testów (chromium 75 + chromium-no-js 3)
 node scripts/hash_password.mjs     # Generuje ADMIN_PASSWORD_HASH z hasła podanego interaktywnie
 npx tsc --noEmit                   # Type check
 ```
@@ -40,6 +40,9 @@ Full-stack SSR (Astro + React Islands). Strony marketingowe (`index.astro`, `mar
 - `src/components/` - sekcje strony jako React komponenty z Framer Motion
 - `src/components/ui/` - reużywalne komponenty UI (Button, etc.)
 - `src/components/our-works-data.ts` - dane sekcji "What We Do" + deep-linki do tabów: `?docs`, `?sdk`, `?core`, `?hive`, `?ufa`, `?eos`, `?eda`, `?data` (i `?tab=<alias>`). Duplikat aliasu **wywala build** celowo (`build_id_by_slug()`). Deep-link zatrzymuje auto-rotate i scrolluje do `#what-we-do-content` (treść kategorii pod navbarem), nie do nagłówka sekcji
+- `src/components/events-data.ts` - jedyne źródło wydarzeń dla `/markets`, banera na stronie głównej i JSON-LD (`event-schema.ts`). `kind: "workshop"` przełącza teksty z „jedziemy” na „prowadzimy”, `schedule` dokłada godziny do `dateTime`/JSON-LD i domyka status o godzinie startu oraz końca (o północy dnia warsztatu jest jeszcze „upcoming”), `venue` daje adres na karcie i w `PostalAddress`, `admission` — pigułkę „Free entry · no registration”, `Offer` (`price: "0"`) wskazujący na `/markets` i `isAccessibleForFree`. `EventBanner` promuje **do dwóch** najbliższych wydarzeń z `get_promoted_events()` (trwające przed nadchodzącymi, `limit` domyślnie 2), nie jedno
+  - **Pułapka**: link do mapy powstaje z adresu pocztowego (`get_venue_map_url()`), nie z nazwy venue — pod tą samą nazwą stoi obok hotel, więc wyszukiwanie po nazwie trafia w złe miejsce
+  - **Pułapka**: baner i `Markets` liczą status z `parse_iso_day(todayIso)` na pierwszym renderze i dopiero po mount przechodzą na `new Date()` — inaczej prerender i hydracja rozjeżdżają się na granicy doby
 - `src/components/admin/` - dashboard panelu (kafelki, wykres, top-N, tabela z sortowaniem/filtrowaniem/paginacją i deep-linkami przez query string), renderowany serwerowo. `TrafficFilters.tsx` + `SwitchLink.tsx` renderują 7 przełączników ruchu (polaryzacja jednolita: switch ON = kategoria widoczna, w URL zapisana jako odwrócona flaga `exclude*`/`includeInternal`). `CountryCard.tsx` doklada `showCountryIps` (top IP per kraj, prezentacyjne — nie zeruje `page`, w odróżnieniu od pozostałych 6 flag ruchu)
 - `src/lib/utils.ts` - helper `cn()` do mergowania klas Tailwind
 - `src/middleware.ts` - na requestach do stron dynamicznych: guard sesji dla `/admin/*` i `/api/admin/*`, nagłówki bezpieczeństwa. Nie loguje już ruchu
@@ -76,7 +79,7 @@ Nigdy nie wpisywać realnych wartości tych zmiennych do repo/dokumentacji.
 
 ## Testy
 
-`npm test` (Playwright, 53 testy: chromium 50 + chromium-no-js 3) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch. Specy panelu: `tests/admin.spec.ts` (ogólny przepływ), `tests/admin_traffic.spec.ts` (7 flag filtrów ruchu), `tests/admin_countries.spec.ts` (karta krajów + `showCountryIps`), `tests/nginx_parser.spec.ts` (budżet rekordów — degradacja na wstrzykniętej małej wartości, bez przeglądarki); wspólne locatory i kroki w `tests/support/`, fixture UA/logów w `tests/fixtures/user_agents.ts` i `tests/fixtures/log_entries.ts`.
+`npm test` (Playwright, 78 testów: chromium 75 + chromium-no-js 3) korzysta z lokalnego fixture logu (`tests/fixtures/`) — nie uderza w prawdziwy `LOG_SOURCE_URL`. Projekt `chromium-no-js` weryfikuje, że panel admina działa bez JavaScriptu; osobny test pilnuje, że z panelu nie wychodzi żaden request XHR/fetch. Specy panelu: `tests/admin.spec.ts` (ogólny przepływ), `tests/admin_traffic.spec.ts` (7 flag filtrów ruchu), `tests/admin_countries.spec.ts` (karta krajów + `showCountryIps`), `tests/nginx_parser.spec.ts` (budżet rekordów — degradacja na wstrzykniętej małej wartości, bez przeglądarki). Wydarzenia: `tests/events_data.spec.ts` (daty z harmonogramem, granice godziny startu i końca w `get_event_status()`, kształt JSON-LD wraz z `offers`/`isAccessibleForFree`/`PostalAddress`, link do mapy z adresu, kolejność `get_promoted_events()` — też bez przeglądarki). Ten spec chodzi na własnych fixture'ach (`WORKSHOP`/`CONFERENCE`, wstrzykiwanych parametrem `events`); z produkcyjnego `EVENTS` korzystają tylko regresja EBC i round-trip escapowania. Wspólne locatory i kroki w `tests/support/`, fixture UA/logów w `tests/fixtures/user_agents.ts` i `tests/fixtures/log_entries.ts`.
 
 ## DaisyUI Theme
 

@@ -1,3 +1,42 @@
+/** Conferences we attend, workshops we host ourselves — drives the wording of the labels */
+export type EventKind = "conference" | "workshop";
+
+/** `HH:MM` in 24h — the template shape makes a typo a compile error, not a bad `dateTime` */
+export type ClockTime = `${number}:${number}`;
+
+/** Signed UTC offset, e.g. "+02:00" */
+export type UtcOffset = `${"+" | "-"}${number}:${number}`;
+
+/** Clock times of a single-day event, kept apart from the date-only `startDate`/`endDate` */
+export interface EventSchedule {
+  /** Local start */
+  startTime: ClockTime;
+  /** Local end */
+  endTime: ClockTime;
+  /** UTC offset of both times — machine-readable half, goes into `dateTime` and JSON-LD */
+  utcOffset: UtcOffset;
+  /** Zone name shown to readers next to the times, e.g. "CEST" */
+  timeZoneLabel: string;
+}
+
+export interface EventVenue {
+  name: string;
+  /** Street and number as written locally, e.g. "Carrer de Cristóbal de Moura, 49" */
+  streetAddress?: string;
+  postalCode?: string;
+}
+
+/** What it takes to get in — drives the card pill and the JSON-LD `Offer` */
+export interface EventAdmission {
+  /** Decimal string, schema.org style; "0" reads as free entry */
+  price: string;
+  /** ISO 4217 code, e.g. "EUR" */
+  priceCurrency: string;
+  requiresRegistration: boolean;
+  /** First day the offer holds, ISO `YYYY-MM-DD` — the day we announced it */
+  validFrom: string;
+}
+
 export interface TradeFairEvent {
   /** Stable key + anchor id */
   id: string;
@@ -6,6 +45,8 @@ export interface TradeFairEvent {
   shortName?: string;
   /** Short edition marker, e.g. "EBC12" */
   edition?: string;
+  /** Defaults to `"conference"` */
+  kind?: EventKind;
   city: string;
   country: string;
   /** ISO 3166-1 alpha-2 code, used by the JSON-LD Event schema */
@@ -14,7 +55,12 @@ export interface TradeFairEvent {
   startDate: string;
   /** Last day, ISO `YYYY-MM-DD` — equals `startDate` for one-day events */
   endDate: string;
-  url: string;
+  schedule?: EventSchedule;
+  venue?: EventVenue;
+  /** Ticketing terms — absent for events we only attend, they are not ours to describe */
+  admission?: EventAdmission;
+  /** Event website — absent for events that have no public page of their own */
+  url?: string;
   /** Site-relative or absolute image for the JSON-LD Event schema */
   image: string;
   organizer: {
@@ -39,7 +85,7 @@ export interface EventDateParts {
 }
 
 /**
- * Trade fairs and conferences BlockchainWares attends.
+ * Trade fairs and conferences BlockchainWares attends, plus the workshops we run ourselves.
  * Single source of truth for the /markets page, the homepage event banner
  * and the JSON-LD Event schema. Display dates are derived from the ISO dates.
  */
@@ -66,6 +112,47 @@ export const EVENTS: TradeFairEvent[] = [
       "Blockchain infrastructure",
       "Event-driven architecture",
       "Enterprise integrations",
+    ],
+  },
+  {
+    id: "bw-workshop-2026-barcelona",
+    name: "BlockchainWares Workshop in Barcelona",
+    shortName: "Barcelona workshop",
+    kind: "workshop",
+    city: "Barcelona",
+    country: "Spain",
+    countryCode: "ES",
+    startDate: "2026-09-19",
+    endDate: "2026-09-19",
+    schedule: {
+      startTime: "10:00",
+      endTime: "14:00",
+      utcOffset: "+02:00",
+      timeZoneLabel: "CEST",
+    },
+    venue: {
+      name: "The Social Hub Coworking Barcelona Poblenou",
+      // Street from the Barcelona city venue registry (guia.barcelona.cat)
+      streetAddress: "Carrer de Cristóbal de Moura, 49",
+      postalCode: "08019",
+    },
+    admission: {
+      price: "0",
+      priceCurrency: "EUR",
+      requiresRegistration: false,
+      validFrom: "2026-09-03",
+    },
+    image: "/assets/img/og-image.png",
+    organizer: {
+      name: "BlockchainWares",
+      url: "https://blockchainwares.com.pl",
+    },
+    description:
+      "Four hours in a rented room in Poblenou, Barcelona, with the engineers who build these systems day to day. We walk through Hive blockchain nodes and HAF indexing, the event-driven services running on top of them, and the database work that keeps all of it responsive under load. Bring your own architecture — the group is small enough that we go through it with you and say where it would break first and what we would change.",
+    topics: [
+      "Hive nodes and HAF indexing",
+      "Event-driven services",
+      "High-load databases",
     ],
   },
 ];
@@ -110,7 +197,35 @@ export function to_iso_day(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-/** An event runs until the end of its `endDate`, so whole calendar days are compared */
+/**
+ * Closing moment has passed. `now` is midnight on the prerendered and on the first
+ * client render alike, so the hour precision can only change the answer after mount.
+ */
+function has_ended(event: TradeFairEvent, now: Date): boolean {
+  if (!event.schedule) {
+    return false;
+  }
+
+  return now.getTime() >= new Date(get_event_end_datetime(event)).getTime();
+}
+
+/**
+ * Opening moment has passed. Same midnight invariant as `has_ended()`:
+ * the start day begins as `upcoming` on the server and on the first client render alike.
+ */
+function has_started(event: TradeFairEvent, now: Date): boolean {
+  if (!event.schedule) {
+    return true;
+  }
+
+  return now.getTime() >= new Date(get_event_start_datetime(event)).getTime();
+}
+
+/**
+ * Whole calendar days are compared; an event with a `schedule` also opens at its
+ * start time and ends at its closing time, so neither 03:00 nor 23:30 on the day
+ * of the event reads as happening now.
+ */
 export function get_event_status(
   event: TradeFairEvent,
   now: Date,
@@ -125,12 +240,21 @@ export function get_event_status(
     return "past";
   }
 
+  if (today === event.startDate && !has_started(event, now)) {
+    return "upcoming";
+  }
+
+  if (today === event.endDate && has_ended(event, now)) {
+    return "past";
+  }
+
   return "ongoing";
 }
 
 /** Events split by status — upcoming soonest first, past most recent first */
 export function group_events_by_status(
   now: Date,
+  events: TradeFairEvent[] = EVENTS,
 ): Record<EventStatus, TradeFairEvent[]> {
   const groups: Record<EventStatus, TradeFairEvent[]> = {
     ongoing: [],
@@ -138,7 +262,7 @@ export function group_events_by_status(
     past: [],
   };
 
-  for (const event of EVENTS) {
+  for (const event of events) {
     groups[get_event_status(event, now)].push(event);
   }
 
@@ -150,13 +274,87 @@ export function group_events_by_status(
 }
 
 /**
- * Event to promote — one that runs right now, otherwise the closest upcoming one.
- * Returns `undefined` when nothing is scheduled.
+ * Events worth promoting above the fold — the ones running right now first,
+ * then the closest upcoming ones, at most `limit` of them.
+ * Empty when nothing is scheduled.
  */
-export function get_next_event(now: Date): TradeFairEvent | undefined {
-  const groups = group_events_by_status(now);
+export function get_promoted_events(
+  now: Date,
+  limit = 2,
+  events: TradeFairEvent[] = EVENTS,
+): TradeFairEvent[] {
+  const groups = group_events_by_status(now, events);
 
-  return groups.ongoing.at(0) ?? groups.upcoming.at(0);
+  return [...groups.ongoing, ...groups.upcoming].slice(0, limit);
+}
+
+/** Card copy: what it costs, then whether anyone has to sign up */
+export function format_admission(admission: EventAdmission): string {
+  const price =
+    Number(admission.price) === 0
+      ? "Free entry"
+      : `${admission.price} ${admission.priceCurrency}`;
+  const registration = admission.requiresRegistration
+    ? "registration required"
+    : "no registration";
+
+  return `${price} · ${registration}`;
+}
+
+/** Postal line shown under the venue name — `undefined` until we know the street */
+export function format_venue_address(
+  event: TradeFairEvent,
+): string | undefined {
+  const venue = event.venue;
+
+  if (!venue?.streetAddress) {
+    return undefined;
+  }
+
+  const locality = venue.postalCode
+    ? `${venue.postalCode} ${event.city}`
+    : event.city;
+
+  return `${venue.streetAddress}, ${locality}`;
+}
+
+/** Maps URLs API — a `/maps/place/` link carries viewport and layer state that Google may retire */
+const MAPS_SEARCH_URL = "https://www.google.com/maps/search/?api=1&query=";
+
+/**
+ * Directions to the venue, searched by postal address rather than by name —
+ * a hotel of the same name stands next door and wins the name search.
+ */
+export function get_venue_map_url(event: TradeFairEvent): string | undefined {
+  const address = format_venue_address(event);
+
+  if (!address) {
+    return undefined;
+  }
+
+  return `${MAPS_SEARCH_URL}${encodeURIComponent(address)}`;
+}
+
+/** `datetime` attribute value — full local datetime with offset when the event has clock times */
+export function get_event_start_datetime(event: TradeFairEvent): string {
+  if (!event.schedule) {
+    return event.startDate;
+  }
+
+  const { startTime, utcOffset } = event.schedule;
+
+  return `${event.startDate}T${startTime}:00${utcOffset}`;
+}
+
+/** Counterpart of `get_event_start_datetime()` for the closing moment */
+export function get_event_end_datetime(event: TradeFairEvent): string {
+  if (!event.schedule) {
+    return event.endDate;
+  }
+
+  const { endTime, utcOffset } = event.schedule;
+
+  return `${event.endDate}T${endTime}:00${utcOffset}`;
 }
 
 /** Display strings derived from the ISO dates — no hand-written duplicates */

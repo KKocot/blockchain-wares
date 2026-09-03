@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { Navigation, Markets, Footer } from "../components";
 import { EVENTS, to_iso_day } from "../components/events-data";
+import { build_event_schema, to_json_ld } from "../components/event-schema";
 
 export const prerender = true;
 
@@ -10,41 +11,11 @@ const today_iso = to_iso_day(new Date());
 
 const title = "Markets & Events — BlockchainWares";
 const description =
-  "Meet BlockchainWares at industry trade fairs and conferences. We are going to the European Blockchain Convention 2026 in Barcelona, 16–17 September.";
+  "Meet BlockchainWares in Barcelona: European Blockchain Convention 2026 on 16–17 September, plus our own four-hour Hive and HAF workshop on 19 September.";
 
-/** `</script>` inside any event field would break out of the JSON-LD block */
-const to_json_ld = (data: unknown): string =>
-  JSON.stringify(data).replace(
-    /[<>&]/g,
-    (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
-  );
-
-const event_schemas = EVENTS.map((event) => ({
-  "@context": "https://schema.org",
-  "@type": "Event",
-  name: event.name,
-  description: event.description,
-  image: new URL(event.image, Astro.site).href,
-  startDate: event.startDate,
-  endDate: event.endDate,
-  eventStatus: "https://schema.org/EventScheduled",
-  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-  url: event.url,
-  location: {
-    "@type": "Place",
-    name: event.city,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: event.city,
-      addressCountry: event.countryCode,
-    },
-  },
-  organizer: {
-    "@type": "Organization",
-    name: event.organizer.name,
-    url: event.organizer.url,
-  },
-}));
+const event_schemas = EVENTS.map((event) =>
+  build_event_schema(event, Astro.site),
+);
 ---
 
 <Layout title={title} description={description}>

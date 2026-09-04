@@ -148,12 +148,8 @@ export const EVENTS: TradeFairEvent[] = [
       url: "https://blockchainwares.com.pl",
     },
     description:
-      "Four hours in a rented room in Poblenou, Barcelona, with the engineers who build these systems day to day. We walk through Hive blockchain nodes and HAF indexing, the event-driven services running on top of them, and the database work that keeps all of it responsive under load. Bring your own architecture — the group is small enough that we go through it with you and say where it would break first and what we would change.",
-    topics: [
-      "Hive nodes and HAF indexing",
-      "Event-driven services",
-      "High-load databases",
-    ],
+      "Four hours in a rented room in Poblenou, Barcelona, on what BlockchainWares does and what we can build for a client. We go through our scope of work — Hive blockchain, event-driven architecture, engineering and database systems — and demo projects we have already delivered: what the client needed, what we built for them, how it runs in production.",
+    topics: ["Our scope of work", "Project demos", "Delivered solutions"],
   },
 ];
 

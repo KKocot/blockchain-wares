@@ -3,6 +3,8 @@ interface FooterProps {
   currentPath?: string;
 }
 
+const MARKETS_PATH = "/markets";
+
 /**
  * Footer component — minimal bar with company info and copyright
  */
@@ -10,6 +12,10 @@ export function Footer({ currentPath = "/" }: FooterProps) {
   const current_year = new Date().getFullYear();
   const current_path = currentPath.replace(/\/+$/, "") || "/";
   const is_home = current_path === "/";
+  // Single event pages live under the listing, so the link stays current there too
+  const is_markets =
+    current_path === MARKETS_PATH ||
+    current_path.startsWith(`${MARKETS_PATH}/`);
 
   return (
     <footer className="relative bg-base-100 border-t border-white/5">
@@ -26,8 +32,8 @@ export function Footer({ currentPath = "/" }: FooterProps) {
               |
             </span>
             <a
-              href="/markets"
-              aria-current={current_path === "/markets" ? "page" : undefined}
+              href={MARKETS_PATH}
+              aria-current={is_markets ? "page" : undefined}
               className="text-xs font-medium text-secondary/90 hover:text-secondary transition-colors duration-150"
             >
               Markets

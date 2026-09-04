@@ -1,20 +1,28 @@
 ---
 import "../styles/global.css";
+import { to_json_ld } from "../components/event-schema";
 
 interface Props {
   title?: string;
   description?: string;
   /** Utility/error pages: emits robots noindex and drops canonical, OG and JSON-LD. */
   noindex?: boolean;
+  /**
+   * Canonical path of the page. Server-rendered routes answer under more than one URL
+   * (`trailingSlash: "ignore"`), so they state the one address worth indexing instead of
+   * echoing whatever the visitor typed. Prerendered pages leave it out.
+   */
+  canonicalPath?: string;
 }
 
 const {
   title = "BlockchainWares - Software Development Company",
   description = "Software development company specializing in blockchain infrastructure, developer tooling, and enterprise software. Based in Dabrowa Gornicza, Poland.",
   noindex = false,
+  canonicalPath,
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const canonicalURL = new URL(canonicalPath ?? Astro.url.pathname, Astro.site);
 const ogImageURL = new URL("/assets/img/og-image.png", Astro.site);
 const siteURL = Astro.site?.toString().replace(/\/$/, "") ?? "";
 const logoURL = new URL("/assets/img/blockchainwares.svg", Astro.site);
@@ -130,7 +138,7 @@ const dateModified = new Date().toISOString();
     <!-- Schema.org JSON-LD -->
     {!noindex && (
       <Fragment>
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "Organization",
           "@id": organizationID,
@@ -159,7 +167,7 @@ const dateModified = new Date().toISOString();
             "addressCountry": "PL"
           }
         })} />
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "WebSite",
           "@id": websiteID,
@@ -169,7 +177,7 @@ const dateModified = new Date().toISOString();
           "inLanguage": pageLanguage,
           "publisher": { "@id": organizationID }
         })} />
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "ProfessionalService",
           "@id": localBusinessID,
@@ -199,7 +207,7 @@ const dateModified = new Date().toISOString();
           "sameAs": ["https://pl.linkedin.com/company/blockchainwares-software-sp-z-o-o"],
           "priceRange": "$$"
         })} />
-        <script type="application/ld+json" set:html={JSON.stringify({
+        <script type="application/ld+json" set:html={to_json_ld({
           "@context": "https://schema.org",
           "@type": "WebPage",
           "@id": webPageID,

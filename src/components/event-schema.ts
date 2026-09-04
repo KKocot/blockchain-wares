@@ -2,11 +2,9 @@ import {
   get_event_end_datetime,
   get_event_start_datetime,
   get_venue_map_url,
+  MARKETS_PATH,
   type TradeFairEvent,
 } from "./events-data";
-
-/** Canonical page a visitor is sent to — we run no ticketing of our own */
-const MARKETS_PATH = "/markets";
 
 interface PostalAddressSchema {
   "@type": "PostalAddress";
@@ -60,6 +58,7 @@ export interface EventSchema {
 function build_offer_schema(
   event: TradeFairEvent,
   site: URL | string | undefined,
+  offer_path: string,
 ): OfferSchema | undefined {
   if (!event.admission) {
     return undefined;
@@ -70,17 +69,22 @@ function build_offer_schema(
     price: event.admission.price,
     priceCurrency: event.admission.priceCurrency,
     availability: "https://schema.org/InStock",
-    url: new URL(MARKETS_PATH, site).href,
+    url: new URL(offer_path, site).href,
     validFrom: event.admission.validFrom,
   };
 }
 
-/** schema.org Event for a single entry of `EVENTS`, dates taken from the shared helpers */
+/**
+ * schema.org Event for a single entry of `EVENTS`, dates taken from the shared helpers.
+ * `offer_path` is where the offer sends a visitor: the listing by default, the event's
+ * own page when the schema is emitted from it — we run no ticketing of our own.
+ */
 export function build_event_schema(
   event: TradeFairEvent,
   site: URL | string | undefined,
+  offer_path: string = MARKETS_PATH,
 ): EventSchema {
-  const offers = build_offer_schema(event, site);
+  const offers = build_offer_schema(event, site, offer_path);
   const is_free =
     event.admission !== undefined && Number(event.admission.price) === 0;
   const map_url = get_venue_map_url(event);

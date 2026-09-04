@@ -153,8 +153,12 @@ export function Navigation({ currentPath = "/" }: NavigationProps) {
     if (lost_focus) menu_button_ref.current?.focus();
   }, [is_open]);
 
-  const is_page_active = (href: string) =>
-    current_path === normalize_path(href);
+  // Prefix match, so a page's own subpages keep its link lit; "/" only ever matches itself
+  const is_page_active = (href: string) => {
+    const target = normalize_path(href);
+
+    return current_path === target || current_path.startsWith(`${target}/`);
+  };
 
   return (
     <>

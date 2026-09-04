@@ -928,7 +928,11 @@ line.frontend-props {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    /* Zeroed delays too: `fill-mode: both` would otherwise hold the hidden state
+       for the whole delay, leaving the page blank for half a second */
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 
   .animate-on-scroll,

@@ -6,12 +6,16 @@ import sitemap from "@astrojs/sitemap";
 import vercel from "@astrojs/vercel";
 import tailwindcss from "@tailwindcss/vite";
 
+import { EVENTS, get_event_path } from "./src/components/events-data";
+
+const SITE = "https://blockchainwares.com.pl";
+
 // Panel admina jest noindex (AdminLayout.astro) — sitemap nie moze go reklamowac.
 const SITEMAP_EXCLUDED = /^\/(admin(\/|$)|404\/?$)/;
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://blockchainwares.com.pl",
+  site: SITE,
   output: "server",
 
   // Pobranie calego logu ma na siebie 60 s (FETCH_TIMEOUT_MS w src/lib/logs/source.ts),
@@ -27,6 +31,11 @@ export default defineConfig({
     react(),
     sitemap({
       filter: (page) => !SITEMAP_EXCLUDED.test(new URL(page).pathname),
+      // Strony wydarzen sa SSR-owe, wiec integracja sama ich nie widzi — lista idzie
+      // z tego samego zrodla co trasa, zeby nie powstala druga kopia do utrzymania.
+      customPages: EVENTS.map(
+        (event) => new URL(get_event_path(event), SITE).href,
+      ),
     }),
   ],
 

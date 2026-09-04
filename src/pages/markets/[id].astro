@@ -1,0 +1,158 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { EventDetail, Navigation, Footer } from "../../components";
+import type { RelatedEvent } from "../../components/EventDetail";
+import {
+  get_event_by_id,
+  get_event_path,
+  get_event_status,
+  group_events_by_status,
+  MARKETS_PATH,
+} from "../../components/events-data";
+import { build_event_schema, to_json_ld } from "../../components/event-schema";
+
+// The page exists to state whether an event is running, so the clock is read per request;
+// `get_event_status()` reads the day off it in the event's zone, not in the server's
+export const prerender = false;
+
+const OTHER_EVENTS_LIMIT = 3;
+const RELATED_ORDER = ["ongoing", "upcoming", "past"] as const;
+const DESCRIPTION_LIMIT = 155;
+
+const now = new Date();
+const event = get_event_by_id(Astro.params.id ?? "");
+const current_path = Astro.url.pathname;
+
+if (!event) {
+  Astro.response.status = 404;
+}
+
+const status = event ? get_event_status(event, now) : null;
+const groups = group_events_by_status(now);
+const related: RelatedEvent[] = RELATED_ORDER.flatMap((group) =>
+  groups[group].map((other) => ({ event: other, status: group })),
+)
+  .filter((entry) => entry.event.id !== event?.id)
+  .slice(0, OTHER_EVENTS_LIMIT);
+
+const title = event
+  ? `${event.name} — BlockchainWares`
+  : "Event not found — BlockchainWares";
+const description = event
+  ? truncate(event.description, DESCRIPTION_LIMIT)
+  : "This event is not on the BlockchainWares calendar. See where you can meet us next.";
+
+const event_schema = event
+  ? build_event_schema(event, Astro.site, get_event_path(event))
+  : null;
+const breadcrumb_schema = event
+  ? {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: new URL("/", Astro.site).href,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Markets & events",
+          item: new URL(MARKETS_PATH, Astro.site).href,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: event.name,
+          item: new URL(get_event_path(event), Astro.site).href,
+        },
+      ],
+    }
+  : null;
+
+/** Meta description: whole words up to the limit */
+function truncate(text: string, limit: number): string {
+  if (text.length <= limit) {
+    return text;
+  }
+
+  const cut = text.slice(0, limit);
+  const boundary = cut.lastIndexOf(" ");
+
+  return `${(boundary > 0 ? cut.slice(0, boundary) : cut).replace(/[.,;:–-]+$/, "")}…`;
+}
+---
+
+<Layout
+  title={title}
+  description={description}
+  noindex={!event}
+  canonicalPath={event ? get_event_path(event) : undefined}
+>
+  <Navigation client:load currentPath={current_path} />
+
+  <div class="relative bg-base-100 overflow-clip">
+    <div class="absolute inset-0 pointer-events-none z-0">
+      <div
+        class="absolute top-[-10%] left-[5%] w-[800px] h-[800px] md:w-[1100px] md:h-[1100px] blob-contained"
+        style="background: radial-gradient(circle, oklch(72% 0.18 215.221 / 0.14) 0%, transparent 70%);"
+      >
+      </div>
+      <div
+        class="absolute top-[40%] left-[55%] w-[900px] h-[900px] md:w-[1200px] md:h-[1200px] blob-contained"
+        style="background: radial-gradient(circle, oklch(72% 0.18 215.221 / 0.1) 0%, transparent 70%);"
+      >
+      </div>
+    </div>
+
+    <div class="relative z-[1]">
+      {
+        event && status ? (
+          <EventDetail event={event} status={status} related={related} />
+        ) : (
+          <main class="relative flex min-h-screen items-center justify-center px-4 py-16 md:py-24">
+            <div class="mx-auto w-full max-w-2xl text-center">
+              <span class="mb-2 block text-xs font-medium uppercase tracking-wider text-secondary md:mb-4 md:text-sm">
+                Error 404
+              </span>
+
+              <h1 class="mb-4 text-3xl font-bold leading-tight drop-shadow-lg md:mb-6 md:text-5xl">
+                Event <span class="text-secondary">not found</span>
+              </h1>
+
+              <p class="mx-auto mb-8 max-w-xl text-base leading-relaxed text-base-content/80 md:mb-10 md:text-lg">
+                No event of ours sits under this address. The calendar of trade
+                fairs, conferences and workshops is on the markets page.
+              </p>
+
+              <a
+                href={MARKETS_PATH}
+                class="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-secondary px-6 text-base font-semibold text-secondary-content shadow-md transition-[background-color,box-shadow] duration-150 hover:bg-secondary/90 hover:shadow-lg"
+              >
+                Markets &amp; events
+              </a>
+            </div>
+          </main>
+        )
+      }
+
+      <Footer currentPath={current_path} />
+    </div>
+  </div>
+
+  {
+    event_schema && (
+      <script type="application/ld+json" set:html={to_json_ld(event_schema)} />
+    )
+  }
+  {
+    breadcrumb_schema && (
+      <script
+        type="application/ld+json"
+        set:html={to_json_ld(breadcrumb_schema)}
+      />
+    )
+  }
+</Layout>

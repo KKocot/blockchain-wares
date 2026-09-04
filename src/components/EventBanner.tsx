@@ -5,8 +5,10 @@ import {
   format_event_date,
   get_event_end_datetime,
   get_event_start_datetime,
+  get_event_path,
   get_event_status,
   get_promoted_events,
+  MARKETS_PATH,
   parse_iso_day,
   type EventKind,
   type TradeFairEvent,
@@ -31,20 +33,26 @@ const STATIC_VARIANTS: Variants = {
 interface BannerAccent {
   /** Text tone kept at full opacity for WCAG AA on small text */
   text: string;
-  /** Focus ring itself comes from the global *:focus-visible outline */
+  /** Strip border; the links inside drive it, the strip itself is not clickable */
   border: string;
+  /** Headline tone while its own entry link is hovered or focused */
+  headline: string;
 }
 
 const UPCOMING_ACCENT: BannerAccent = {
   text: "text-secondary",
   border:
-    "border-secondary/25 hover:border-secondary/50 focus-visible:border-secondary/60",
+    "border-secondary/25 has-[a:hover]:border-secondary/50 has-[a:focus-visible]:border-secondary/60",
+  headline:
+    "group-hover/entry:text-secondary group-focus-visible/entry:text-secondary",
 };
 
 const ONGOING_ACCENT: BannerAccent = {
   text: "text-success",
   border:
-    "border-success/35 hover:border-success/60 focus-visible:border-success/60",
+    "border-success/35 has-[a:hover]:border-success/60 has-[a:focus-visible]:border-success/60",
+  headline:
+    "group-hover/entry:text-success group-focus-visible/entry:text-success",
 };
 
 /** Attendance for events we visit, hosting for our own workshops */
@@ -72,7 +80,7 @@ interface EventBannerProps {
 /**
  * Narrow announcement strip promoting the closest events we are at or heading to
  * — as many as `get_promoted_events()` returns, at most two.
- * Whole strip is a single link to /markets.
+ * Every entry links to its own event page, the closing call to action to the listing.
  * Renders nothing when no event is scheduled.
  */
 export function EventBanner({ todayIso }: EventBannerProps) {
@@ -109,10 +117,9 @@ export function EventBanner({ todayIso }: EventBannerProps) {
       aria-label="Where to meet us"
       className="relative px-4 py-8 md:py-12"
     >
-      <a
-        href="/markets"
+      <div
         className={cn(
-          "group mx-auto flex w-full max-w-6xl flex-col gap-4",
+          "mx-auto flex w-full max-w-6xl flex-col gap-4",
           "rounded-[28px] px-5 py-5",
           "md:flex-row md:items-center md:justify-between md:gap-8 md:px-8",
           // One entry keeps the original pill; two need the height of a rounded card
@@ -122,7 +129,7 @@ export function EventBanner({ todayIso }: EventBannerProps) {
           accent.border,
           "shadow-card",
           "transition-[border-color,box-shadow] duration-200 ease-out",
-          "hover:shadow-card-hover",
+          "has-[a:hover]:shadow-card-hover",
         )}
       >
         <span className="flex min-w-0 flex-col gap-4 md:flex-1 md:flex-row md:items-center md:gap-6">
@@ -137,19 +144,23 @@ export function EventBanner({ todayIso }: EventBannerProps) {
           ))}
         </span>
 
-        <span className="sr-only">. </span>
-
         {/* Mobile indent keeps the CTA aligned with the text column: icon + gap */}
-        <span
+        <a
+          href={MARKETS_PATH}
           className={cn(
-            "flex shrink-0 items-center gap-2 pl-[calc(0.875rem+0.75rem)] text-sm font-semibold md:pl-0 md:text-base",
+            // self-start keeps the mobile target on the text; desktop returns to the centred row
+            "group flex shrink-0 items-center gap-2 self-start rounded-full md:self-auto",
+            // Lifts the 44px touch target out of the flow instead of padding the strip
+            "py-2 -my-2 pl-[calc(0.875rem+0.75rem)] md:pl-0",
+            "text-sm font-semibold underline-offset-4 md:text-base",
+            "transition-colors duration-150 hover:underline",
             accent.text,
           )}
         >
           See markets
           <ArrowRightIcon />
-        </span>
-      </a>
+        </a>
+      </div>
     </motion.aside>
   );
 }
@@ -159,7 +170,7 @@ interface BannerEntryProps {
   is_ongoing: boolean;
   /** Lone entry keeps the original pill: full-round strip and its larger type */
   is_single: boolean;
-  /** Later entries get the divider rule and the spoken separator before them */
+  /** Later entries get the divider rule before them */
   is_first: boolean;
 }
 
@@ -178,62 +189,69 @@ function BannerEntry({
   return (
     <span
       className={cn(
-        "flex min-w-0 flex-1 items-start gap-3 md:items-center",
+        "flex min-w-0 flex-1",
         !is_first &&
           "border-t border-white/10 pt-4 md:border-t-0 md:border-l md:pt-0 md:pl-6",
       )}
     >
-      {/* The strip is one link: without spoken punctuation its name runs the entries together */}
-      {is_first ? null : <span className="sr-only">. </span>}
-      <DiamondIcon className={accent.text} />
+      {/* Divider stays on the wrapper so the focus ring can round the link itself */}
+      <a
+        href={get_event_path(event)}
+        className="group/entry flex min-w-0 flex-1 items-start gap-3 rounded-2xl md:items-center"
+      >
+        <DiamondIcon className={accent.text} />
 
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span
-          className={cn(
-            "flex flex-wrap items-center gap-x-2 text-xs font-semibold uppercase tracking-wider",
-            is_single && "md:text-sm",
-            accent.text,
-          )}
-        >
-          <span>
-            {date.month}{" "}
-            <time dateTime={get_event_start_datetime(event)}>
-              {date.start_day}
-            </time>
-            {is_range ? (
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span
+            className={cn(
+              "flex flex-wrap items-center gap-x-2 text-xs font-semibold uppercase tracking-wider",
+              is_single && "md:text-sm",
+              accent.text,
+            )}
+          >
+            <span>
+              {date.month}{" "}
+              <time dateTime={get_event_start_datetime(event)}>
+                {date.start_day}
+              </time>
+              {is_range ? (
+                <>
+                  –
+                  <time dateTime={get_event_end_datetime(event)}>
+                    {date.end_day}
+                  </time>
+                </>
+              ) : null}
+              {`, ${date.year}`}
+            </span>
+            {event.schedule ? (
               <>
-                –
-                <time dateTime={get_event_end_datetime(event)}>
-                  {date.end_day}
-                </time>
+                <span aria-hidden="true">·</span>
+                <span>
+                  {event.schedule.startTime}–{event.schedule.endTime}{" "}
+                  {event.schedule.timeZoneLabel}
+                </span>
               </>
             ) : null}
-            {`, ${date.year}`}
+            <span aria-hidden="true">·</span>
+            <span>{event.city}</span>
           </span>
-          {event.schedule ? (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>
-                {event.schedule.startTime}–{event.schedule.endTime}{" "}
-                {event.schedule.timeZoneLabel}
-              </span>
-            </>
-          ) : null}
-          <span aria-hidden="true">·</span>
-          <span>{event.city}</span>
-        </span>
 
-        <span className="sr-only">: </span>
+          <span className="sr-only">: </span>
 
-        <span
-          className={cn(
-            "text-base font-bold text-base-content",
-            is_single && "md:text-lg",
-          )}
-        >
-          {get_banner_headline(event_label, event.kind, is_ongoing)}
+          <span
+            className={cn(
+              "text-base font-bold text-base-content",
+              "underline-offset-4 transition-colors duration-150",
+              "group-hover/entry:underline group-focus-visible/entry:underline",
+              accent.headline,
+              is_single && "md:text-lg",
+            )}
+          >
+            {get_banner_headline(event_label, event.kind, is_ongoing)}
+          </span>
         </span>
-      </span>
+      </a>
     </span>
   );
 }

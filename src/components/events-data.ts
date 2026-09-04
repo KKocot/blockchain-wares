@@ -47,6 +47,12 @@ export interface TradeFairEvent {
   edition?: string;
   /** Defaults to `"conference"` */
   kind?: EventKind;
+  /**
+   * UTC offset the event's calendar days open and close in, e.g. "+02:00".
+   * `schedule` states it already and wins; spell it out for events without clock times,
+   * otherwise their days fall back to the zone of whoever renders the page.
+   */
+  utcOffset?: UtcOffset;
   city: string;
   country: string;
   /** ISO 3166-1 alpha-2 code, used by the JSON-LD Event schema */
@@ -100,6 +106,8 @@ export const EVENTS: TradeFairEvent[] = [
     countryCode: "ES",
     startDate: "2026-09-16",
     endDate: "2026-09-17",
+    // Barcelona keeps CEST through September — without it the days would be counted in UTC
+    utcOffset: "+02:00",
     url: "https://eblockchainconvention.com/",
     image: "/assets/img/og-image.png",
     organizer: {
@@ -153,6 +161,49 @@ export const EVENTS: TradeFairEvent[] = [
   },
 ];
 
+/**
+ * Prerendering the events pages evaluates this module, so a duplicated id fails the
+ * build instead of silently letting the first event of that id win.
+ */
+function build_event_by_id(
+  events: readonly TradeFairEvent[],
+): ReadonlyMap<string, TradeFairEvent> {
+  const by_id = new Map<string, TradeFairEvent>();
+
+  for (const event of events) {
+    if (by_id.has(event.id)) {
+      throw new Error(`Duplicate event id "${event.id}"`);
+    }
+
+    by_id.set(event.id, event);
+  }
+
+  return by_id;
+}
+
+const EVENT_BY_ID = build_event_by_id(EVENTS);
+
+/** Event behind a `/markets/<id>` route — `undefined` for an id we do not publish */
+export function get_event_by_id(
+  id: string,
+  events: readonly TradeFairEvent[] = EVENTS,
+): TradeFairEvent | undefined {
+  const by_id = events === EVENTS ? EVENT_BY_ID : build_event_by_id(events);
+
+  return by_id.get(id);
+}
+
+/**
+ * Canonical path of the events listing — it lives here because `event-schema.ts`
+ * imports this module, so reusing its private copy would close an import cycle.
+ */
+export const MARKETS_PATH = "/markets";
+
+/** Own page of a single event, e.g. "/markets/ebc-2026-barcelona" */
+export function get_event_path(event: TradeFairEvent): string {
+  return `${MARKETS_PATH}/${event.id}`;
+}
+
 const EN_DASH = "–";
 
 // en-US, not en-GB: ICU 72+ renders September as "Sept" for en-GB, which overflows the date block
@@ -193,6 +244,38 @@ export function to_iso_day(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function to_offset_minutes(offset: UtcOffset): number {
+  const [hours, minutes] = offset.slice(1).split(":").map(Number);
+  const magnitude = hours * 60 + minutes;
+
+  return offset.startsWith("-") ? -magnitude : magnitude;
+}
+
+/**
+ * Zone the event's calendar days are counted in, `undefined` for events we never pinned
+ * to one. The schedule carries the offset already, so no event states it twice.
+ */
+function get_event_utc_offset(event: TradeFairEvent): UtcOffset | undefined {
+  return event.schedule?.utcOffset ?? event.utcOffset;
+}
+
+/**
+ * Calendar day `now` falls on for this event. An event's day opens and closes in its own
+ * zone, so the listing (built once, then the visitor's clock) and the server-rendered
+ * detail page answer alike instead of drifting by the renderer's offset.
+ */
+function get_event_day(event: TradeFairEvent, now: Date): string {
+  const offset = get_event_utc_offset(event);
+
+  if (!offset) {
+    return to_iso_day(now);
+  }
+
+  return new Date(now.getTime() + to_offset_minutes(offset) * 60_000)
+    .toISOString()
+    .slice(0, 10);
+}
+
 /**
  * Closing moment has passed. `now` is midnight on the prerendered and on the first
  * client render alike, so the hour precision can only change the answer after mount.
@@ -218,15 +301,15 @@ function has_started(event: TradeFairEvent, now: Date): boolean {
 }
 
 /**
- * Whole calendar days are compared; an event with a `schedule` also opens at its
- * start time and ends at its closing time, so neither 03:00 nor 23:30 on the day
- * of the event reads as happening now.
+ * Whole calendar days of the event's own zone are compared; an event with a `schedule`
+ * also opens at its start time and ends at its closing time, so neither 03:00 nor
+ * 23:30 on the day of the event reads as happening now.
  */
 export function get_event_status(
   event: TradeFairEvent,
   now: Date,
 ): EventStatus {
-  const today = to_iso_day(now);
+  const today = get_event_day(event, now);
 
   if (today < event.startDate) {
     return "upcoming";

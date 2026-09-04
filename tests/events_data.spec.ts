@@ -4,19 +4,21 @@ import {
   EVENTS,
   format_admission,
   format_venue_address,
+  get_event_by_id,
   get_event_end_datetime,
+  get_event_path,
   get_event_start_datetime,
   get_event_status,
   get_promoted_events,
   get_venue_map_url,
+  MARKETS_PATH,
   parse_iso_day,
   type EventAdmission,
   type TradeFairEvent,
 } from "../src/components/events-data";
+import { EBC_ID, find_event } from "./support/events";
 
 const SITE = new URL("https://blockchainwares.com.pl");
-
-const EBC_ID = "ebc-2026-barcelona";
 
 const FREE_ADMISSION: EventAdmission = {
   price: "0",
@@ -24,17 +26,6 @@ const FREE_ADMISSION: EventAdmission = {
   requiresRegistration: false,
   validFrom: "2026-09-03",
 };
-
-/** Wydarzenie z `EVENTS`, nie z fixture — pilnuje danych wystawionych na produkcji */
-function find_event(id: string): TradeFairEvent {
-  const event = EVENTS.find((entry) => entry.id === id);
-
-  if (!event) {
-    throw new Error(`Brak wydarzenia ${id} w EVENTS`);
-  }
-
-  return event;
-}
 
 /** Wydarzenie własne: jeden dzień, godziny zegarowe, link do mapy zamiast strony */
 const WORKSHOP: TradeFairEvent = {
@@ -78,6 +69,16 @@ const CONFERENCE: TradeFairEvent = {
   organizer: { name: "Organizer", url: "https://example.com/" },
   description: "Test description",
   topics: ["Topic"],
+};
+
+/** Konferencja po drugiej stronie globu — jej doba nie może zależeć od strefy renderera */
+const TOKYO_CONFERENCE: TradeFairEvent = {
+  ...CONFERENCE,
+  id: "test-conference-tokyo",
+  city: "Tokyo",
+  country: "Japan",
+  countryCode: "JP",
+  utcOffset: "+09:00",
 };
 
 const WORKSHOP_START_MS = new Date(
@@ -141,6 +142,15 @@ test.describe("get_event_status — granice godzin", () => {
     expect(get_event_status(CONFERENCE, first_day_dawn)).toBe("ongoing");
     expect(get_event_status(CONFERENCE, last_day_evening)).toBe("ongoing");
     expect(get_event_status(CONFERENCE, next_day)).toBe("past");
+  });
+
+  test("doba wydarzenia zaczyna się w jego strefie, nie w strefie renderera", () => {
+    // 2026-09-16, 00:30 w Tokio — u renderera (UTC albo CEST) trwa jeszcze 15.09
+    const opening_night = new Date("2026-09-15T15:30:00Z");
+    const still_the_eve = new Date("2026-09-15T14:30:00Z");
+
+    expect(get_event_status(TOKYO_CONFERENCE, still_the_eve)).toBe("upcoming");
+    expect(get_event_status(TOKYO_CONFERENCE, opening_night)).toBe("ongoing");
   });
 });
 
@@ -222,6 +232,21 @@ test.describe("JSON-LD", () => {
     expect("isAccessibleForFree" in schema).toBe(false);
   });
 
+  test("schemat ze strony wydarzenia kieruje ofertę na tę stronę", () => {
+    const schema = build_event_schema(WORKSHOP, SITE, get_event_path(WORKSHOP));
+
+    expect(schema.offers?.url).toBe(
+      "https://blockchainwares.com.pl/markets/test-workshop",
+    );
+  });
+
+  test("bez ścieżki oferta zostaje przy listingu", () => {
+    // Listing emituje schematy wszystkich wydarzeń naraz — tam oferta nie ma dokąd celować.
+    expect(build_event_schema(WORKSHOP, SITE).offers?.url).toBe(
+      "https://blockchainwares.com.pl/markets",
+    );
+  });
+
   test("escapowanie nie zmienia danych — round-trip 1:1", () => {
     // Adres Maps URLs API zawiera `&`, a to jeden ze znaków uciekanych do \\uXXXX.
     const schemas = EVENTS.map((event) => build_event_schema(event, SITE));
@@ -255,6 +280,27 @@ test.describe("wstęp, adres i link do mapy", () => {
 
   test("bez ulicy nie ma pewnego trafienia, więc nie ma linku", () => {
     expect(get_venue_map_url(CONFERENCE)).toBeUndefined();
+  });
+});
+
+test.describe("adresy stron wydarzeń", () => {
+  test("każde wydarzenie ma własną stronę pod listingiem", () => {
+    expect(get_event_path(WORKSHOP)).toBe(`${MARKETS_PATH}/test-workshop`);
+  });
+
+  test("lookup zwraca wydarzenie, nieznane id zostaje bez strony", () => {
+    expect(get_event_by_id(WORKSHOP.id, [WORKSHOP, CONFERENCE])).toBe(WORKSHOP);
+    expect(
+      get_event_by_id("nie-ma-takiego", [WORKSHOP, CONFERENCE]),
+    ).toBeUndefined();
+  });
+
+  test("duplikat id wywala moduł, zamiast po cichu oddać stronę pierwszemu wpisowi", () => {
+    const clash: TradeFairEvent = { ...CONFERENCE, id: WORKSHOP.id };
+
+    expect(() => get_event_by_id(WORKSHOP.id, [WORKSHOP, clash])).toThrow(
+      'Duplicate event id "test-workshop"',
+    );
   });
 });
 

@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { build_event_schema, to_json_ld } from "../src/components/event-schema";
 import {
-  EVENTS,
   format_admission,
   format_venue_address,
   get_event_by_id,
@@ -16,7 +15,7 @@ import {
   type EventAdmission,
   type TradeFairEvent,
 } from "../src/components/events-data";
-import { EBC_ID, find_event } from "./support/events";
+import { SEED_EVENTS } from "./fixtures/events";
 
 const SITE = new URL("https://blockchainwares.com.pl");
 
@@ -248,10 +247,12 @@ test.describe("JSON-LD", () => {
   });
 
   test("escapowanie nie zmienia danych — round-trip 1:1", () => {
-    // Adres Maps URLs API zawiera `&`, a to jeden ze znaków uciekanych do \\uXXXX.
-    const schemas = EVENTS.map((event) => build_event_schema(event, SITE));
+    const schemas = SEED_EVENTS.map((event) => build_event_schema(event, SITE));
     const serialized = to_json_ld(schemas);
 
+    // Adres Maps URLs API zawiera `&`, jeden ze znaków uciekanych do \\uXXXX.
+    // Bez niego w danych test przechodziłby, nie sprawdzając niczego.
+    expect(JSON.stringify(schemas)).toMatch(/&/);
     expect(serialized).not.toMatch(/[<>&]/);
     expect(JSON.parse(serialized)).toEqual(schemas);
   });
@@ -301,15 +302,6 @@ test.describe("adresy stron wydarzeń", () => {
     expect(() => get_event_by_id(WORKSHOP.id, [WORKSHOP, clash])).toThrow(
       'Duplicate event id "test-workshop"',
     );
-  });
-});
-
-test.describe("dane produkcyjne", () => {
-  test("EBC: cudze wydarzenie zostaje bez oferty i bez adresu", () => {
-    const schema = build_event_schema(find_event(EBC_ID), SITE);
-
-    expect("offers" in schema).toBe(false);
-    expect("streetAddress" in schema.location.address).toBe(false);
   });
 });
 

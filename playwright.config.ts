@@ -2,6 +2,7 @@ import { randomBytes, scryptSync } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { EVENTS_API_PREFIX, SEED_EVENTS } from "./tests/fixtures/events";
 
 const PORT = 4321;
 const BASE_URL = `http://localhost:${PORT}`;
@@ -9,6 +10,30 @@ const BASE_URL = `http://localhost:${PORT}`;
 const LOG_FIXTURE_HOST = "127.0.0.1";
 const LOG_FIXTURE_PORT = 4322;
 const LOG_FIXTURE_ORIGIN = `http://${LOG_FIXTURE_HOST}:${LOG_FIXTURE_PORT}`;
+
+const EVENTS_FIXTURE_HOST = "127.0.0.1";
+const EVENTS_FIXTURE_PORT = 4323;
+const EVENTS_FIXTURE_ORIGIN = `http://${EVENTS_FIXTURE_HOST}:${EVENTS_FIXTURE_PORT}`;
+
+/** Baza modułu wydarzeń, tak jak widzi ją aplikacja — ścieżki dokleja `src/lib/events`. */
+export const EVENTS_API_BASE_URL = `${EVENTS_FIXTURE_ORIGIN}${EVENTS_API_PREFIX}`;
+
+/**
+ * Przywraca zestaw startowy fixture'a. Stan mutacji żyje w pamięci jego procesu,
+ * a `reuseExistingServer` potrafi oddać serwer po poprzednim biegu — test dotykający
+ * zapisu wywołuje to w `beforeEach`, inaczej zależy od tego, co zostawił poprzedni.
+ */
+export const EVENTS_FIXTURE_RESET_URL = `${EVENTS_FIXTURE_ORIGIN}/__reset`;
+
+/** Klucz serwisowy serwera testowego — backend odrzuca krótsze niż 32 znaki. */
+export const E2E_EVENTS_API_KEY =
+  "playwright-e2e-events-service-key-local-only";
+
+/**
+ * Panel realnie zapisuje wydarzenia, więc cache listy musi wygasać w trakcie testu.
+ * Sekunda to minimum, jakie przepuszcza `get_events_ttl_millis()`.
+ */
+const EVENTS_API_TTL_SECONDS = "1";
 
 /**
  * Wygenerowany log nginx trzymamy poza repozytorium: plik jest artefaktem
@@ -89,6 +114,20 @@ export default defineConfig({
       },
     },
     {
+      command: "node ./tests/fixtures/serve_events.mjs",
+      url: `${EVENTS_FIXTURE_ORIGIN}/health`,
+      reuseExistingServer: !process.env.CI,
+      env: {
+        EVENTS_FIXTURE_HOST,
+        EVENTS_FIXTURE_PORT: String(EVENTS_FIXTURE_PORT),
+        EVENTS_FIXTURE_PREFIX: EVENTS_API_PREFIX,
+        EVENTS_FIXTURE_API_KEY: E2E_EVENTS_API_KEY,
+        // Zestaw startowy idzie przez środowisko: serwer jest zwykłym .mjs i nie
+        // czyta modułów TypeScript, a globalSetup należy do innego zadania.
+        EVENTS_FIXTURE_SEED: JSON.stringify(SEED_EVENTS),
+      },
+    },
+    {
       command: `npm run dev -- --port ${PORT}`,
       url: BASE_URL,
       reuseExistingServer: !process.env.CI,
@@ -99,6 +138,10 @@ export default defineConfig({
         LOG_SOURCE_URL: `${LOG_FIXTURE_ORIGIN}/access.log`,
         // Zbiór nie zmienia się w trakcie biegu — jedno pobranie na cały run.
         LOG_SOURCE_TTL_SECONDS: "3600",
+        // Zamiast modułu wydarzeń backend-api: lokalny fixture ze stanem w pamięci.
+        EVENTS_API_URL: EVENTS_API_BASE_URL,
+        EVENTS_API_KEY: E2E_EVENTS_API_KEY,
+        EVENTS_API_TTL_SECONDS,
       },
     },
   ],

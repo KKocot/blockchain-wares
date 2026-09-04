@@ -12,11 +12,30 @@ import {
   Contact,
   Footer,
 } from "../components";
-import { to_iso_day } from "../components/events-data";
-
-export const prerender = true;
+import { to_iso_day, type TradeFairEvent } from "../components/events-data";
+import { load_events } from "../lib/events";
 
 const today_iso = to_iso_day(new Date());
+
+// `load_events()` rzuca tylko przy pustym cache — awaria API wydarzen ma zabrac
+// sam baner (renderuje null na pustej liscie), nie cala strone glowna.
+let events: TradeFairEvent[] = [];
+try {
+  events = (await load_events()).events;
+  // Odpowiedz nie zalezy od sesji ani od naglowkow zadania — brzeg moze ja
+  // powtarzac zamiast wolac funkcje przy kazdym wejsciu.
+  Astro.response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=60, stale-while-revalidate=300",
+  );
+} catch (cause) {
+  // Render bez banera nie ma prawa zamarznac na brzegu na czas trwania okna swr.
+  Astro.response.headers.set("Cache-Control", "no-store");
+  console.error(
+    "[index] events source failed:",
+    cause instanceof Error ? cause.message : "unknown error",
+  );
+}
 
 const BLOB_CYAN = "oklch(72% 0.18 215.221";
 
@@ -159,7 +178,7 @@ function blobStyle(blob: Blob): string {
 
     <div class="relative z-[1]">
       <Hero client:load />
-      <EventBanner client:visible todayIso={today_iso} />
+      <EventBanner client:visible events={events} todayIso={today_iso} />
       <About client:visible />
       <OurWorks client:visible />
       <EndUsers client:visible />

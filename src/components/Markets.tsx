@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { cn } from "../lib/utils";
 import { EventCard } from "./EventCard";
 import {
   group_events_by_status,
@@ -47,6 +48,8 @@ interface EventSection {
 }
 
 interface MarketsProps {
+  /** Events to list; the page fetches them, the section never does */
+  events: TradeFairEvent[];
   /** Build-time local day (`YYYY-MM-DD`), corrected to the visitor's day after mount */
   todayIso: string;
 }
@@ -56,7 +59,7 @@ interface MarketsProps {
  * plus the workshops we host ourselves.
  * Splits events into ongoing / upcoming / past against the current day.
  */
-export function Markets({ todayIso }: MarketsProps) {
+export function Markets({ events, todayIso }: MarketsProps) {
   const prefers_reduced_motion = useReducedMotion();
   const [now, set_now] = useState(() => parse_iso_day(todayIso));
   // useReducedMotion() is null on the server, so the preference may only be applied after mount
@@ -70,21 +73,21 @@ export function Markets({ todayIso }: MarketsProps) {
   const variants =
     is_hydrated && prefers_reduced_motion ? STATIC_VARIANTS : MOTION_VARIANTS;
 
-  const sections = useMemo(() => build_sections(now), [now]);
-  const outro_index = sections.reduce(
-    (total, section) => total + section.events.length + 1,
-    1,
-  );
-  const outro =
-    sections.length === 0
-      ? {
-          lead: "Nothing is on our calendar right now. ",
-          tail: " and we will let you know where to find us next.",
-        }
-      : {
-          lead: "Want to book a meeting before the doors open? ",
-          tail: " and we will save you a slot.",
-        };
+  const sections = useMemo(() => build_sections(events, now), [events, now]);
+  const is_empty = sections.length === 0;
+  // The empty panel takes the stagger slot the first section would have had
+  const outro_index = is_empty
+    ? 2
+    : sections.reduce((total, section) => total + section.events.length + 1, 1);
+  const outro = is_empty
+    ? {
+        lead: "Want to hear when the next dates land? ",
+        tail: " and we will let you know where to find us next.",
+      }
+    : {
+        lead: "Want to book a meeting before the doors open? ",
+        tail: " and we will save you a slot.",
+      };
 
   return (
     <main className="relative min-h-screen px-4 pt-28 pb-20 md:pt-36 md:pb-28">
@@ -111,6 +114,26 @@ export function Markets({ todayIso }: MarketsProps) {
             of your own.
           </p>
         </motion.header>
+
+        {is_empty ? (
+          <motion.p
+            custom={1}
+            variants={variants}
+            initial="hidden"
+            animate="visible"
+            className={cn(
+              "px-6 py-8 md:px-8 md:py-10",
+              "rounded-[32px] md:rounded-[40px]",
+              "bg-base-200/30 backdrop-blur-sm",
+              "border border-white/5",
+              "shadow-card",
+              "text-base leading-relaxed text-base-content/80 md:text-lg",
+            )}
+          >
+            Nothing is on our calendar right now — new dates land here as soon
+            as they are booked.
+          </motion.p>
+        ) : null}
 
         {sections.map((section) => (
           <section
@@ -170,20 +193,20 @@ export function Markets({ todayIso }: MarketsProps) {
 }
 
 /** Non-empty status sections in display order, each with its stagger offset */
-function build_sections(now: Date): EventSection[] {
-  const groups = group_events_by_status(now);
+function build_sections(events: TradeFairEvent[], now: Date): EventSection[] {
+  const groups = group_events_by_status(now, events);
   const sections: EventSection[] = [];
   let motion_index = 1;
 
   for (const status of SECTION_ORDER) {
-    const events = groups[status];
+    const status_events = groups[status];
 
-    if (events.length === 0) {
+    if (status_events.length === 0) {
       continue;
     }
 
-    sections.push({ status, events, motion_index });
-    motion_index += events.length + 1;
+    sections.push({ status, events: status_events, motion_index });
+    motion_index += status_events.length + 1;
   }
 
   return sections;

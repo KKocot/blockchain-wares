@@ -9,6 +9,27 @@ interface Props {
 const { title, description } = Astro.props;
 
 const pageTitle = `${title} · Panel BlockchainWares`;
+
+const NAV_LINKS = [
+  { href: "/admin", label: "Logi ruchu" },
+  { href: "/admin/events", label: "Wydarzenia" },
+] as const;
+
+const NAV_LINK_CLASS =
+  "rounded-md px-2 py-1 text-sm transition-colors duration-150 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary";
+
+// `trailingSlash: "ignore"` wpuszcza tu obie postacie adresu.
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+/** Prefiksowo, ale `/admin` tylko dokladnie — inaczej swiecilby wszedzie. */
+function is_current(href: string): boolean {
+  return href === "/admin"
+    ? path === href
+    : path === href || path.startsWith(`${href}/`);
+}
+
+// Na ekranie logowania nawigacja prowadzilaby tylko z powrotem do logowania.
+const showNav = Astro.locals.isAuthenticated === true;
 ---
 
 <!doctype html>
@@ -88,6 +109,30 @@ const pageTitle = `${title} · Panel BlockchainWares`;
             >
               Panel
             </span>
+
+            {
+              showNav && (
+                <nav
+                  aria-label="Sekcje panelu"
+                  class="flex min-w-0 items-center gap-1"
+                >
+                  {NAV_LINKS.map((link) => (
+                    <a
+                      href={link.href}
+                      aria-current={is_current(link.href) ? "page" : undefined}
+                      class:list={[
+                        NAV_LINK_CLASS,
+                        is_current(link.href)
+                          ? "bg-base-300 font-semibold text-secondary"
+                          : "text-base-content/70",
+                      ]}
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </nav>
+              )
+            }
           </div>
 
           <div class="flex shrink-0 items-center gap-2">

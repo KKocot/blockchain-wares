@@ -1,0 +1,183 @@
+---
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import { EventForm } from "../../../../components/admin";
+import { BUTTON_CLASS, CARD_CLASS } from "../../../../components/admin/styles";
+import {
+  get_event_by_id,
+  get_event_path,
+  type TradeFairEvent,
+} from "../../../../components/events-data";
+import {
+  ADMIN_EVENTS_PATH,
+  load_events,
+  to_event_form_fields,
+  update_event_from_form,
+  type EventActionRejected,
+} from "../../../../lib/events";
+
+export const prerender = false;
+
+interface FailureView {
+  status: 404 | 503;
+  heading: string;
+  body: string;
+}
+
+const NOT_FOUND: FailureView = {
+  status: 404,
+  heading: "Nie ma takiego wydarzenia",
+  body: "Pod tym identyfikatorem nie ma zapisanego wydarzenia — mogło zostać usunięte albo adres jest przepisany z błędem.",
+};
+
+/** Milczące API nie jest dowodem, że wydarzenia nie ma, więc 503, a nie 404. */
+const SOURCE_DOWN: FailureView = {
+  status: 503,
+  heading: "Nie można wczytać wydarzenia",
+  body: "API wydarzeń nie odpowiada, więc panel nie wie, co jest zapisane pod tym adresem. Nic nie zostało zmienione — spróbuj ponownie za chwilę.",
+};
+
+const id = Astro.params.id ?? "";
+/** Formularz POST-uje sam do siebie; `id` idzie z adresu, więc przechodzi przez enkoder. */
+const action = `${ADMIN_EVENTS_PATH}/${encodeURIComponent(id)}/edit`;
+
+// Obrona w glab, jak w /admin: ta trasa zapisuje, wiec brak sesji musi zatrzymac
+// zadanie przed wywolaniem akcji, a nie dopiero przy renderze.
+if (!Astro.locals.isAuthenticated) {
+  const target = encodeURIComponent(`${Astro.url.pathname}${Astro.url.search}`);
+  return Astro.redirect(`/admin/login?redirect=${target}`, 302);
+}
+
+/**
+ * Odrzucony zapis renderuje ten sam formularz zamiast przekierowywac: 28 pol z opisem
+ * nie zmiesci sie w query stringu, a bez JS-a nie ma kto odtworzyc ich w przegladarce.
+ * Zapis idzie do API bez ogladania sie na rekord — to API jest wyrocznia istnienia
+ * wydarzenia, a jego odmowa (`not_found`, `unreachable`) oddaje wpisane pola z powrotem.
+ */
+let rejected: EventActionRejected | null = null;
+
+if (Astro.request.method === "POST") {
+  const result = await update_event_from_form(Astro.request, id);
+  if (result.ok) {
+    return Astro.redirect(result.redirect, 303);
+  }
+
+  rejected = result;
+}
+
+/**
+ * Zrodlo pytamy tylko wtedy, gdy nie ma czym wypelnic formularza: przy GET oraz po
+ * odrzuceniu sprzed odczytu pol (`values === null`). Prefill musi pochodzic z ODPOWIEDZI
+ * API, nigdy z cache'u: formularz emituje KAZDE pole, a puste znaczy „skasuj", wiec zapis
+ * ze starego rekordu cofnalby cudza edycje, ktorej ta instancja nie widziala — po cichu,
+ * bo stary prefill wyglada dokladnie tak samo jak swiezy.
+ *
+ * Stad dwie bramki zamiast jednej. `force` omija TTL, ale przy martwym API i niepustym
+ * cache `load_events()` NIE rzuca — oddaje nieswiezy snapshot i melduje awarie w
+ * `status.error`. Jedno i drugie konczy sie tu odmowa: formularz, ktoremu nie mozna ufac,
+ * jest gorszy niz jawne „zrodlo nie odpowiada".
+ */
+let stored: TradeFairEvent | null = null;
+let unreachable = false;
+
+if (rejected === null || rejected.values === null) {
+  try {
+    const { events, status } = await load_events({ force: true });
+    if (status.error === null) {
+      stored = get_event_by_id(id, events) ?? null;
+    } else {
+      console.error(
+        `[admin/events/:id/edit] events source stale (${status.error.kind}):`,
+        status.error.message,
+      );
+      unreachable = true;
+    }
+  } catch (cause) {
+    console.error(
+      "[admin/events/:id/edit] events source failed:",
+      cause instanceof Error ? cause.message : "unknown error",
+    );
+    unreachable = true;
+  }
+}
+
+const values =
+  rejected?.values ?? (stored === null ? null : to_event_form_fields(stored));
+
+// Strona bledu dopiero wtedy, gdy nie ma ani wpisanych wartosci, ani rekordu — praca
+// nad formularzem wazy wiecej niz komplet danych o wydarzeniu.
+const view =
+  values === null
+    ? ({
+        kind: "failure",
+        failure: unreachable ? SOURCE_DOWN : NOT_FOUND,
+      } as const)
+    : ({ kind: "form", values, event: stored } as const);
+
+// Odpowiedz z formularzem nie ma udawac udanego zapisu.
+if (view.kind === "failure") {
+  Astro.response.status = view.failure.status;
+} else if (rejected !== null) {
+  Astro.response.status = rejected.status;
+}
+---
+
+<AdminLayout
+  title={view.kind === "form" && view.event !== null
+    ? `Edycja: ${view.event.name}`
+    : "Edycja wydarzenia"}
+  description="Panel BlockchainWares — edycja wydarzenia."
+>
+  <form slot="actions" method="post" action="/api/auth/logout">
+    <button type="submit" class={BUTTON_CLASS}>Wyloguj</button>
+  </form>
+
+  <div class="mx-auto w-full max-w-3xl">
+    {
+      view.kind === "form" ? (
+        <Fragment>
+          <h1 class="text-lg font-semibold">
+            {view.event?.name ?? "Edycja wydarzenia"}
+          </h1>
+
+          <p class="mt-1 mb-5 text-sm text-base-content/60">
+            {view.event === null ? (
+              <Fragment>
+                Wydarzenie: <span class="admin-mono">{id}</span>
+              </Fragment>
+            ) : (
+              <Fragment>
+                Strona wydarzenia:{" "}
+                <a
+                  href={get_event_path(view.event)}
+                  class="admin-mono underline underline-offset-2 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+                >
+                  {get_event_path(view.event)}
+                </a>
+              </Fragment>
+            )}
+          </p>
+
+          <EventForm
+            mode="edit"
+            action={action}
+            cancelHref={ADMIN_EVENTS_PATH}
+            values={view.values}
+            errors={rejected?.errors ?? []}
+            message={rejected?.message ?? null}
+          />
+        </Fragment>
+      ) : (
+        <div class={CARD_CLASS}>
+          <h1 class="text-lg font-semibold">{view.failure.heading}</h1>
+          <p class="mt-2 mb-4 text-sm text-base-content/70">
+            {view.failure.body}
+          </p>
+
+          <a href={ADMIN_EVENTS_PATH} class={BUTTON_CLASS}>
+            Wróć do listy wydarzeń
+          </a>
+        </div>
+      )
+    }
+  </div>
+</AdminLayout>

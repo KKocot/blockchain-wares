@@ -1,0 +1,357 @@
+---
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import { BUTTON_CLASS, CARD_CLASS } from "../../../../components/admin/styles";
+import {
+  format_admission,
+  format_venue_address,
+  get_event_by_id,
+  get_event_path,
+  get_event_status,
+  type EventStatus,
+  type TradeFairEvent,
+} from "../../../../components/events-data";
+import {
+  STATUS_BADGE_CLASS,
+  STATUS_THEME,
+} from "../../../../components/event-theme";
+import { cn } from "../../../../lib/utils";
+import {
+  ADMIN_EVENTS_PATH,
+  DELETE_CONFIRM_FIELD,
+  DELETE_CONFIRM_VALUE,
+  delete_event_from_form,
+  load_events,
+  type EventActionProblem,
+  type EventActionRejected,
+} from "../../../../lib/events";
+
+export const prerender = false;
+
+const STATUS_LABEL: Record<EventStatus, string> = {
+  ongoing: "Trwa",
+  upcoming: "Nadchodzi",
+  past: "Zakończone",
+};
+
+const KIND_LABEL = {
+  workshop: "Warsztat",
+  conference: "Konferencja",
+} as const;
+
+const DANGER_BUTTON_CLASS =
+  "inline-flex items-center rounded-md border border-error/50 bg-error/15 px-4 py-2 text-sm font-semibold text-error transition-colors duration-150 hover:border-error/70 hover:bg-error/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error";
+
+const LINK_CLASS =
+  "admin-mono rounded-sm break-all underline underline-offset-2 transition-colors duration-150 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary";
+
+interface ProblemView {
+  /** Naglowek nad komunikatem z `admin_actions`: sam werdykt, nie tresc. */
+  title: string;
+  tone: "error" | "warning";
+  /** Czy ponowienie POST-a ma sens; `false` chowa przycisk usuwania. */
+  retry: boolean;
+}
+
+/**
+ * Trzy odpowiedzi na „nie udalo sie" znacza trzy rozne ruchy uzytkownika, wiec
+ * strona pokazuje trzy rozne komplety akcji. Zlanie ich w jedno „cos poszlo nie
+ * tak" konczy sie ponowieniem na slepo po `refresh` — czyli zgloszeniem bledu
+ * o wydarzeniu, ktorego juz nie ma.
+ */
+const PROBLEM_VIEW: Record<EventActionProblem, ProblemView> = {
+  validation: {
+    title: "Żądanie nie zostało przyjęte",
+    tone: "error",
+    retry: true,
+  },
+  conflict: {
+    title: "Lista w panelu jest nieaktualna",
+    tone: "warning",
+    retry: false,
+  },
+  retry: { title: "Nic nie zostało usunięte", tone: "warning", retry: true },
+  refresh: {
+    title: "Nie wiadomo, czy wydarzenie zostało usunięte",
+    tone: "warning",
+    retry: false,
+  },
+  config: {
+    title: "Błąd konfiguracji panelu — nie Twoich danych",
+    tone: "error",
+    retry: false,
+  },
+  request: { title: "Żądanie zostało odrzucone", tone: "error", retry: true },
+};
+
+const ALERT_TONE = {
+  error: { wrapper: "border-error/40 bg-error/10", text: "text-error" },
+  warning: {
+    wrapper: "border-warning/40 bg-warning/10",
+    text: "text-warning",
+  },
+} as const;
+
+interface DetailRow {
+  label: string;
+  value: string;
+  mono?: boolean;
+}
+
+function message_of(cause: unknown): string {
+  return cause instanceof Error ? cause.message : "unknown error";
+}
+
+function format_term(event: TradeFairEvent): string {
+  const days =
+    event.endDate === event.startDate
+      ? event.startDate
+      : `${event.startDate} → ${event.endDate}`;
+  const schedule = event.schedule;
+
+  return schedule === undefined
+    ? days
+    : `${days}, ${schedule.startTime}–${schedule.endTime} ${schedule.timeZoneLabel}`;
+}
+
+/** Tyle, ile trzeba, zeby rozpoznac wydarzenie — nie kopia formularza. */
+function build_details(event: TradeFairEvent): DetailRow[] {
+  const rows: DetailRow[] = [
+    { label: "Identyfikator", value: event.id, mono: true },
+    {
+      label: "Rodzaj",
+      value:
+        event.edition === undefined
+          ? KIND_LABEL[event.kind ?? "conference"]
+          : `${KIND_LABEL[event.kind ?? "conference"]} · ${event.edition}`,
+    },
+    { label: "Termin", value: format_term(event), mono: true },
+    {
+      label: "Miejsce",
+      value: `${event.city}, ${event.country} (${event.countryCode})`,
+    },
+  ];
+
+  const venue = event.venue;
+  if (venue !== undefined) {
+    const address = format_venue_address(event);
+    rows.push({
+      label: "Obiekt",
+      value: address === undefined ? venue.name : `${venue.name} · ${address}`,
+    });
+  }
+
+  if (event.admission !== undefined) {
+    rows.push({
+      label: "Wstęp (tekst na stronie)",
+      value: format_admission(event.admission),
+    });
+  }
+
+  return rows;
+}
+
+const id = Astro.params.id ?? "";
+
+// POST idzie przed odczytem listy: kasowanie adresuje API po `id` z trasy, wiec
+// niedostepna lista nie ma prawa zablokowac operacji.
+let failure: EventActionRejected | null = null;
+if (Astro.request.method === "POST") {
+  const result = await delete_event_from_form(Astro.request, id);
+  if (result.ok) {
+    return Astro.redirect(result.redirect, 303);
+  }
+  failure = result;
+}
+
+let events: TradeFairEvent[] | null = null;
+try {
+  // Bez `force`: lista odswiezyla cache chwile wczesniej, a i tak o istnieniu
+  // wydarzenia rozstrzyga samo API przy kasowaniu (`not_found` -> `conflict`).
+  events = (await load_events()).events;
+} catch (cause) {
+  console.error(
+    "[admin/events/delete] events source failed:",
+    message_of(cause),
+  );
+}
+
+const now = new Date();
+const found = events === null ? undefined : get_event_by_id(id, events);
+
+const view =
+  found === undefined
+    ? ({
+        kind: "missing",
+        heading:
+          events === null
+            ? "API wydarzeń nie odpowiada"
+            : "Nie ma takiego wydarzenia",
+        body:
+          events === null
+            ? "Panel nie wie, co kryje się pod tym identyfikatorem, więc nie pokazuje potwierdzenia. Nic nie zostało usunięte — spróbuj ponownie za chwilę."
+            : "Pod tym identyfikatorem nie ma wydarzenia — mogło już zostać usunięte albo adres jest przepisany z błędem.",
+      } as const)
+    : ({
+        kind: "confirm",
+        event: found,
+        status: get_event_status(found, now),
+        details: build_details(found),
+        publicPath: get_event_path(found),
+      } as const);
+
+// Nieudany POST narzuca swoj status. GET rozstrzyga sam: brak wydarzenia to
+// 404, martwe zrodlo to 503 — cisza API nie dowodzi, ze wydarzenia nie ma.
+if (failure !== null) {
+  Astro.response.status = failure.status;
+} else if (view.kind === "missing") {
+  Astro.response.status = events === null ? 503 : 404;
+}
+
+const problem = failure === null ? null : PROBLEM_VIEW[failure.problem];
+const show_delete =
+  view.kind === "confirm" && (problem === null || problem.retry);
+const back_label = show_delete
+  ? "Anuluj — wróć do listy"
+  : problem === null
+    ? "Wróć do listy wydarzeń"
+    : "Odśwież listę wydarzeń";
+---
+
+<AdminLayout
+  title="Usuń wydarzenie"
+  description="Panel BlockchainWares — potwierdzenie usunięcia wydarzenia."
+>
+  <form slot="actions" method="post" action="/api/auth/logout">
+    <button type="submit" class={BUTTON_CLASS}>Wyloguj</button>
+  </form>
+
+  <div class="mx-auto w-full max-w-3xl space-y-4">
+    <header>
+      <a
+        href={ADMIN_EVENTS_PATH}
+        class="rounded-sm text-xs font-medium tracking-wide text-base-content/60 uppercase transition-colors duration-150 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+      >
+        ← Wydarzenia
+      </a>
+      <h1 class="mt-1 text-lg font-semibold">Usuń wydarzenie</h1>
+    </header>
+
+    {
+      failure !== null && problem !== null && (
+        <div
+          role="alert"
+          class:list={[
+            "rounded-md border px-4 py-3",
+            ALERT_TONE[problem.tone].wrapper,
+          ]}
+        >
+          <p
+            class:list={[
+              "text-sm font-semibold",
+              ALERT_TONE[problem.tone].text,
+            ]}
+          >
+            {problem.title}
+          </p>
+          {failure.message !== null && (
+            <p class:list={["mt-1 text-sm", ALERT_TONE[problem.tone].text]}>
+              {failure.message}
+            </p>
+          )}
+        </div>
+      )
+    }
+
+    {
+      view.kind === "confirm" ? (
+        <section class={cn(CARD_CLASS, "space-y-4")}>
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <h2 class="min-w-0 text-base font-semibold break-words">
+              {view.event.name}
+            </h2>
+
+            <span
+              class={cn(
+                STATUS_BADGE_CLASS,
+                STATUS_THEME[view.status].badge,
+                "shrink-0",
+              )}
+            >
+              <span
+                aria-hidden="true"
+                class={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  STATUS_THEME[view.status].dot,
+                )}
+              />
+              {STATUS_LABEL[view.status]}
+            </span>
+          </div>
+
+          <dl class="grid gap-3 sm:grid-cols-2">
+            {view.details.map((row) => (
+              <div>
+                <dt class="text-xs font-medium tracking-wide text-base-content/60 uppercase">
+                  {row.label}
+                </dt>
+                <dd
+                  class:list={[
+                    "mt-0.5 text-sm",
+                    row.mono === true ? "admin-mono break-all" : "break-words",
+                  ]}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+
+            <div>
+              <dt class="text-xs font-medium tracking-wide text-base-content/60 uppercase">
+                Adres publiczny
+              </dt>
+              <dd class="mt-0.5 text-sm">
+                <a href={view.publicPath} class={LINK_CLASS}>
+                  {view.publicPath}
+                </a>
+              </dd>
+            </div>
+          </dl>
+
+          <p class="max-w-prose text-sm text-base-content/70">
+            Usunięcia nie da się cofnąć. Wydarzenie zniknie z sekcji „Markets” i
+            z banera na stronie głównej, a jego adres publiczny zacznie zwracać
+            404.
+          </p>
+        </section>
+      ) : (
+        <section class={cn(CARD_CLASS, "space-y-2")}>
+          <h2 class="text-base font-semibold">{view.heading}</h2>
+          <p class="max-w-prose text-sm text-base-content/70">{view.body}</p>
+          <p class="admin-mono text-xs break-all text-base-content/60">{id}</p>
+        </section>
+      )
+    }
+
+    <div class="flex flex-wrap items-center gap-3">
+      {
+        show_delete && (
+          <form method="post" action={Astro.url.pathname}>
+            {/* Zgoda jedzie jako name/value przycisku, a nie ukryte pole: slad
+                zgody powstaje przez nacisniecie tego przycisku, nie przez samo
+                otwarcie strony. */}
+            <button
+              type="submit"
+              name={DELETE_CONFIRM_FIELD}
+              value={DELETE_CONFIRM_VALUE}
+              class={DANGER_BUTTON_CLASS}
+            >
+              Usuń wydarzenie
+            </button>
+          </form>
+        )
+      }
+
+      <a href={ADMIN_EVENTS_PATH} class={BUTTON_CLASS}>{back_label}</a>
+    </div>
+  </div>
+</AdminLayout>

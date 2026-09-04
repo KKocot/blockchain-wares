@@ -16,6 +16,8 @@ import {
 
 const EASE: [number, number, number, number] = [0.44, 0, 0.56, 1];
 
+const PROMOTED_LIMIT = 2;
+
 const MOTION_VARIANTS: Variants = {
   hidden: { opacity: 0, y: 16 },
   visible: {
@@ -73,6 +75,8 @@ function get_banner_headline(
 }
 
 interface EventBannerProps {
+  /** Events to promote from; the page fetches them, the banner never does */
+  events: TradeFairEvent[];
   /** Build-time local day (`YYYY-MM-DD`), corrected to the visitor's day after mount */
   todayIso: string;
 }
@@ -81,9 +85,9 @@ interface EventBannerProps {
  * Narrow announcement strip promoting the closest events we are at or heading to
  * — as many as `get_promoted_events()` returns, at most two.
  * Every entry links to its own event page, the closing call to action to the listing.
- * Renders nothing when no event is scheduled.
+ * Renders nothing when nothing is worth promoting — an empty list included.
  */
-export function EventBanner({ todayIso }: EventBannerProps) {
+export function EventBanner({ events, todayIso }: EventBannerProps) {
   const prefers_reduced_motion = useReducedMotion();
   const [now, set_now] = useState(() => parse_iso_day(todayIso));
   // useReducedMotion() is null on the server, so the preference may only be applied after mount
@@ -94,19 +98,19 @@ export function EventBanner({ todayIso }: EventBannerProps) {
     set_is_hydrated(true);
   }, []);
 
-  const events = get_promoted_events(now);
+  const promoted = get_promoted_events(now, PROMOTED_LIMIT, events);
 
-  if (events.length === 0) {
+  if (promoted.length === 0) {
     return null;
   }
 
   const variants =
     is_hydrated && prefers_reduced_motion ? STATIC_VARIANTS : MOTION_VARIANTS;
-  const has_ongoing = events.some(
+  const has_ongoing = promoted.some(
     (event) => get_event_status(event, now) === "ongoing",
   );
   const accent = has_ongoing ? ONGOING_ACCENT : UPCOMING_ACCENT;
-  const is_single = events.length === 1;
+  const is_single = promoted.length === 1;
 
   return (
     <motion.aside
@@ -133,7 +137,7 @@ export function EventBanner({ todayIso }: EventBannerProps) {
         )}
       >
         <span className="flex min-w-0 flex-col gap-4 md:flex-1 md:flex-row md:items-center md:gap-6">
-          {events.map((event, index) => (
+          {promoted.map((event, index) => (
             <BannerEntry
               key={event.id}
               event={event}

@@ -7,6 +7,8 @@ export const MIN_AUTH_SECRET_LENGTH = 32;
 
 const DEFAULT_LOG_TTL_SECONDS = 300;
 
+const DEFAULT_EVENTS_TTL_SECONDS = 300;
+
 /** Ostatnia deska ratunku, gdy ani SITE_ORIGIN, ani `site` z astro.config.mjs nie doszly. */
 const FALLBACK_ORIGIN = "https://blockchainwares.com.pl";
 
@@ -17,7 +19,7 @@ const IS_SERVER_RUNTIME =
 
 if (!IS_SERVER_RUNTIME) {
   throw new Error(
-    "src/lib/env.ts is server-only: it reads ADMIN_PASSWORD_HASH, AUTH_SECRET and LOG_SOURCE_URL. " +
+    "src/lib/env.ts is server-only: it reads ADMIN_PASSWORD_HASH, AUTH_SECRET, LOG_SOURCE_URL and EVENTS_API_KEY. " +
       "Importing it from client code would leak secrets into the browser bundle — " +
       "keep the import inside .astro frontmatter, an API route or another server module.",
   );
@@ -151,6 +153,61 @@ export function get_log_source_ttl_millis(): number {
   if (!Number.isFinite(seconds) || seconds <= 0) {
     throw new Error(
       `LOG_SOURCE_TTL_SECONDS is not a valid duration: expected a positive number of seconds, got "${raw}".`,
+    );
+  }
+  return seconds * 1000;
+}
+
+/**
+ * Bazowy adres modulu wydarzen w backend-api, bez koncowego ukosnika — sciezki
+ * doklejaja sie przez `${base}/...` i `new URL()` tak samo.
+ */
+export function get_events_api_url(): string {
+  const raw = read_env("EVENTS_API_URL");
+  if (raw === undefined) {
+    throw new Error(
+      "Missing required environment variable: EVENTS_API_URL. Set it in the runtime environment (not at build time).",
+    );
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    // Bez echa wartosci: base URL moze nosic dane logowania w czesci userinfo.
+    throw new Error(
+      "EVENTS_API_URL is not a valid absolute URL: expected e.g. https://api.example.com/events.",
+    );
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error(
+      `EVENTS_API_URL must use http or https: got "${parsed.protocol}".`,
+    );
+  }
+
+  return raw.replace(/\/+$/, "");
+}
+
+/** Sekret do mutacji wydarzen. Nigdy nie trafia do komunikatu bledu ani do bundla klienta. */
+export function get_events_api_key(): string {
+  const raw = read_env("EVENTS_API_KEY");
+  if (raw === undefined) {
+    throw new Error(
+      "Missing required environment variable: EVENTS_API_KEY. Set it in the runtime environment (not at build time).",
+    );
+  }
+  return raw;
+}
+
+/** Jak dlugo odpowiedzi modulu wydarzen zyja w pamieci procesu. Brak zmiennej = 5 minut. */
+export function get_events_ttl_millis(): number {
+  const raw = read_env("EVENTS_API_TTL_SECONDS");
+  if (raw === undefined) return DEFAULT_EVENTS_TTL_SECONDS * 1000;
+
+  const seconds = /^\d+$/.test(raw) ? Number.parseInt(raw, 10) : Number.NaN;
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    throw new Error(
+      `EVENTS_API_TTL_SECONDS is not a valid duration: expected a positive number of seconds, got "${raw}".`,
     );
   }
   return seconds * 1000;

@@ -91,79 +91,8 @@ export interface EventDateParts {
 }
 
 /**
- * Trade fairs and conferences BlockchainWares attends, plus the workshops we run ourselves.
- * Single source of truth for the /markets page, the homepage event banner
- * and the JSON-LD Event schema. Display dates are derived from the ISO dates.
- */
-export const EVENTS: TradeFairEvent[] = [
-  {
-    id: "ebc-2026-barcelona",
-    name: "European Blockchain Convention 2026",
-    shortName: "EBC 2026",
-    edition: "EBC12",
-    city: "Barcelona",
-    country: "Spain",
-    countryCode: "ES",
-    startDate: "2026-09-16",
-    endDate: "2026-09-17",
-    // Barcelona keeps CEST through September — without it the days would be counted in UTC
-    utcOffset: "+02:00",
-    url: "https://eblockchainconvention.com/",
-    image: "/assets/img/og-image.png",
-    organizer: {
-      name: "European Blockchain Convention",
-      url: "https://eblockchainconvention.com/",
-    },
-    description:
-      "We are going to Barcelona. The 12th European Blockchain Convention gathers thousands of builders, founders and institutions from across the continent. Our engineers will be on the floor talking blockchain infrastructure, event-driven architecture and high-load database systems — say hello if you are attending.",
-    topics: [
-      "Blockchain infrastructure",
-      "Event-driven architecture",
-      "Enterprise integrations",
-    ],
-  },
-  {
-    id: "bw-workshop-2026-barcelona",
-    name: "BlockchainWares Workshop in Barcelona",
-    shortName: "Barcelona workshop",
-    kind: "workshop",
-    city: "Barcelona",
-    country: "Spain",
-    countryCode: "ES",
-    startDate: "2026-09-19",
-    endDate: "2026-09-19",
-    schedule: {
-      startTime: "10:00",
-      endTime: "14:00",
-      utcOffset: "+02:00",
-      timeZoneLabel: "CEST",
-    },
-    venue: {
-      name: "The Social Hub Coworking Barcelona Poblenou",
-      // Street from the Barcelona city venue registry (guia.barcelona.cat)
-      streetAddress: "Carrer de Cristóbal de Moura, 49",
-      postalCode: "08019",
-    },
-    admission: {
-      price: "0",
-      priceCurrency: "EUR",
-      requiresRegistration: false,
-      validFrom: "2026-09-03",
-    },
-    image: "/assets/img/og-image.png",
-    organizer: {
-      name: "BlockchainWares",
-      url: "https://blockchainwares.com.pl",
-    },
-    description:
-      "Four hours in a rented room in Poblenou, Barcelona, on what BlockchainWares does and what we can build for a client. We go through our scope of work — Hive blockchain, event-driven architecture, engineering and database systems — and demo projects we have already delivered: what the client needed, what we built for them, how it runs in production.",
-    topics: ["Our scope of work", "Project demos", "Delivered solutions"],
-  },
-];
-
-/**
- * Prerendering the events pages evaluates this module, so a duplicated id fails the
- * build instead of silently letting the first event of that id win.
+ * A duplicated id would silently let the first record of that slug win, so the whole
+ * lookup refuses it instead — uniqueness itself is enforced when events are written.
  */
 function build_event_by_id(
   events: readonly TradeFairEvent[],
@@ -181,16 +110,12 @@ function build_event_by_id(
   return by_id;
 }
 
-const EVENT_BY_ID = build_event_by_id(EVENTS);
-
 /** Event behind a `/markets/<id>` route — `undefined` for an id we do not publish */
 export function get_event_by_id(
   id: string,
-  events: readonly TradeFairEvent[] = EVENTS,
+  events: readonly TradeFairEvent[],
 ): TradeFairEvent | undefined {
-  const by_id = events === EVENTS ? EVENT_BY_ID : build_event_by_id(events);
-
-  return by_id.get(id);
+  return build_event_by_id(events).get(id);
 }
 
 /**
@@ -333,7 +258,7 @@ export function get_event_status(
 /** Events split by status — upcoming soonest first, past most recent first */
 export function group_events_by_status(
   now: Date,
-  events: TradeFairEvent[] = EVENTS,
+  events: TradeFairEvent[],
 ): Record<EventStatus, TradeFairEvent[]> {
   const groups: Record<EventStatus, TradeFairEvent[]> = {
     ongoing: [],
@@ -360,7 +285,7 @@ export function group_events_by_status(
 export function get_promoted_events(
   now: Date,
   limit = 2,
-  events: TradeFairEvent[] = EVENTS,
+  events: TradeFairEvent[],
 ): TradeFairEvent[] {
   const groups = group_events_by_status(now, events);
 

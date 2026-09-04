@@ -8,8 +8,10 @@ import {
   get_event_status,
   group_events_by_status,
   MARKETS_PATH,
+  type TradeFairEvent,
 } from "../../components/events-data";
 import { build_event_schema, to_json_ld } from "../../components/event-schema";
+import { load_events } from "../../lib/events";
 
 // The page exists to state whether an event is running, so the clock is read per request;
 // `get_event_status()` reads the day off it in the event's zone, not in the server's
@@ -18,59 +20,131 @@ export const prerender = false;
 const OTHER_EVENTS_LIMIT = 3;
 const RELATED_ORDER = ["ongoing", "upcoming", "past"] as const;
 const DESCRIPTION_LIMIT = 155;
+/** Same order as the events cache TTL — a crawler retrying sooner hits the same outage */
+const RETRY_AFTER_SECONDS = "60";
 
-const now = new Date();
-const event = get_event_by_id(Astro.params.id ?? "");
-const current_path = Astro.url.pathname;
-
-if (!event) {
-  Astro.response.status = 404;
+interface FailureView {
+  status: 404 | 503;
+  code: string;
+  heading: string;
+  accent: string;
+  title: string;
+  description: string;
+  body: string;
 }
 
-const status = event ? get_event_status(event, now) : null;
-const groups = group_events_by_status(now);
-const related: RelatedEvent[] = RELATED_ORDER.flatMap((group) =>
-  groups[group].map((other) => ({ event: other, status: group })),
-)
-  .filter((entry) => entry.event.id !== event?.id)
-  .slice(0, OTHER_EVENTS_LIMIT);
+const NOT_FOUND: FailureView = {
+  status: 404,
+  code: "Error 404",
+  heading: "Event",
+  accent: "not found",
+  title: "Event not found — BlockchainWares",
+  description:
+    "This event is not on the BlockchainWares calendar. See where you can meet us next.",
+  body: "No event of ours sits under this address. The calendar of trade fairs, conferences and workshops is on the markets page.",
+};
 
-const title = event
-  ? `${event.name} — BlockchainWares`
-  : "Event not found — BlockchainWares";
-const description = event
-  ? truncate(event.description, DESCRIPTION_LIMIT)
-  : "This event is not on the BlockchainWares calendar. See where you can meet us next.";
+/**
+ * A silent backend is not proof the event is gone, so this is 503 and not 404:
+ * a 404 tells search engines to drop a page that outlives the outage.
+ */
+const SOURCE_DOWN: FailureView = {
+  status: 503,
+  code: "Error 503",
+  heading: "Event details",
+  accent: "unavailable right now",
+  title: "Event details unavailable — BlockchainWares",
+  description:
+    "The BlockchainWares events calendar is not answering right now. Try this page again in a moment.",
+  body: "Our events calendar is not answering, so we cannot say what is happening under this address. Nothing has been cancelled — this is on our side. Try again in a moment.",
+};
 
-const event_schema = event
-  ? build_event_schema(event, Astro.site, get_event_path(event))
-  : null;
-const breadcrumb_schema = event
-  ? {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Home",
-          item: new URL("/", Astro.site).href,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Markets & events",
-          item: new URL(MARKETS_PATH, Astro.site).href,
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: event.name,
-          item: new URL(get_event_path(event), Astro.site).href,
-        },
-      ],
-    }
-  : null;
+const now = new Date();
+const current_path = Astro.url.pathname;
+
+// `load_events()` throws only on an empty cache; stale data renders the page as usual
+let events: TradeFairEvent[] | null = null;
+try {
+  events = (await load_events()).events;
+} catch (cause) {
+  console.error(
+    "[markets/:id] events source failed:",
+    cause instanceof Error ? cause.message : "unknown error",
+  );
+}
+
+const found = events
+  ? get_event_by_id(Astro.params.id ?? "", events)
+  : undefined;
+
+const view = found
+  ? ({
+      kind: "event",
+      event: found,
+      status: get_event_status(found, now),
+    } as const)
+  : ({
+      kind: "failure",
+      failure: events === null ? SOURCE_DOWN : NOT_FOUND,
+    } as const);
+
+if (view.kind === "failure") {
+  Astro.response.status = view.failure.status;
+
+  if (view.failure.status === 503) {
+    Astro.response.headers.set("Retry-After", RETRY_AFTER_SECONDS);
+  }
+}
+
+const groups = events ? group_events_by_status(now, events) : null;
+const related: RelatedEvent[] = groups
+  ? RELATED_ORDER.flatMap((group) =>
+      groups[group].map((other) => ({ event: other, status: group })),
+    )
+      .filter((entry) => entry.event.id !== found?.id)
+      .slice(0, OTHER_EVENTS_LIMIT)
+  : [];
+
+const title =
+  view.kind === "event"
+    ? `${view.event.name} — BlockchainWares`
+    : view.failure.title;
+const description =
+  view.kind === "event"
+    ? truncate(view.event.description, DESCRIPTION_LIMIT)
+    : view.failure.description;
+
+const event_schema =
+  view.kind === "event"
+    ? build_event_schema(view.event, Astro.site, get_event_path(view.event))
+    : null;
+const breadcrumb_schema =
+  view.kind === "event"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: new URL("/", Astro.site).href,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Markets & events",
+            item: new URL(MARKETS_PATH, Astro.site).href,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: view.event.name,
+            item: new URL(get_event_path(view.event), Astro.site).href,
+          },
+        ],
+      }
+    : null;
 
 /** Meta description: whole words up to the limit */
 function truncate(text: string, limit: number): string {
@@ -88,8 +162,8 @@ function truncate(text: string, limit: number): string {
 <Layout
   title={title}
   description={description}
-  noindex={!event}
-  canonicalPath={event ? get_event_path(event) : undefined}
+  noindex={view.kind === "failure"}
+  canonicalPath={view.kind === "event" ? get_event_path(view.event) : undefined}
 >
   <Navigation client:load currentPath={current_path} />
 
@@ -109,22 +183,26 @@ function truncate(text: string, limit: number): string {
 
     <div class="relative z-[1]">
       {
-        event && status ? (
-          <EventDetail event={event} status={status} related={related} />
+        view.kind === "event" ? (
+          <EventDetail
+            event={view.event}
+            status={view.status}
+            related={related}
+          />
         ) : (
           <main class="relative flex min-h-screen items-center justify-center px-4 py-16 md:py-24">
             <div class="mx-auto w-full max-w-2xl text-center">
               <span class="mb-2 block text-xs font-medium uppercase tracking-wider text-secondary md:mb-4 md:text-sm">
-                Error 404
+                {view.failure.code}
               </span>
 
               <h1 class="mb-4 text-3xl font-bold leading-tight drop-shadow-lg md:mb-6 md:text-5xl">
-                Event <span class="text-secondary">not found</span>
+                {view.failure.heading}{" "}
+                <span class="text-secondary">{view.failure.accent}</span>
               </h1>
 
               <p class="mx-auto mb-8 max-w-xl text-base leading-relaxed text-base-content/80 md:mb-10 md:text-lg">
-                No event of ours sits under this address. The calendar of trade
-                fairs, conferences and workshops is on the markets page.
+                {view.failure.body}
               </p>
 
               <a

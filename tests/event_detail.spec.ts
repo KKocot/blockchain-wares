@@ -21,14 +21,12 @@ import {
   MARKETS_PATH,
   type TradeFairEvent,
 } from "../src/components/events-data";
+import { get_seed_event, SEED_EVENT_IDS, SEED_EVENTS } from "./fixtures/events";
 import {
   back_links,
   detail_main,
-  EBC_ID,
-  find_event,
   read_json_ld,
   required,
-  WORKSHOP_ID,
 } from "./support/events";
 
 /** Kanoniczny origin z `astro.config.mjs` — schematy na stronie są nim adresowane */
@@ -36,8 +34,14 @@ const SITE = "https://blockchainwares.com.pl";
 
 const MISSING_PATH = "/markets/nie-ma-takiego";
 
-const WORKSHOP = find_event(WORKSHOP_ID);
-const EBC = find_event(EBC_ID);
+/** Baner promuje tyle wpisów, ile `PROMOTED_LIMIT` w `EventBanner` */
+const PROMOTED_LIMIT = 2;
+
+const WORKSHOP = get_seed_event(SEED_EVENT_IDS.upcoming_workshop);
+/** Cudza konferencja bez venue: własna strona zamiast dojazdu, wstęp nie nasz */
+const CONFERENCE = get_seed_event(SEED_EVENT_IDS.upcoming_conference);
+/** Cudza konferencja z venue i edycją — dojazd stoi obok CTA, nie zamiast niego */
+const VENUE_CONFERENCE = get_seed_event(SEED_EVENT_IDS.ongoing_conference);
 
 /** Trasa jest SSR-owa i liczy status z zegara requestu, więc test czyta ten sam kalendarz */
 function status_now(event: TradeFairEvent) {
@@ -53,7 +57,7 @@ function is_event_schema(block: unknown): block is EventSchema {
 }
 
 test.describe("Wejścia na stronę wydarzenia", () => {
-  for (const event of [EBC, WORKSHOP]) {
+  for (const event of [CONFERENCE, WORKSHOP]) {
     test(`listing: tytuł „${event.name}” otwiera jego stronę`, async ({
       page,
     }) => {
@@ -71,11 +75,15 @@ test.describe("Wejścia na stronę wydarzenia", () => {
   test("baner strony głównej prowadzi na stronę promowanego wydarzenia", async ({
     page,
   }) => {
-    const promoted = get_promoted_events(new Date());
-    test.skip(
-      promoted.length === 0,
-      "Kalendarz pusty — baner nic nie promuje i nie renderuje się wcale.",
+    const promoted = get_promoted_events(
+      new Date(),
+      PROMOTED_LIMIT,
+      SEED_EVENTS,
     );
+
+    // Zestaw startowy ma trwające i nadchodzące wydarzenie, więc baner zawsze
+    // promuje pełny komplet — pusty baner byłby regresją, nie stanem kalendarza.
+    expect(promoted).toHaveLength(PROMOTED_LIMIT);
 
     await page.goto("/");
     const banner = page.getByRole("complementary", {
@@ -166,27 +174,48 @@ test.describe("Strona wydarzenia — treść", () => {
   test("konferencja: CTA na stronę wydarzenia, bez dojazdu i wstępu", async ({
     page,
   }) => {
-    await page.goto(get_event_path(EBC));
+    await page.goto(get_event_path(CONFERENCE));
     const main = detail_main(page);
 
-    await expect(page).toHaveTitle(`${EBC.name} — BlockchainWares`);
+    await expect(page).toHaveTitle(`${CONFERENCE.name} — BlockchainWares`);
     await expect(
       main.getByRole("link", { name: /Event website/ }),
-    ).toHaveAttribute("href", required(EBC.url, "Strona konferencji"));
+    ).toHaveAttribute("href", required(CONFERENCE.url, "Strona konferencji"));
     await expect(
       main.locator('a[href^="https://www.google.com/maps"]'),
     ).toHaveCount(0);
     await expect(main.getByText("Admission")).toHaveCount(0);
-    await expect(
-      main.getByText(required(EBC.edition, "Edycja konferencji"), {
-        exact: true,
-      }),
-    ).toBeVisible();
 
     // Reszta kalendarza wisi pod treścią i prowadzi dalej po stronach wydarzeń.
     await expect(
       main.locator(`a[href="${get_event_path(WORKSHOP)}"]`),
     ).toBeVisible();
+  });
+
+  test("konferencja z adresem: edycja w nagłówku, dojazd obok CTA", async ({
+    page,
+  }) => {
+    const map_url = required(
+      get_venue_map_url(VENUE_CONFERENCE),
+      "Link do mapy konferencji",
+    );
+
+    await page.goto(get_event_path(VENUE_CONFERENCE));
+    const main = detail_main(page);
+
+    await expect(
+      main.getByText(required(VENUE_CONFERENCE.edition, "Edycja konferencji"), {
+        exact: true,
+      }),
+    ).toBeVisible();
+    // Główne CTA zajmuje strona wydarzenia, więc dojazd dostaje własny link.
+    await expect(
+      main.getByRole("link", { name: /Event website/ }),
+    ).toHaveAttribute(
+      "href",
+      required(VENUE_CONFERENCE.url, "Strona konferencji"),
+    );
+    await expect(main.locator(`a[href="${map_url}"]`)).toHaveCount(1);
   });
 });
 
@@ -238,17 +267,17 @@ test.describe("Strona wydarzenia — JSON-LD", () => {
   test("konferencja bez wstępu na naszych zasadach zostaje bez oferty", async ({
     page,
   }) => {
-    await page.goto(get_event_path(EBC));
+    await page.goto(get_event_path(CONFERENCE));
     const events = (await read_json_ld(page)).filter(is_event_schema);
 
     expect(events).toHaveLength(1);
     expect(events[0].offers).toBeUndefined();
-    expect(events[0].url).toBe(EBC.url);
+    expect(events[0].url).toBe(CONFERENCE.url);
   });
 });
 
 /**
- * Warsztat po fakcie: produkcyjny kalendarz nie zawiera takiego wpisu, a trasa
+ * Warsztat po fakcie: zestaw startowy nie zawiera takiego wpisu, a trasa
  * czyta zegar serwera — regułę CTA sprawdzamy więc na fixture, w jej źródle.
  */
 const HOSTED_EVENT: TradeFairEvent = {

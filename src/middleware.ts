@@ -2,44 +2,15 @@ import { defineMiddleware } from "astro:middleware";
 import type { APIContext } from "astro";
 import { SESSION_COOKIE_NAME, verify_session_token } from "./lib/auth";
 import { get_auth_config } from "./lib/env";
+import {
+  DOCUMENT_SECURITY_HEADERS,
+  NOSNIFF_HEADER,
+} from "./lib/net/security_headers";
 
 const LOGIN_PATH = "/admin/login";
 const ADMIN_ROOT = "/admin";
 const API_ADMIN_ROOT = "/api/admin";
 const API_AUTH_ROOT = "/api/auth";
-
-const NOSNIFF_HEADER = "X-Content-Type-Options";
-const NOSNIFF_VALUE = "nosniff";
-
-const SECURITY_HEADERS: ReadonlyArray<readonly [string, string]> = [
-  ["X-Frame-Options", "DENY"],
-  [NOSNIFF_HEADER, NOSNIFF_VALUE],
-  ["Referrer-Policy", "strict-origin-when-cross-origin"],
-  // Egzekwowane sa tylko dyrektywy, ktore nie moga zablokowac zasobu strony.
-  [
-    "Content-Security-Policy",
-    "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",
-  ],
-  // Reszta polityki idzie w Report-Only: landing ma inline handler `onload` przy
-  // preloadzie fontow i skrypty is:inline, wiec egzekwowany script-src wywalilby
-  // strone. Przelaczyc na egzekwowanie dopiero po usunieciu inline'ow.
-  [
-    "Content-Security-Policy-Report-Only",
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: https:",
-      "connect-src 'self'",
-      "frame-src https://maps.google.com https://www.google.com",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "object-src 'none'",
-    ].join("; "),
-  ],
-];
 
 const UNAUTHORIZED_BODY = JSON.stringify({ error: "Unauthorized." });
 
@@ -173,19 +144,20 @@ function add_no_store(response: Response, path: string): void {
   response.headers.set("Cache-Control", "no-store");
 }
 
+/**
+ * Nosniff idzie bez warunku — allowlista typow gubila kazdy nowy endpoint, ktory nie
+ * byl HTML-em ani JSON-em. Reszta polityki tylko na dokumencie.
+ */
 function add_security_headers(response: Response): void {
+  response.headers.set(NOSNIFF_HEADER.name, NOSNIFF_HEADER.value);
+
   const content_type =
     response.headers.get("Content-Type")?.toLowerCase() ?? "";
-
-  if (content_type.includes("text/html")) {
-    for (const [name, value] of SECURITY_HEADERS) {
-      response.headers.set(name, value);
-    }
+  if (!content_type.includes("text/html")) {
     return;
   }
-  // Odpowiedzi API tez nie moga byc zgadywane po tresci - reszta polityki dotyczy
-  // dokumentu i na JSON-ie nic nie zmienia.
-  if (content_type.includes("application/json")) {
-    response.headers.set(NOSNIFF_HEADER, NOSNIFF_VALUE);
+
+  for (const { name, value } of DOCUMENT_SECURITY_HEADERS) {
+    response.headers.set(name, value);
   }
 }

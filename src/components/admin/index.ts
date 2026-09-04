@@ -1,5 +1,8 @@
 export { AdminDashboard, type DataFreshness } from "./AdminDashboard";
 export { CountryCard } from "./CountryCard";
+export { EventForm, type EventFormProps } from "./EventForm";
+export { EventsTable, type EventsTableProps } from "./EventsTable";
+export { EVENT_FORM_FIELDS } from "./event_form_fields";
 export { LoginForm } from "./LoginForm";
 export { LogsFilters, type HiddenField } from "./LogsFilters";
 export { LogsTable } from "./LogsTable";

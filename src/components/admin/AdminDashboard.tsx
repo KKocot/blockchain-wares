@@ -6,6 +6,7 @@ import type {
   SortField,
 } from "../../lib/logs/types";
 import { cn } from "../../lib/utils";
+import { format_panel_clock } from "./clock";
 import { CountryCard } from "./CountryCard";
 import { LogsFilters, type HiddenField } from "./LogsFilters";
 import { LogsTable } from "./LogsTable";
@@ -55,19 +56,6 @@ const MINUTE_MILLIS = 60_000;
 const HOUR_MILLIS = 3_600_000;
 const DAY_MILLIS = 86_400_000;
 
-const clock_formatter = new Intl.DateTimeFormat("pl-PL", {
-  day: "2-digit",
-  month: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-});
-
-function format_clock(iso: string): string | null {
-  const millis = Date.parse(iso);
-  return Number.isNaN(millis) ? null : clock_formatter.format(millis);
-}
-
 function format_age(from_iso: string, to_iso: string): string | null {
   const from = Date.parse(from_iso);
   const to = Date.parse(to_iso);
@@ -106,7 +94,7 @@ function freshness_label(freshness: DataFreshness): string {
   if (freshness.fetchedAt === null) {
     return "Ze źródła nie pobrano dotąd żadnych danych.";
   }
-  const clock = format_clock(freshness.fetchedAt);
+  const clock = format_panel_clock(freshness.fetchedAt);
   if (clock === null) {
     return "Wiek danych nieznany.";
   }

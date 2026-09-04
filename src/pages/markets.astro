@@ -1,24 +1,47 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { Navigation, Markets, Footer } from "../components";
-import { EVENTS, to_iso_day } from "../components/events-data";
+import {
+  MARKETS_PATH,
+  to_iso_day,
+  type TradeFairEvent,
+} from "../components/events-data";
 import { build_event_schema, to_json_ld } from "../components/event-schema";
-
-export const prerender = true;
+import { load_events } from "../lib/events";
 
 const current_path = Astro.url.pathname;
 const today_iso = to_iso_day(new Date());
+
+// `load_events()` rzuca tylko przy pustym cache — pusta lista daje panel stanu
+// pustego w `Markets` i stronę bez JSON-LD, zamiast 500 na trasie marketingowej.
+let events: TradeFairEvent[] = [];
+try {
+  events = (await load_events()).events;
+  // Odpowiedz nie zalezy od sesji ani od naglowkow zadania — brzeg moze ja
+  // powtarzac zamiast wolac funkcje przy kazdym wejsciu.
+  Astro.response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=60, stale-while-revalidate=300",
+  );
+} catch (cause) {
+  // Render awaryjny nie ma prawa zamarznac na brzegu na czas trwania okna swr.
+  Astro.response.headers.set("Cache-Control", "no-store");
+  console.error(
+    "[markets] events source failed:",
+    cause instanceof Error ? cause.message : "unknown error",
+  );
+}
 
 const title = "Markets & Events — BlockchainWares";
 const description =
   "Meet BlockchainWares in Barcelona: European Blockchain Convention 2026 on 16–17 September, plus our own four-hour Hive and HAF workshop on 19 September.";
 
-const event_schemas = EVENTS.map((event) =>
+const event_schemas = events.map((event) =>
   build_event_schema(event, Astro.site),
 );
 ---
 
-<Layout title={title} description={description}>
+<Layout title={title} description={description} canonicalPath={MARKETS_PATH}>
   <Navigation client:load currentPath={current_path} />
 
   <div class="relative bg-base-100 overflow-clip">
@@ -36,7 +59,7 @@ const event_schemas = EVENTS.map((event) =>
     </div>
 
     <div class="relative z-[1]">
-      <Markets client:load todayIso={today_iso} />
+      <Markets client:load events={events} todayIso={today_iso} />
       <Footer currentPath={current_path} />
     </div>
   </div>

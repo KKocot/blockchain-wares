@@ -1,0 +1,65 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { EventForm } from "../../../components/admin";
+import { BUTTON_CLASS } from "../../../components/admin/styles";
+import {
+  ADMIN_EVENTS_PATH,
+  create_event_from_form,
+  type EventActionRejected,
+} from "../../../lib/events";
+
+export const prerender = false;
+
+/** Formularz POST-uje sam do siebie — nieudany zapis ma wrocic na te sama strone. */
+const NEW_EVENT_PATH = `${ADMIN_EVENTS_PATH}/new`;
+
+// Obrona w glab, jak w /admin: ta trasa zapisuje, wiec brak sesji musi zatrzymac
+// zadanie przed wywolaniem akcji, a nie dopiero przy renderze.
+if (!Astro.locals.isAuthenticated) {
+  const target = encodeURIComponent(`${Astro.url.pathname}${Astro.url.search}`);
+  return Astro.redirect(`/admin/login?redirect=${target}`, 302);
+}
+
+/**
+ * Odrzucony zapis renderuje ten sam formularz zamiast przekierowywac: 28 pol z opisem
+ * nie zmiesci sie w query stringu, a bez JS-a nie ma kto odtworzyc ich w przegladarce.
+ */
+let rejected: EventActionRejected | null = null;
+
+if (Astro.request.method === "POST") {
+  const result = await create_event_from_form(Astro.request);
+  if (result.ok) {
+    return Astro.redirect(result.redirect, 303);
+  }
+
+  // Odpowiedz z formularzem nie ma udawac udanego zapisu.
+  Astro.response.status = result.status;
+  rejected = result;
+}
+---
+
+<AdminLayout
+  title="Nowe wydarzenie"
+  description="Panel BlockchainWares — dodanie wydarzenia."
+>
+  <form slot="actions" method="post" action="/api/auth/logout">
+    <button type="submit" class={BUTTON_CLASS}>Wyloguj</button>
+  </form>
+
+  <div class="mx-auto w-full max-w-3xl">
+    <h1 class="text-lg font-semibold">Nowe wydarzenie</h1>
+    <p class="mt-1 mb-5 text-sm text-base-content/60">
+      Panel odświeża listę zaraz po zapisie, więc wydarzenie pojawi się na
+      stronie <span class="admin-mono">/markets</span> od razu.
+    </p>
+
+    <EventForm
+      mode="create"
+      action={NEW_EVENT_PATH}
+      cancelHref={ADMIN_EVENTS_PATH}
+      values={rejected?.values ?? null}
+      errors={rejected?.errors ?? []}
+      message={rejected?.message ?? null}
+    />
+  </div>
+</AdminLayout>

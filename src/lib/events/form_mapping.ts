@@ -187,8 +187,10 @@ function form_values(event: TradeFairEvent) {
     "schedule.utcOffset": event.schedule?.utcOffset ?? "",
     "schedule.timeZoneLabel": event.schedule?.timeZoneLabel ?? "",
     "venue.name": event.venue?.name ?? "",
+    "venue.room": event.venue?.room ?? "",
     "venue.streetAddress": event.venue?.streetAddress ?? "",
     "venue.postalCode": event.venue?.postalCode ?? "",
+    "venue.url": event.venue?.url ?? "",
     "admission.price": event.admission?.price ?? "",
     "admission.priceCurrency": event.admission?.priceCurrency ?? "",
     "admission.requiresRegistration":
@@ -284,6 +286,24 @@ function fail(reader: FormReader, field: EventFormErrorField): Slot<never> {
   return INVALID;
 }
 
+/**
+ * Adres, ktory da sie zbudowac, nie tylko dopasowac: wzorzec przepuszcza `http://[`,
+ * a `parse_event` cicho zdejmuje takie pole przy odczycie — prefill edycji pokazalby
+ * puste, a kolejny zapis skasowalby wartosc na dobre. Ta sama luka zostaje przy
+ * `image`, `url` i `organizer.url`; tu zamyka ja tylko pole obiektu.
+ */
+function absolute_url(reader: FormReader, field: EventFormField): Slot<string> {
+  const slot = text(reader, field, HTTP_URL);
+  if (slot.state !== "value") return slot;
+
+  try {
+    new URL(slot.value);
+    return slot;
+  } catch {
+    return fail(reader, field);
+  }
+}
+
 /** Wzorzec jest juz sprawdzony, wiec zawezenie do typu szablonowego jest bezpieczne. */
 function offset(reader: FormReader, field: EventFormField): Slot<UtcOffset> {
   const slot = text(reader, field, UTC_OFFSET);
@@ -330,13 +350,17 @@ function read_topics(reader: FormReader): Slot<string[]> {
 
 function read_venue(reader: FormReader): Slot<EventVenue> {
   const name = text(reader, "venue.name");
+  const room = text(reader, "venue.room");
   const street = text(reader, "venue.streetAddress");
   const postal = text(reader, "venue.postalCode");
+  const url = absolute_url(reader, "venue.url");
 
-  return group([name, street, postal], () => ({
+  return group([name, room, street, postal, url], () => ({
     name: value_of(name),
+    room: value_of(room),
     streetAddress: value_of(street),
     postalCode: value_of(postal),
+    url: value_of(url),
   }));
 }
 

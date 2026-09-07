@@ -9,7 +9,6 @@ import {
   ADMISSION_GROUP,
   CODE_TEXT,
   collect_errors,
-  EVENT_FORM_ID,
   FALLBACK_TEXT,
   field_id,
   FIELD_LABELS,
@@ -249,7 +248,6 @@ export function EventForm({
 
   return (
     <form
-      id={EVENT_FORM_ID}
       method="post"
       action={action}
       autoComplete="off"

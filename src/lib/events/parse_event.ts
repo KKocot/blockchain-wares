@@ -34,7 +34,8 @@ const RESOLUTION_BASE = "https://resolution.invalid";
  *
  * Pole **obecne, ale w zlym ksztalcie** dalej wywala caly rekord: brak wartosci to
  * zgoda na szkic, wartosc ktorej nie rozumiemy to uszkodzone dane, a zgadywanie polowy
- * wydarzenia jest gorsze niz jego brak. Jedyny wyjatek to `image` — patrz `read_image()`.
+ * wydarzenia jest gorsze niz jego brak. Wyjatki to `image` i `venue.url` — patrz
+ * `read_image()` i `read_venue_url()`.
  *
  * Adresy przechodza przez wzorzec `https?://`, bo trafiaja wprost do `href`
  * i do JSON-LD — `javascript:` z bazy bylby wtedy linkiem do kliknięcia.
@@ -257,14 +258,39 @@ function read_venue(value: unknown): EventVenue | null | undefined {
   if (source === null) return null;
 
   const name = optional(source.name, text);
+  const room = optional(source.room, text);
   const streetAddress = optional(source.streetAddress, text);
   const postalCode = optional(source.postalCode, text);
+  const url = read_venue_url(source.url);
 
-  if (name === null || streetAddress === null || postalCode === null) {
+  if (
+    name === null ||
+    room === null ||
+    streetAddress === null ||
+    postalCode === null
+  ) {
     return null;
   }
 
-  return present({ name, streetAddress, postalCode });
+  return present({ name, room, streetAddress, postalCode, url });
+}
+
+/**
+ * Page of the building. Forgiving like `read_image()` and for the same reason: the events
+ * module validates writes with the pattern alone, so `http://[` reaches us and throws in
+ * `new URL()`. A link we cannot build costs the field, not the whole event — dropping the
+ * record would hide it from the admin listing too, leaving no way to fix the address.
+ */
+function read_venue_url(value: unknown): string | undefined {
+  const raw = matched(value, HTTP_URL);
+  if (raw === null) return undefined;
+
+  try {
+    new URL(raw);
+    return raw;
+  } catch {
+    return undefined;
+  }
 }
 
 function read_admission(value: unknown): EventAdmission | null | undefined {

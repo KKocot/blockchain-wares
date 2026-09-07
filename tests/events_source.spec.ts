@@ -368,6 +368,31 @@ test.describe("parse_event", () => {
     expect(build_event_schema(event, SITE)?.image).toBeUndefined();
   });
 
+  test("strona obiektu zgodna ze wzorcem, ale nie do zbudowania, odpada sama", () => {
+    // Ten sam wzorzec i ta sama pobłażliwość co przy obrazku: wydarzenie zostaje
+    // na liście i w panelu, znika samo pole, które nie da się kliknąć.
+    const event = parse_event(
+      event_record({ venue: { name: "Sala z linkiem", url: "http://[" } }),
+    );
+    if (event === null) throw new Error("Zły adres obiektu zdjął cały rekord.");
+
+    expect(event.venue).toEqual({ name: "Sala z linkiem" });
+    expect(build_event_schema(event, SITE)?.location).not.toHaveProperty("url");
+  });
+
+  test("sala i strona obiektu przechodzą każda z osobna", () => {
+    expect(
+      parse_event(
+        event_record({ venue: { room: "Meeting Room 0.5+0.6, ground floor" } }),
+      )?.venue,
+    ).toEqual({ room: "Meeting Room 0.5+0.6, ground floor" });
+
+    expect(
+      parse_event(event_record({ venue: { url: "https://venue.invalid/hub" } }))
+        ?.venue,
+    ).toEqual({ url: "https://venue.invalid/hub" });
+  });
+
   test("częściowa grupa przechodzi — backend przyjmuje każde pole osobno", () => {
     const event = parse_event(
       event_record({
@@ -430,6 +455,7 @@ test.describe("parse_event", () => {
       { admission: { priceCurrency: "zloty" } },
       { admission: { requiresRegistration: "tak" } },
       { venue: { name: 7 } },
+      { venue: { room: 7 } },
       { organizer: { url: "example.invalid/org" } },
     ]) {
       expect(

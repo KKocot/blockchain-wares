@@ -25,9 +25,17 @@ export interface EventSchedule {
 
 export interface EventVenue {
   name?: string;
+  /**
+   * Room or floor inside the building, e.g. "Meeting Room 0.5+0.6, ground floor".
+   * Presentational only — it never reaches the JSON-LD `Place`, which describes the
+   * building, and it never reaches the map query, which searches the street.
+   */
+  room?: string;
   /** Street and number as written locally, e.g. "Carrer de Cristóbal de Moura, 49" */
   streetAddress?: string;
   postalCode?: string;
+  /** Page of the building itself — the event's own page is `TradeFairEvent.url` */
+  url?: string;
 }
 
 /** What it takes to get in — drives the card pill and the JSON-LD `Offer` */
@@ -404,6 +412,7 @@ const MAPS_SEARCH_URL = "https://www.google.com/maps/search/?api=1&query=";
  *
  * Both halves of the address are needed: a street with no city is searched worldwide
  * and lands in the wrong town, and a link pointing elsewhere is worse than no link.
+ * The room stays out of the query for the same reason — Maps searches streets, not floors.
  */
 export function get_venue_map_url(event: TradeFairEvent): string | undefined {
   const address = format_venue_address(event);

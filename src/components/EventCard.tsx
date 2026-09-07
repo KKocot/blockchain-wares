@@ -1,7 +1,6 @@
 import { cn } from "../lib/utils";
 import {
   format_event_date,
-  format_venue_address,
   get_event_end_datetime,
   get_event_name,
   get_event_path,
@@ -18,12 +17,14 @@ import {
   get_event_hours,
   get_event_link,
   get_status_badge_label,
+  has_venue_details,
   STATUS_BADGE_CLASS,
   STATUS_THEME,
   TOPIC_PILL_CLASS,
   type StatusTheme,
 } from "./event-theme";
 import { EventHours } from "./EventHours";
+import { VenuePlace } from "./VenuePlace";
 
 interface EventCardProps {
   event: TradeFairEvent;
@@ -40,8 +41,7 @@ export function EventCard({ event, status }: EventCardProps) {
   const link = get_event_link(event, status);
   const date = format_event_date(event);
   const location = format_event_location(event);
-  const venue_name = event.venue?.name;
-  const venue_address = format_venue_address(event);
+  const has_venue = has_venue_details(event);
   const admission = format_admission(event.admission);
   const has_hours = get_event_hours(event) !== null;
   const topics = event.topics ?? [];
@@ -52,8 +52,7 @@ export function EventCard({ event, status }: EventCardProps) {
   const is_bare =
     date === null &&
     location === undefined &&
-    venue_name === undefined &&
-    venue_address === undefined &&
+    !has_venue &&
     !has_hours &&
     !event.description &&
     topics.length === 0;
@@ -140,7 +139,7 @@ export function EventCard({ event, status }: EventCardProps) {
             </p>
           ) : null}
 
-          {venue_name || venue_address ? (
+          {has_venue ? (
             <p
               className={cn(
                 "mt-1 flex items-start gap-2 text-sm font-medium",
@@ -149,12 +148,7 @@ export function EventCard({ event, status }: EventCardProps) {
             >
               <VenueIcon />
               <span className="min-w-0">
-                {venue_name}
-                {venue_address ? (
-                  <span className="block text-xs font-normal text-base-content/70">
-                    {venue_address}
-                  </span>
-                ) : null}
+                <VenuePlace event={event} theme={theme} />
               </span>
             </p>
           ) : null}

@@ -1,4 +1,5 @@
 import {
+  format_venue_address,
   get_event_name,
   get_venue_map_url,
   type ClockTime,
@@ -142,6 +143,42 @@ export interface EventLink {
   sr_label: string;
 }
 
+/** Announced by screen readers on every link that leaves the site */
+export const SR_NEW_TAB = "— opens in a new tab";
+
+export interface VenueName {
+  /** What to print: the venue's name, or the address of its page when it has none */
+  label: string;
+  /** Page of the building — absent for a venue we can name but not link */
+  href?: string;
+}
+
+/**
+ * How the venue announces itself on a card and on the event page. A building known only
+ * by its page says so with the address itself, exactly as an unnamed organizer does.
+ * `undefined` while we know neither the name nor the page — the room and the postal
+ * address are lines of their own and neither one names a building.
+ */
+export function get_venue_name(event: TradeFairEvent): VenueName | undefined {
+  const { name, url } = event.venue ?? {};
+  const label = name ?? url;
+
+  if (label === undefined) {
+    return undefined;
+  }
+
+  return url === undefined ? { label } : { label, href: url };
+}
+
+/** Anything at all about the building — the card and the panel key their block on it */
+export function has_venue_details(event: TradeFairEvent): boolean {
+  return (
+    get_venue_name(event) !== undefined ||
+    event.venue?.room !== undefined ||
+    format_venue_address(event) !== undefined
+  );
+}
+
 /**
  * Own website when the event has one, otherwise directions to the venue we booked.
  * Directions are dropped once the event is over — nobody needs to get there any more.
@@ -154,7 +191,7 @@ export function get_event_link(
     return {
       href: event.url,
       label: "Event website",
-      sr_label: `${get_event_name(event)} — opens in a new tab`,
+      sr_label: `${get_event_name(event)} ${SR_NEW_TAB}`,
     };
   }
 
@@ -170,7 +207,7 @@ export function get_event_link(
     return {
       href: map_url,
       label: "Venue & directions",
-      sr_label: `${place} on the map — opens in a new tab`,
+      sr_label: `${place} on the map ${SR_NEW_TAB}`,
     };
   }
 

@@ -1,9 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
-import { EventForm, EventPreview } from "../../../components/admin";
-import PreviewFont from "../../../components/admin/PreviewFont.astro";
+import { EventForm } from "../../../components/admin";
 import { BUTTON_CLASS } from "../../../components/admin/styles";
-import { to_iso_day } from "../../../components/events-data";
 import {
   ADMIN_EVENTS_PATH,
   create_event_from_form,
@@ -38,9 +36,6 @@ if (Astro.request.method === "POST") {
   Astro.response.status = result.status;
   rejected = result;
 }
-
-/** Dzien serwera dla pierwszego renderu podgladu; po hydracji liczy go przegladarka. */
-const today_iso = to_iso_day(new Date());
 ---
 
 <AdminLayout
@@ -51,9 +46,7 @@ const today_iso = to_iso_day(new Date());
     <button type="submit" class={BUTTON_CLASS}>Wyloguj</button>
   </form>
 
-  <PreviewFont slot="head" />
-
-  <div class="mx-auto w-full max-w-6xl">
+  <div class="mx-auto w-full max-w-3xl">
     <h1 class="text-lg font-semibold">Nowe wydarzenie</h1>
     <p class="mt-1 mb-5 text-sm text-base-content/60">
       Nic nie jest wymagane: pusty formularz zapisze szkic, a identyfikator
@@ -62,21 +55,13 @@ const today_iso = to_iso_day(new Date());
       razu.
     </p>
 
-    <EventPreview
-      client:load
-      initialFields={rejected?.values?.toString() ?? ""}
-      todayIso={today_iso}
+    <EventForm
+      mode="create"
+      action={NEW_EVENT_PATH}
+      cancelHref={ADMIN_EVENTS_PATH}
+      values={rejected?.values ?? null}
+      errors={rejected?.errors ?? []}
+      message={rejected?.message ?? null}
     />
-
-    <div class="mx-auto w-full max-w-3xl">
-      <EventForm
-        mode="create"
-        action={NEW_EVENT_PATH}
-        cancelHref={ADMIN_EVENTS_PATH}
-        values={rejected?.values ?? null}
-        errors={rejected?.errors ?? []}
-        message={rejected?.message ?? null}
-      />
-    </div>
   </div>
 </AdminLayout>

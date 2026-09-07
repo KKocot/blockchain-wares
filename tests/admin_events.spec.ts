@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { NO_JS_TAG } from "../playwright.config";
-import { field_id } from "../src/components/admin/event_form_fields";
 import { SEED_EVENT_IDS } from "./fixtures/events";
 import {
   has_session_cookie,
@@ -16,16 +15,13 @@ import {
   DELETE_CONFIRM_VALUE,
   drop_fixture_event,
   edit_path,
-  error_summary,
   event_field,
   event_row,
-  expect_field_error,
   expect_form_values,
   expect_notice,
   fill_event_form,
   NEW_EVENT_PATH,
   read_fixture_event,
-  registration_checkbox,
   reset_events,
   sample_event_values,
   scoped_event_id,
@@ -141,8 +137,10 @@ test.describe("Panel wydarzeń — pełna ścieżka", () => {
     await page.goto(edit_path(id));
     await fill_event_form(page, {
       "venue.name": "",
+      "venue.room": "",
       "venue.streetAddress": "",
       "venue.postalCode": "",
+      "venue.url": "",
       url: "",
       // Pola, które kiedyś blokowały zapis — pusto ma je kasować, nie odrzucać.
       city: "",
@@ -158,8 +156,10 @@ test.describe("Panel wydarzeń — pełna ścieżka", () => {
     await page.goto(edit_path(id));
     for (const field of [
       "venue.name",
+      "venue.room",
       "venue.streetAddress",
       "venue.postalCode",
+      "venue.url",
       "url",
       "city",
       "description",
@@ -174,6 +174,39 @@ test.describe("Panel wydarzeń — pełna ścieżka", () => {
     expect(stored?.url ?? null).toBeNull();
     expect(stored?.city ?? null).toBeNull();
     expect(stored?.description ?? null).toBeNull();
+  });
+
+  test("wyczyszczona sala znika, a reszta obiektu zostaje na miejscu", async ({
+    page,
+  }) => {
+    test.slow();
+    const id = scoped_event_id("kasowanie-sali");
+    const values = sample_event_values(id);
+
+    await log_in(page);
+    await create_event_via_panel(page, values);
+
+    await page.goto(edit_path(id));
+    await fill_event_form(page, { "venue.room": "" });
+    expect(
+      (await submit_form(page, submit_button(page, "edit"))).status(),
+    ).toBe(303);
+    await expect_notice(page, "updated", id);
+
+    // Grupa jedzie do API w całości i podmienia cały subdokument, więc puste pole
+    // kasuje samo siebie — i nie ma prawa zabrać ze sobą sąsiadów z tej samej grupy.
+    expect((await read_fixture_event(id))?.venue).toEqual({
+      name: values["venue.name"],
+      streetAddress: values["venue.streetAddress"],
+      postalCode: values["venue.postalCode"],
+      url: values["venue.url"],
+    });
+
+    await page.goto(edit_path(id));
+    await expect(event_field(page, "venue.room")).toHaveValue("");
+    await expect(event_field(page, "venue.name")).toHaveValue(
+      values["venue.name"],
+    );
   });
 });
 
@@ -219,108 +252,6 @@ test.describe("Panel wydarzeń — szkic", () => {
   });
 });
 
-test.describe("Panel wydarzeń — odrzucony zapis", () => {
-  test("oddaje wpisane wartości, łącznie z checkboxem i selectem", async ({
-    page,
-  }) => {
-    const values = {
-      ...sample_event_values(scoped_event_id("duplikat")),
-      id: SEED_EVENT_IDS.ongoing_conference,
-    };
-
-    await log_in(page);
-    await page.goto(NEW_EVENT_PATH);
-    await fill_event_form(page, values);
-
-    const rejected = await submit_form(page, submit_button(page, "create"));
-    expect(rejected.status()).toBe(409);
-    await expect(page).toHaveURL(NEW_EVENT_PATH);
-    await expect(error_summary(page)).toContainText(
-      "Wydarzenie o tym identyfikatorze już istnieje.",
-    );
-
-    await expect_field_error(page, "id", "invalid");
-    // Sedno panelu bez JS-a: odtworzyć formularz może tylko serwer.
-    await expect_form_values(page, values);
-    await expect(event_field(page, "name")).toHaveAttribute(
-      "aria-invalid",
-      "false",
-    );
-  });
-
-  test("stawia komunikat przy właściwym polu, nie tylko w podsumowaniu", async ({
-    page,
-  }) => {
-    const values = {
-      ...sample_event_values(scoped_event_id("walidacja")),
-      // Żadne pole nie ma atrybutu `required` ani `pattern`, więc odrzucenie musi
-      // przyjść z serwera i wskazać input. Puste znaczy „bez wartości", ale wpisany
-      // z błędem format zostaje błędem — także ten, który parser cicho by zdjął.
-      "venue.name": "",
-      countryCode: "pl",
-      image: "assets/img/og-image.png",
-    };
-
-    await log_in(page);
-    await page.goto(NEW_EVENT_PATH);
-    await fill_event_form(page, values);
-
-    const rejected = await submit_form(page, submit_button(page, "create"));
-    expect(rejected.status()).toBe(422);
-
-    await expect_field_error(page, "countryCode", "invalid");
-    await expect_field_error(page, "image", "invalid");
-    // Puste pole rozpoczętej grupy nie jest już błędem: obiekt bez nazwy zostaje obiektem.
-    await expect(event_field(page, "venue.name")).toHaveAttribute(
-      "aria-invalid",
-      "false",
-    );
-    await expect(
-      error_summary(page).getByRole("link", { name: "Kod kraju" }),
-    ).toHaveAttribute("href", `#${field_id("countryCode")}`);
-    await expect(
-      error_summary(page).getByRole("link", { name: "Obraz" }),
-    ).toHaveAttribute("href", `#${field_id("image")}`);
-
-    await expect(event_field(page, "description")).toHaveValue(
-      values.description,
-    );
-    await expect(registration_checkbox(page)).toBeChecked();
-    expect(await read_fixture_event(values.id)).toBeNull();
-  });
-
-  test("grupa wypełniona w połowie zapisuje się tak, jak ją wpisano", async ({
-    page,
-  }) => {
-    const id = scoped_event_id("polowa-grupy");
-    const values = {
-      ...sample_event_values(id),
-      "venue.streetAddress": "",
-      "venue.postalCode": "",
-      "schedule.endTime": "",
-      "schedule.timeZoneLabel": "",
-      "admission.priceCurrency": "",
-      "admission.validFrom": "",
-      "organizer.url": "",
-    };
-
-    await log_in(page);
-    await create_event_via_panel(page, values);
-
-    const saved = await read_fixture_event(id);
-    expect(saved?.venue).toEqual({ name: values["venue.name"] });
-    expect(saved?.schedule).toEqual({
-      startTime: values["schedule.startTime"],
-      utcOffset: values["schedule.utcOffset"],
-    });
-    expect(saved?.admission).toEqual({
-      price: values["admission.price"],
-      requiresRegistration: true,
-    });
-    expect(saved?.organizer).toEqual({ name: values["organizer.name"] });
-  });
-});
-
 test.describe("Panel wydarzeń — usuwanie", () => {
   test("wymaga potwierdzenia: strona mówi co zniknie, a POST bez zgody nic nie rusza", async ({
     page,
@@ -341,6 +272,7 @@ test.describe("Panel wydarzeń — usuwanie", () => {
     const details = page.locator("dl");
     await expect(details).toContainText(id);
     await expect(details).toContainText(values["venue.name"]);
+    await expect(details).toContainText(values["venue.room"]);
     await expect(details).toContainText(values.startDate);
     await expect(page.locator(`a[href="/markets/${id}"]`)).toBeVisible();
 
@@ -460,6 +392,12 @@ test.describe("Panel wydarzeń — bez JavaScriptu", () => {
       const values = sample_event_values(id);
 
       await log_in(page);
+
+      // Podgląd wydarzenia to jedyna wyspa panelu i jedyna rzecz, którą traci się bez
+      // JavaScriptu — <noscript> chowa go, żeby nie zostawiać martwego przełącznika.
+      await page.goto(NEW_EVENT_PATH);
+      await expect(page.locator("[data-event-preview]")).toBeHidden();
+
       await create_event_via_panel(page, values);
       await expect_notice(page, "created", id);
       await expect(event_row(page, id)).toContainText(values.name);

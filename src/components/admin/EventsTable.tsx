@@ -138,6 +138,10 @@ function PlaceCell({ event }: { event: TradeFairEvent }) {
   const place = [event.city, event.country].filter(
     (part): part is string => part !== undefined,
   );
+  // Nazwa obiektu bywa nieznana, gdy znamy juz sale — pusty wiersz nie mowilby nic
+  const venue = [event.venue?.name, event.venue?.room]
+    .filter((part): part is string => part !== undefined)
+    .join(" · ");
 
   return (
     <div className="min-w-0 space-y-1">
@@ -152,10 +156,8 @@ function PlaceCell({ event }: { event: TradeFairEvent }) {
         </span>
       </p>
 
-      {event.venue !== undefined && (
-        <p className="text-xs break-words text-base-content/60">
-          {event.venue.name}
-        </p>
+      {venue === "" ? null : (
+        <p className="text-xs break-words text-base-content/60">{venue}</p>
       )}
     </div>
   );

@@ -139,8 +139,17 @@ test.describe("Strona wydarzenia — treść", () => {
       main.getByText(required(schedule.timeZoneLabel, "Strefa warsztatu")),
     ).toBeVisible();
 
+    // Nazwa obiektu prowadzi na jego stronę, nie na stronę wydarzenia i nie na mapę.
+    // Adresowane po `href`: nazwa obiektu wchodzi też w nazwę dostępną CTA z dojazdem.
+    const venue_link = main.locator(
+      `a[href="${required(venue.url, "Strona obiektu")}"]`,
+    );
+    await expect(venue_link).toHaveCount(1);
+    await expect(venue_link).toContainText(
+      required(venue.name, "Nazwa miejsca"),
+    );
     await expect(
-      main.getByText(required(venue.name, "Nazwa miejsca"), { exact: true }),
+      main.getByText(required(venue.room, "Sala warsztatu"), { exact: true }),
     ).toBeVisible();
     await expect(
       main.getByText(
@@ -337,14 +346,13 @@ test.describe("Strona wydarzenia bez JavaScriptu", () => {
       await expect(
         main.getByText(required(WORKSHOP.description, "Opis warsztatu")),
       ).toBeVisible();
+      const venue = required(WORKSHOP.venue, "Miejsce warsztatu");
+      // Nazwa obiektu stoi w linku do jego strony, razem z sufiksem dla czytnika ekranu.
       await expect(
-        main.getByText(
-          required(
-            required(WORKSHOP.venue, "Miejsce warsztatu").name,
-            "Nazwa miejsca warsztatu",
-          ),
-          { exact: true },
-        ),
+        main.locator(`a[href="${required(venue.url, "Strona obiektu")}"]`),
+      ).toContainText(required(venue.name, "Nazwa miejsca warsztatu"));
+      await expect(
+        main.getByText(required(venue.room, "Sala warsztatu"), { exact: true }),
       ).toBeVisible();
       await expect(
         main.getByText(

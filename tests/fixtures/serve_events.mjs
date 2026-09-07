@@ -6,6 +6,9 @@ import { createServer } from "node:http";
  * (lista: goła tablica) na sukces, koperta `{ok:false,error}` na błąd, 201 na POST.
  * Stan żyje w pamięci procesu i zmieniają go mutacje panelu, więc `POST /__reset`
  * przywraca zestaw startowy; bez tego testy CRUD zależałyby od kolejności.
+ * `POST /__reset?scope=<prefiks>` ogranicza reset do jednej przestrzeni nazw: pliki
+ * speców chodzą równolegle na tym samym fixturze, więc reset globalny zdejmowałby
+ * rekord, na którym stoi test w sąsiednim workerze.
  */
 
 const HEALTH_PATH = "/health";
@@ -172,6 +175,17 @@ async function read_event_body(request, response) {
   return parsed;
 }
 
+/**
+ * Reset jednej przestrzeni nazw: zdejmuje jej rekordy i dokłada brakujące wpisy
+ * zestawu startowego, nie ruszając rekordów pozostałych plików speców.
+ */
+function reset_scope(scope) {
+  const kept = events.filter((event) => !event.id.startsWith(scope));
+  const present = new Set(kept.map((event) => event.id));
+
+  return [...kept, ...clone(seed).filter((event) => !present.has(event.id))];
+}
+
 function index_of(id) {
   return events.findIndex((event) => event.id === id);
 }
@@ -305,7 +319,8 @@ async function route(request, response, path, query) {
       fail(response, 405, "Reset accepts POST only.");
       return;
     }
-    events = clone(seed);
+    const scope = new URLSearchParams(query).get("scope");
+    events = scope === null ? clone(seed) : reset_scope(scope);
     send(response, 200, { ok: true, events: events.length });
     return;
   }

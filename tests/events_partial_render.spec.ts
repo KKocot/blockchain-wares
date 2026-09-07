@@ -46,6 +46,18 @@ const VENUE_NAMED: TradeFairEvent = {
   id: "draft-venue-named",
   venue: { name: "Draft Congress Hall" },
 };
+/** Sama sala: wiadomo, gdzie w środku, nie wiadomo w jakim budynku ani pod jakim adresem */
+const VENUE_ROOM_ONLY: TradeFairEvent = {
+  ...DATED,
+  id: "draft-venue-room-only",
+  venue: { room: "Meeting Room 0.5+0.6, ground floor" },
+};
+/** Sama strona obiektu: budynku nie nazwaliśmy, więc link mówi własnym adresem */
+const VENUE_LINKED: TradeFairEvent = {
+  ...DATED,
+  id: "draft-venue-linked",
+  venue: { url: "https://venue.invalid/social-hub" },
+};
 /** Ulica bez miasta: mapa szukałaby jej po całym świecie i trafiła gdzie indziej */
 const VENUE_HOMELESS: TradeFairEvent = {
   ...DATED,
@@ -89,8 +101,10 @@ const LOCATED: TradeFairEvent = {
   country: "Spain",
   venue: {
     name: "Draft Congress Hall",
+    room: "Meeting Room 0.5+0.6, ground floor",
     streetAddress: "Draft Street 49",
     postalCode: "08019",
+    url: "https://venue.invalid/social-hub",
   },
 };
 
@@ -210,6 +224,25 @@ test.describe("Karta wydarzenia przy niepełnych danych", () => {
     expect(html).not.toContain(MAPS_PREFIX);
   });
 
+  test("sama sala mówi, gdzie w środku, choć budynku nie nazywa", async () => {
+    const html = await render_card(VENUE_ROOM_ONLY, "upcoming");
+
+    expect_clean(html, "karta z samą salą");
+    // Bez nazwy i bez strony obiektu sala jest linią główną, nie drobnym drukiem pod nią.
+    expect(html).toContain(
+      '<span class="block">Meeting Room 0.5+0.6, ground floor</span>',
+    );
+    expect(html).not.toContain(MAPS_PREFIX);
+  });
+
+  test("sama strona obiektu: link mówi adresem, nie pustką", async () => {
+    const html = await render_card(VENUE_LINKED, "upcoming");
+
+    expect_clean(html, "karta z samą stroną obiektu");
+    expect(html).toContain('href="https://venue.invalid/social-hub"');
+    expect(text_of(html)).toContain("https://venue.invalid/social-hub");
+  });
+
   test("sama godzina otwarcia mówi „from”, nie zmyśla końca dnia", async () => {
     const html = await render_card(HALF_DAY, "upcoming");
 
@@ -237,6 +270,10 @@ test.describe("Karta wydarzenia przy niepełnych danych", () => {
     expect_clean(html, "karta kompletna");
     expect(html).toContain("Barcelona, Spain");
     expect(html).toContain(MAPS_PREFIX);
+    // Nazwa budynku prowadzi na jego stronę, sala i adres zostają obok niej.
+    expect(html).toContain('href="https://venue.invalid/social-hub"');
+    expect(text_of(html)).toContain("Meeting Room 0.5+0.6, ground floor");
+    expect(text_of(html)).toContain("Draft Street 49");
   });
 });
 
@@ -335,12 +372,32 @@ test.describe("Strona wydarzenia przy niepełnych danych", () => {
     expect(html).not.toContain(MAPS_PREFIX);
   });
 
+  test("sama sala wypełnia sekcję „Where”, dojazdu z niej nie ma", async () => {
+    const html = await render_detail(VENUE_ROOM_ONLY, "upcoming");
+
+    expect_clean(html, "detal z samą salą");
+    expect(html).toContain(">Where<");
+    expect(text_of(html)).toContain("Meeting Room 0.5+0.6, ground floor");
+    expect(html).not.toContain(MAPS_PREFIX);
+  });
+
+  test("sama strona obiektu: sekcja jest, a link mówi adresem", async () => {
+    const html = await render_detail(VENUE_LINKED, "upcoming");
+
+    expect_clean(html, "detal z samą stroną obiektu");
+    expect(html).toContain(">Where<");
+    expect(html).toContain('href="https://venue.invalid/social-hub"');
+    expect(text_of(html)).toContain("https://venue.invalid/social-hub");
+  });
+
   test("komplet: data, miejsce i dojazd stoją obok siebie", async () => {
     const html = await render_detail(LOCATED, "upcoming");
 
     expect_clean(html, "detal kompletny");
     expect(html).toContain("Jan 16–17, 2099 · Barcelona, Spain");
     expect(html).toContain(MAPS_PREFIX);
+    expect(html).toContain('href="https://venue.invalid/social-hub"');
+    expect(text_of(html)).toContain("Meeting Room 0.5+0.6, ground floor");
   });
 
   test("sam organizator z nazwą: wiersz jest, linku nie ma", async () => {

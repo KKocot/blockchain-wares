@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { basename } from "node:path";
 import {
   expect,
   test,
@@ -29,7 +31,7 @@ import type {
   EventFormErrorField,
   EventFormField,
 } from "../../src/lib/events/form_mapping";
-import { HARNESS_USER_AGENT, SEED_EVENT_IDS } from "../fixtures/events";
+import { HARNESS_USER_AGENT } from "../fixtures/events";
 import { NAV_TIMEOUT } from "./admin";
 
 /** Wspólne lokatory i kroki panelu wydarzeń — dzielone przez spece CRUD-a. */
@@ -55,8 +57,6 @@ const NOTICE_TEXT: Record<EventActionKind, string> = {
   deleted: "Wydarzenie zostało usunięte.",
 };
 
-const SEED_IDS: ReadonlySet<string> = new Set(Object.values(SEED_EVENT_IDS));
-
 const FIELD_KIND: ReadonlyMap<EventFormField, FieldKind | undefined> = new Map(
   GROUPS.flatMap((group) =>
     group.fields.map(
@@ -77,14 +77,22 @@ export function delete_path(id: string): string {
 }
 
 /**
- * Oba projekty mielą ten sam fixture, więc ich rekordy muszą mieć rozłączne
- * przestrzenie nazw — inaczej sprzątanie jednego zabierałoby wpisy drugiego.
- * Prefiksy są dobrane tak, żeby żaden nie był początkiem drugiego.
+ * Oba projekty i każdy plik speca mielą ten sam fixture, a workery chodzą równolegle:
+ * rekordy muszą mieć rozłączne przestrzenie nazw, inaczej sprzątanie jednego zabiera
+ * wpisy drugiego. Token pliku jest skrótem stałej długości — dwa różne nigdy nie są
+ * swoim prefiksem, w odróżnieniu od samych nazw plików (`admin_events` jest początkiem
+ * `admin_events_rejected`), a `startsWith` decyduje, co reset zdejmuje.
  */
 function event_scope(): string {
-  return test.info().project.use.javaScriptEnabled === false
-    ? "e2e-nojs"
-    : "e2e-js";
+  const info = test.info();
+  const project =
+    info.project.use.javaScriptEnabled === false ? "e2e-nojs" : "e2e-js";
+  const file = createHash("sha1")
+    .update(basename(info.file))
+    .digest("hex")
+    .slice(0, 6);
+
+  return `${project}-${file}`;
 }
 
 export function scoped_event_id(suffix: string): string {
@@ -122,8 +130,10 @@ export function sample_event_values(
     "schedule.utcOffset": "+02:00",
     "schedule.timeZoneLabel": "CEST",
     "venue.name": "Panel CRUD Hall",
+    "venue.room": "Meeting Room 0.5+0.6, ground floor",
     "venue.streetAddress": "Ulica Testowa 7",
     "venue.postalCode": "40-001",
+    "venue.url": "https://example.invalid/panel-crud-hall",
     "admission.price": "0",
     "admission.priceCurrency": "PLN",
     "admission.requiresRegistration": CHECKED,
@@ -290,20 +300,7 @@ export async function read_fixture_event(
   return (await response.json()) as Record<string, unknown>;
 }
 
-async function read_fixture_ids(): Promise<string[]> {
-  const response = await fetch(`${EVENTS_API_BASE_URL}/events`, {
-    headers: { "user-agent": HARNESS_USER_AGENT },
-  });
-  expect(
-    response.ok,
-    `Fixture wydarzeń odpowiedział ${response.status} na listę.`,
-  ).toBe(true);
-
-  const events = (await response.json()) as readonly { id: string }[];
-  return events.map((event) => event.id);
-}
-
-/** Sprzątanie po rekordzie, którego identyfikator nadał backend — poza prefiksem projektu. */
+/** Sprzątanie po rekordzie, którego identyfikator nadał backend — poza prefiksem pliku. */
 export async function drop_fixture_event(id: string): Promise<void> {
   await fetch(`${EVENTS_API_BASE_URL}/events/${encodeURIComponent(id)}`, {
     method: "DELETE",
@@ -315,31 +312,22 @@ export async function drop_fixture_event(id: string): Promise<void> {
 }
 
 /**
- * Przywraca zestaw startowy fixture'a — bez tego test zależałby od tego, co
- * zostawił poprzedni (`reuseExistingServer` oddaje serwer po poprzednim biegu).
+ * Zdejmuje rekordy tego pliku i przywraca brakujące wpisy zestawu startowego — bez
+ * tego test zależałby od tego, co zostawił poprzedni (`reuseExistingServer` oddaje
+ * serwer po poprzednim biegu).
  *
- * `/__reset` czyści stan globalnie, a projekty `chromium` i `chromium-no-js`
- * chodzą na jednym fixture: reset w trakcie testu drugiego projektu skasowałby
- * rekord, na którym on stoi. Dlatego reset idzie tylko wtedy, gdy poza zestawem
- * startowym nie ma cudzych wpisów; inaczej sprzątamy sam swój prefiks.
+ * Reset jest ograniczony do własnej przestrzeni nazw, bo oba projekty i wszystkie
+ * mutujące spece chodzą równolegle na jednym fixturze: globalny reset kasowałby
+ * rekord, na którym stoi test w sąsiednim workerze.
  */
 export async function reset_events(): Promise<void> {
-  const scope = `${event_scope()}-`;
-  const ids = await read_fixture_ids();
-  const foreign = ids.filter(
-    (id) => !SEED_IDS.has(id) && !id.startsWith(scope),
-  );
+  const scope = encodeURIComponent(`${event_scope()}-`);
+  const response = await fetch(`${EVENTS_FIXTURE_RESET_URL}?scope=${scope}`, {
+    method: "POST",
+  });
 
-  if (foreign.length === 0) {
-    const response = await fetch(EVENTS_FIXTURE_RESET_URL, { method: "POST" });
-    expect(
-      response.ok,
-      `Fixture wydarzeń odrzucił reset stanu (${response.status}).`,
-    ).toBe(true);
-    return;
-  }
-
-  for (const id of ids.filter((candidate) => candidate.startsWith(scope))) {
-    await drop_fixture_event(id);
-  }
+  expect(
+    response.ok,
+    `Fixture wydarzeń odrzucił reset stanu (${response.status}).`,
+  ).toBe(true);
 }

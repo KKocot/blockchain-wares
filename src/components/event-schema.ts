@@ -18,7 +18,8 @@ interface PostalAddressSchema {
 interface PlaceSchema {
   "@type": "Place";
   name?: string;
-  /** Map link, not the venue's own page — that is what `url` would mean here */
+  /** Page of the building itself; the map link is `hasMap` and the two never swap */
+  url?: string;
   hasMap?: string;
   address: PostalAddressSchema;
 }
@@ -63,9 +64,15 @@ export interface EventSchema {
 /**
  * Where the event happens, `undefined` while nothing about the place is known —
  * a `Place` carrying only its `@type` describes nothing and reads as broken markup.
+ *
+ * A page of its own does not summon a `Place` either: Google reads the location of an
+ * offline event by name and address, so a `Place` that states neither is markup it
+ * rejects. The venue's page decorates a location we can already describe.
+ * The room stays out entirely — schema.org describes buildings, not floors inside them.
  */
 function build_location_schema(event: TradeFairEvent): PlaceSchema | undefined {
   const name = event.venue?.name ?? event.city;
+  const venue_url = event.venue?.url;
   const map_url = get_venue_map_url(event);
   const address: PostalAddressSchema = {
     "@type": "PostalAddress",
@@ -84,6 +91,7 @@ function build_location_schema(event: TradeFairEvent): PlaceSchema | undefined {
   return {
     "@type": "Place",
     ...(name ? { name } : {}),
+    ...(venue_url ? { url: venue_url } : {}),
     ...(map_url ? { hasMap: map_url } : {}),
     address,
   };

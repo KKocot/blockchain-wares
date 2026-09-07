@@ -1,9 +1,4 @@
 import { expect, test } from "@playwright/test";
-import {
-  build_event_schema,
-  to_json_ld,
-  type EventSchema,
-} from "../src/components/event-schema";
 import { format_admission } from "../src/components/event-theme";
 import {
   format_venue_address,
@@ -16,87 +11,17 @@ import {
   get_venue_map_url,
   MARKETS_PATH,
   parse_iso_day,
-  type EventAdmission,
   type TradeFairEvent,
 } from "../src/components/events-data";
-import { SEED_EVENTS } from "./fixtures/events";
+import {
+  CONFERENCE,
+  FREE_ADMISSION,
+  ROOMED_WORKSHOP,
+  TOKYO_CONFERENCE,
+  WORKSHOP,
+  WORKSHOP_MAP_URL,
+} from "./fixtures/event_shapes";
 import { required } from "./support/events";
-
-/**
- * Wydarzenie z datami ma dostać blok `Event` — `null` w tych testach to regresja,
- * a nie stan do obsłużenia. Wariant bez dat ma własny spec.
- */
-function dated_schema(
-  ...args: Parameters<typeof build_event_schema>
-): EventSchema {
-  return required(
-    build_event_schema(...args),
-    `Schemat JSON-LD wydarzenia "${args[0].id}"`,
-  );
-}
-
-const SITE = new URL("https://blockchainwares.com.pl");
-
-const FREE_ADMISSION: EventAdmission = {
-  price: "0",
-  priceCurrency: "EUR",
-  requiresRegistration: false,
-  validFrom: "2026-09-03",
-};
-
-/** Wydarzenie własne: jeden dzień, godziny zegarowe, link do mapy zamiast strony */
-const WORKSHOP = {
-  id: "test-workshop",
-  name: "Test Workshop",
-  kind: "workshop",
-  city: "Barcelona",
-  country: "Spain",
-  countryCode: "ES",
-  startDate: "2026-09-19",
-  endDate: "2026-09-19",
-  schedule: {
-    startTime: "10:00",
-    endTime: "14:00",
-    utcOffset: "+02:00",
-    timeZoneLabel: "CEST",
-  },
-  venue: {
-    name: "Test Venue",
-    streetAddress: "Carrer de Prova, 49",
-    postalCode: "08019",
-  },
-  admission: FREE_ADMISSION,
-  image: "/assets/img/og-image.png",
-  organizer: { name: "BlockchainWares", url: "https://blockchainwares.com.pl" },
-  description: "Test description",
-  topics: ["Topic"],
-} satisfies TradeFairEvent;
-
-/** Konferencja: zakres dni bez godzin, własna strona */
-const CONFERENCE = {
-  id: "test-conference",
-  name: "Test Conference",
-  city: "Barcelona",
-  country: "Spain",
-  countryCode: "ES",
-  startDate: "2026-09-16",
-  endDate: "2026-09-17",
-  url: "https://example.com/",
-  image: "/assets/img/og-image.png",
-  organizer: { name: "Organizer", url: "https://example.com/" },
-  description: "Test description",
-  topics: ["Topic"],
-} satisfies TradeFairEvent;
-
-/** Konferencja po drugiej stronie globu — jej doba nie może zależeć od strefy renderera */
-const TOKYO_CONFERENCE = {
-  ...CONFERENCE,
-  id: "test-conference-tokyo",
-  city: "Tokyo",
-  country: "Japan",
-  countryCode: "JP",
-  utcOffset: "+09:00",
-} satisfies TradeFairEvent;
 
 const WORKSHOP_START_MS = new Date(
   required(get_event_start_datetime(WORKSHOP), "Otwarcie warsztatu"),
@@ -104,9 +29,6 @@ const WORKSHOP_START_MS = new Date(
 const WORKSHOP_END_MS = new Date(
   required(get_event_end_datetime(WORKSHOP), "Zamknięcie warsztatu"),
 ).getTime();
-
-const WORKSHOP_MAP_URL =
-  "https://www.google.com/maps/search/?api=1&query=Carrer%20de%20Prova%2C%2049%2C%2008019%20Barcelona";
 
 test.describe("daty wydarzenia", () => {
   test("harmonogram dokłada godzinę i offset", () => {
@@ -207,153 +129,6 @@ test.describe("get_event_status — granice godzin", () => {
   });
 });
 
-test.describe("JSON-LD", () => {
-  test("wydarzenie z harmonogramem: pełny kształt schematu", () => {
-    expect(dated_schema(WORKSHOP, SITE)).toEqual({
-      "@context": "https://schema.org",
-      "@type": "Event",
-      name: "Test Workshop",
-      description: "Test description",
-      image: "https://blockchainwares.com.pl/assets/img/og-image.png",
-      startDate: "2026-09-19T10:00:00+02:00",
-      endDate: "2026-09-19T14:00:00+02:00",
-      eventStatus: "https://schema.org/EventScheduled",
-      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-      isAccessibleForFree: true,
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "EUR",
-        availability: "https://schema.org/InStock",
-        url: "https://blockchainwares.com.pl/markets",
-        validFrom: "2026-09-03",
-      },
-      location: {
-        "@type": "Place",
-        name: "Test Venue",
-        hasMap: WORKSHOP_MAP_URL,
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: "Carrer de Prova, 49",
-          postalCode: "08019",
-          addressLocality: "Barcelona",
-          addressCountry: "ES",
-        },
-      },
-      organizer: {
-        "@type": "Organization",
-        name: "BlockchainWares",
-        url: "https://blockchainwares.com.pl",
-      },
-    });
-  });
-
-  test("link do mapy nie trafia do Place.url", () => {
-    const schema = dated_schema(WORKSHOP, SITE);
-    const location = required(schema.location, "Miejsce w schemacie");
-
-    expect("url" in location).toBe(false);
-    // Wydarzenie własne nie ma strony, więc Event.url też się nie pojawia.
-    expect("url" in schema).toBe(false);
-  });
-
-  test("wydarzenie bez harmonogramu: daty dzienne i miasto jako miejsce", () => {
-    const schema = dated_schema(CONFERENCE, SITE);
-    const location = required(schema.location, "Miejsce w schemacie");
-
-    expect(schema.startDate).toBe("2026-09-16");
-    expect(schema.endDate).toBe("2026-09-17");
-    expect(schema.url).toBe("https://example.com/");
-    expect(location.name).toBe("Barcelona");
-    expect("hasMap" in location).toBe(false);
-    expect("streetAddress" in location.address).toBe(false);
-  });
-
-  test("wydarzenie bez wstępu na własnych zasadach nie dostaje oferty", () => {
-    const schema = dated_schema(CONFERENCE, SITE);
-
-    expect("offers" in schema).toBe(false);
-    expect("isAccessibleForFree" in schema).toBe(false);
-  });
-
-  test("płatny wstęp nie jest oznaczany jako darmowy", () => {
-    const paid = {
-      ...WORKSHOP,
-      admission: { ...FREE_ADMISSION, price: "120" },
-    } satisfies TradeFairEvent;
-    const schema = dated_schema(paid, SITE);
-
-    expect(schema.offers?.price).toBe("120");
-    expect("isAccessibleForFree" in schema).toBe(false);
-  });
-
-  test("niepełna grupa trafia do JSON-LD tylko wtedy, gdy jest poprawna", () => {
-    const partial = {
-      ...WORKSHOP,
-      admission: { price: "0", requiresRegistration: false },
-      organizer: { name: "Sam organizator" },
-    } satisfies TradeFairEvent;
-    const schema = dated_schema(partial, SITE);
-
-    // Cena bez waluty nie składa się na `Offer`, ale wstęp wolny zostaje ogłoszony.
-    expect("offers" in schema).toBe(false);
-    expect(schema.isAccessibleForFree).toBe(true);
-    expect(schema.organizer).toEqual({
-      "@type": "Organization",
-      name: "Sam organizator",
-    });
-  });
-
-  test("organizator bez nazwy nie staje się pustą Organization", () => {
-    const anonymous = {
-      ...WORKSHOP,
-      organizer: { url: "https://example.invalid/org" },
-    } satisfies TradeFairEvent;
-
-    expect("organizer" in dated_schema(anonymous, SITE)).toBe(false);
-  });
-
-  test("adres bez miasta nie dokleja mapy prowadzącej w złe miejsce", () => {
-    const homeless = {
-      ...WORKSHOP,
-      city: undefined,
-    } satisfies TradeFairEvent;
-    const location = required(
-      dated_schema(homeless, SITE).location,
-      "Miejsce w schemacie",
-    );
-
-    expect("hasMap" in location).toBe(false);
-    expect(location.address.streetAddress).toBe("Carrer de Prova, 49");
-  });
-
-  test("schemat ze strony wydarzenia kieruje ofertę na tę stronę", () => {
-    const schema = dated_schema(WORKSHOP, SITE, get_event_path(WORKSHOP));
-
-    expect(schema.offers?.url).toBe(
-      "https://blockchainwares.com.pl/markets/test-workshop",
-    );
-  });
-
-  test("bez ścieżki oferta zostaje przy listingu", () => {
-    // Listing emituje schematy wszystkich wydarzeń naraz — tam oferta nie ma dokąd celować.
-    expect(dated_schema(WORKSHOP, SITE).offers?.url).toBe(
-      "https://blockchainwares.com.pl/markets",
-    );
-  });
-
-  test("escapowanie nie zmienia danych — round-trip 1:1", () => {
-    const schemas = SEED_EVENTS.map((event) => dated_schema(event, SITE));
-    const serialized = to_json_ld(schemas);
-
-    // Adres Maps URLs API zawiera `&`, jeden ze znaków uciekanych do \\uXXXX.
-    // Bez niego w danych test przechodziłby, nie sprawdzając niczego.
-    expect(JSON.stringify(schemas)).toMatch(/&/);
-    expect(serialized).not.toMatch(/[<>&]/);
-    expect(JSON.parse(serialized)).toEqual(schemas);
-  });
-});
-
 test.describe("wstęp, adres i link do mapy", () => {
   test("darmowe wejście bez zapisów opisane jest wprost", () => {
     expect(format_admission(FREE_ADMISSION)).toBe(
@@ -377,6 +152,13 @@ test.describe("wstęp, adres i link do mapy", () => {
 
   test("bez ulicy nie ma pewnego trafienia, więc nie ma linku", () => {
     expect(get_venue_map_url(CONFERENCE)).toBeUndefined();
+  });
+
+  test("sala i strona obiektu nie ruszają adresu ani linku do mapy", () => {
+    expect(format_venue_address(ROOMED_WORKSHOP)).toBe(
+      "Carrer de Prova, 49, 08019 Barcelona",
+    );
+    expect(get_venue_map_url(ROOMED_WORKSHOP)).toBe(WORKSHOP_MAP_URL);
   });
 });
 

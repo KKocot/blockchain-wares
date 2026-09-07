@@ -109,8 +109,10 @@ export function build_seed_events(now: Date = new Date()): TradeFairEvent[] {
       },
       venue: {
         name: "Fixture Coworking Gdansk",
+        room: "Meeting Room 0.5+0.6, ground floor",
         streetAddress: "Ulica Testowa 7",
         postalCode: "80-001",
+        url: "https://example.invalid/fixture-coworking",
       },
       admission: {
         price: "0",
@@ -121,7 +123,7 @@ export function build_seed_events(now: Date = new Date()): TradeFairEvent[] {
       image: OG_IMAGE,
       organizer: BW_ORGANIZER,
       description:
-        "Fullest fixture shape: a workshop with clock times and a zone, a venue with a street address and free entry without registration. Covers the host wording and the admission pill.",
+        "Fullest fixture shape: a workshop with clock times and a zone, a venue with a room, a street address and a page of its own, and free entry without registration. Covers the host wording and the admission pill.",
       topics: ["Our scope of work", "Project demos", "Fixture full shape"],
     },
     {

@@ -153,7 +153,11 @@ function build_details(event: TradeFairEvent): DetailRow[] {
   ];
 
   push_row(rows, "Miejsce", [format_place(event)]);
-  push_row(rows, "Obiekt", [event.venue?.name, format_venue_address(event)]);
+  push_row(rows, "Obiekt", [
+    event.venue?.name,
+    event.venue?.room,
+    format_venue_address(event),
+  ]);
   push_row(rows, "Wstęp (tekst na stronie)", [format_admission(event.admission)]);
 
   return rows;

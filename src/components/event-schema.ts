@@ -42,7 +42,8 @@ export interface EventSchema {
   "@type": "Event";
   name: string;
   description: string;
-  image: string;
+  /** Absent for an image we cannot resolve — schema.org treats it as recommended, not required */
+  image?: string;
   startDate: string;
   endDate: string;
   eventStatus: string;
@@ -75,6 +76,24 @@ function build_offer_schema(
 }
 
 /**
+ * Absolute URL of the event image. The parser already drops a source `new URL()` chokes on,
+ * so this is the second lock, and it holds for the same reason: one unusable picture must
+ * not turn the listing and every detail page into a 500.
+ */
+function build_image_url(
+  event: TradeFairEvent,
+  site: URL | string | undefined,
+): string | undefined {
+  if (event.image === undefined) return undefined;
+
+  try {
+    return new URL(event.image, site).href;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * schema.org Event for a single entry of `EVENTS`, dates taken from the shared helpers.
  * `offer_path` is where the offer sends a visitor: the listing by default, the event's
  * own page when the schema is emitted from it — we run no ticketing of our own.
@@ -88,13 +107,14 @@ export function build_event_schema(
   const is_free =
     event.admission !== undefined && Number(event.admission.price) === 0;
   const map_url = get_venue_map_url(event);
+  const image = build_image_url(event, site);
 
   return {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.name,
     description: event.description,
-    image: new URL(event.image, site).href,
+    ...(image ? { image } : {}),
     startDate: get_event_start_datetime(event),
     endDate: get_event_end_datetime(event),
     eventStatus: "https://schema.org/EventScheduled",

@@ -17,11 +17,21 @@ const COUNTRY_CODE = /^[A-Z]{2}$/;
 const CURRENCY_CODE = /^[A-Z]{3}$/;
 const PRICE = /^\d+(?:\.\d{1,2})?$/;
 const HTTP_URL = /^https?:\/\/\S+$/;
+/**
+ * Same pattern the events module validates writes with: an absolute `http(s)` address or
+ * a root-relative path. Protocol-relative `//host/a.png` is out — it resolves to someone
+ * else's origin in the JSON-LD, and every event we hold states a path of our own.
+ */
+const IMAGE_SRC = /^(?:https?:\/\/\S+|\/[^/\s]\S*)$/;
+
+/** Base for the shape check only — the real one comes from `Astro.site` at render time */
+const RESOLUTION_BASE = "https://resolution.invalid";
 
 /**
  * `null` = rekord nie nadaje sie do renderu. Pole opcjonalne obecne, ale w zlym
  * ksztalcie tez wywala caly rekord: skoro nie rozumiemy tego, co przyszlo,
- * zgadywanie polowy wydarzenia jest gorsze niz jego brak.
+ * zgadywanie polowy wydarzenia jest gorsze niz jego brak. Jedyny wyjatek to
+ * `image` — patrz `read_image()`.
  *
  * Adresy przechodza przez wzorzec `https?://`, bo trafiaja wprost do `href`
  * i do JSON-LD — `javascript:` z bazy bylby wtedy linkiem do kliknięcia.
@@ -37,7 +47,7 @@ export function parse_event(value: unknown): TradeFairEvent | null {
   const countryCode = matched(source.countryCode, COUNTRY_CODE);
   const startDate = matched(source.startDate, ISO_DAY);
   const endDate = matched(source.endDate, ISO_DAY);
-  const image = text(source.image);
+  const image = read_image(source.image);
   const description = text(source.description);
   const organizer = read_organizer(source.organizer);
   const topics = read_topics(source.topics);
@@ -50,7 +60,6 @@ export function parse_event(value: unknown): TradeFairEvent | null {
     countryCode === null ||
     startDate === null ||
     endDate === null ||
-    image === null ||
     description === null ||
     organizer === null ||
     topics === null
@@ -104,6 +113,27 @@ export function parse_event(value: unknown): TradeFairEvent | null {
     description,
     topics,
   };
+}
+
+/**
+ * Image of an event, a path of ours or an absolute address. `http://[` clears the pattern
+ * yet still throws in `new URL()` when the JSON-LD is built, and the events module accepts
+ * it on write, so a record like that does reach us.
+ *
+ * A shape we cannot resolve costs the field, not the record: the picture is decoration for
+ * the JSON-LD, while dropping the event hides it from the admin listing too — leaving no
+ * way to fix or delete it short of the database.
+ */
+function read_image(value: unknown): string | undefined {
+  const raw = matched(value, IMAGE_SRC);
+  if (raw === null) return undefined;
+
+  try {
+    new URL(raw, RESOLUTION_BASE);
+    return raw;
+  } catch {
+    return undefined;
+  }
 }
 
 function as_record(value: unknown): Record<string, unknown> | null {

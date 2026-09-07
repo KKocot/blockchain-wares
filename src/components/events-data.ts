@@ -67,8 +67,12 @@ export interface TradeFairEvent {
   admission?: EventAdmission;
   /** Event website — absent for events that have no public page of their own */
   url?: string;
-  /** Site-relative or absolute image for the JSON-LD Event schema */
-  image: string;
+  /**
+   * Site-relative or absolute image for the JSON-LD Event schema. Optional because the
+   * parser drops a shape it cannot resolve instead of the whole record — schema.org calls
+   * the field recommended, and an event with no picture still has to be reachable.
+   */
+  image?: string;
   organizer: {
     name: string;
     url: string;

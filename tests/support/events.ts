@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import type { EventSchema } from "../../src/components/event-schema";
 import { MARKETS_PATH } from "../../src/components/events-data";
 
 /** Wspólne lokatory i kroki wydarzeń — dzielone przez spece listingu i stron detalu. */
@@ -32,4 +33,13 @@ export async function read_json_ld(page: Page): Promise<unknown[]> {
     .allTextContents();
 
   return blocks.map((block) => JSON.parse(block) as unknown);
+}
+
+/** Bloki `Layout` (Organization, WebSite, ...) sąsiadują ze schematem wydarzenia. */
+export function is_event_schema(block: unknown): block is EventSchema {
+  return (
+    typeof block === "object" &&
+    block !== null &&
+    (block as { "@type"?: unknown })["@type"] === "Event"
+  );
 }

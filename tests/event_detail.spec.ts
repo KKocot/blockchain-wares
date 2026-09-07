@@ -1,9 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { NO_JS_TAG } from "../playwright.config";
-import {
-  build_event_schema,
-  type EventSchema,
-} from "../src/components/event-schema";
+import { build_event_schema } from "../src/components/event-schema";
 import {
   get_event_link,
   get_status_badge_label,
@@ -25,6 +22,7 @@ import { get_seed_event, SEED_EVENT_IDS, SEED_EVENTS } from "./fixtures/events";
 import {
   back_links,
   detail_main,
+  is_event_schema,
   read_json_ld,
   required,
 } from "./support/events";
@@ -46,14 +44,6 @@ const VENUE_CONFERENCE = get_seed_event(SEED_EVENT_IDS.ongoing_conference);
 /** Trasa jest SSR-owa i liczy status z zegara requestu, więc test czyta ten sam kalendarz */
 function status_now(event: TradeFairEvent) {
   return get_event_status(event, new Date());
-}
-
-function is_event_schema(block: unknown): block is EventSchema {
-  return (
-    typeof block === "object" &&
-    block !== null &&
-    (block as { "@type"?: unknown })["@type"] === "Event"
-  );
 }
 
 test.describe("Wejścia na stronę wydarzenia", () => {

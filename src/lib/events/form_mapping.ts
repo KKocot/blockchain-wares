@@ -190,7 +190,7 @@ function form_values(event: TradeFairEvent) {
       event.admission?.requiresRegistration === true ? CHECKBOX_ON : "",
     "admission.validFrom": event.admission?.validFrom ?? "",
     url: event.url ?? "",
-    image: event.image,
+    image: event.image ?? "",
     "organizer.name": event.organizer.name,
     "organizer.url": event.organizer.url,
     description: event.description,

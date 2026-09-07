@@ -1,10 +1,14 @@
 import { expect, test } from "@playwright/test";
+import { build_event_schema } from "../src/components/event-schema";
 import { parse_event } from "../src/lib/events/parse_event";
 
 /**
  * Cache wydarzeń, cooldown i dedup pobrań żyją w module — jak `nginx_parser.spec.ts`
  * spec chodzi bez przeglądarki, na podstawionym `fetch` zamiast na sieci.
  */
+/** Kanoniczny origin z `astro.config.mjs` — JSON-LD jest nim adresowany */
+const SITE = "https://blockchainwares.com.pl";
+
 const API_BASE = "http://events.spec.invalid/blockchain-wares";
 const LIST_URL = `${API_BASE}/events`;
 const ALPHA_ID = "spec-event-alpha";
@@ -321,6 +325,41 @@ test.describe("parse_event", () => {
     expect(
       parse_event(event_record({ url: "https://example.invalid/event" }))?.url,
     ).toBe("https://example.invalid/event");
+  });
+
+  test("obrazek nie do użycia znika sam, wydarzenie zostaje na liście", () => {
+    // `//host/a.png` rozwiązuje się na obcy origin, reszta nie jest adresem w ogóle.
+    // Zdjęcie całego rekordu ukryłoby go także w panelu — nie byłoby jak go poprawić.
+    for (const image of [
+      "http://",
+      "notaurl",
+      "",
+      "javascript:alert(1)",
+      "//evil.invalid/pixel.png",
+      "assets/img/og-image.png",
+    ]) {
+      const event = parse_event(event_record({ image }));
+
+      expect(event?.id, JSON.stringify(image)).toBe(ALPHA_ID);
+      expect(event?.image, JSON.stringify(image)).toBeUndefined();
+    }
+
+    for (const image of [
+      "/assets/img/og-image.png",
+      "https://cdn.invalid/event.png",
+    ]) {
+      expect(parse_event(event_record({ image }))?.image, image).toBe(image);
+    }
+  });
+
+  test("obrazek zgodny ze wzorcem, ale nie do zbudowania, też odpada sam", () => {
+    // Backend waliduje zapis samym wzorcem, więc `http://[` da się zapisać, a wywala
+    // `new URL()` przy JSON-LD — czyli całą listę i każdą stronę wydarzenia.
+    const event = parse_event(event_record({ image: "http://[" }));
+    if (event === null) throw new Error("Zły obrazek zdjął cały rekord.");
+
+    expect(event.image).toBeUndefined();
+    expect(build_event_schema(event, SITE).image).toBeUndefined();
   });
 
   test("pusty string w polu opcjonalnym znaczy brak, nie powód odrzucenia", () => {

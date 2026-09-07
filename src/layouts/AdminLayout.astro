@@ -47,6 +47,20 @@ const showNav = Astro.locals.isAuthenticated === true;
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    <!-- Strony formularza wydarzenia doklejają tu font landingu — panel go nie używa. -->
+    <slot name="head" />
+
+    <noscript>
+      <style>
+        /* Podgląd wydarzenia żyje wyłącznie w JavaScripcie. Bez niego zostaje sam
+           formularz, który zapisuje się natywnym POST-em — martwy panel z
+           przełącznikiem bez działania byłby gorszy niż jego brak. */
+        [data-event-preview] {
+          display: none;
+        }
+      </style>
+    </noscript>
+
     <style is:global>
       /* Panel = interfejs narzedziowy: font systemowy (deterministyczne cyfry
          tabelaryczne), mniejsza baza i ciasniejszy interlinia niz na landingu. */

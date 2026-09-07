@@ -1,7 +1,6 @@
 import { cn } from "../lib/utils";
 import {
   format_event_date,
-  format_venue_address,
   get_event_end_datetime,
   get_event_name,
   get_event_path,
@@ -22,6 +21,7 @@ import {
   get_event_hours,
   get_event_link,
   get_status_badge_label,
+  has_venue_details,
   STATUS_BADGE_CLASS,
   STATUS_THEME,
   TOPIC_PILL_CLASS,
@@ -29,6 +29,7 @@ import {
 } from "./event-theme";
 import { EventHours } from "./EventHours";
 import { RelatedEvents, type RelatedEvent } from "./RelatedEvents";
+import { VenuePlace } from "./VenuePlace";
 
 export type { RelatedEvent };
 
@@ -37,6 +38,8 @@ interface EventDetailProps {
   /** Resolved per request by the route — this component never reads the clock */
   status: EventStatus;
   related: RelatedEvent[];
+  /** `div` for the admin preview — the panel page already owns the page's `<main>` */
+  container?: "main" | "div";
 }
 
 const CONTACT_PATH = "/#contact";
@@ -66,7 +69,12 @@ const BACK_LINK_CLASS =
  * Server-rendered only: no hydration, so the entrance runs on CSS keyframes
  * and the whole page stays readable with JavaScript disabled.
  */
-export function EventDetail({ event, status, related }: EventDetailProps) {
+export function EventDetail({
+  event,
+  status,
+  related,
+  container: Container = "main",
+}: EventDetailProps) {
   const theme = STATUS_THEME[status];
   const date = format_event_date(event);
   const kind_label = event.kind === "workshop" ? "Workshop" : "Conference";
@@ -85,7 +93,7 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
   const is_sparse = !event.description && topics.length === 0;
 
   return (
-    <main className="relative min-h-screen px-4 pt-28 pb-20 md:pt-36 md:pb-28">
+    <Container className="relative min-h-screen px-4 pt-28 pb-20 md:pt-36 md:pb-28">
       <div className="mx-auto w-full max-w-5xl">
         <header className="mb-10 animate-fade-in-up md:mb-14">
           <a href={MARKETS_PATH} className={cn(BACK_LINK_CLASS, "-my-2 py-2")}>
@@ -221,7 +229,7 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
           </div>
         </div>
       </div>
-    </main>
+    </Container>
   );
 }
 
@@ -237,8 +245,6 @@ function FactsPanel({
 }) {
   const date = format_event_date(event);
   const location = format_event_location(event);
-  const venue_name = event.venue?.name;
-  const venue_address = format_venue_address(event);
   const admission = format_admission(event.admission);
   const organizer_url = event.organizer?.url;
   /** A link with no name of its own says where it goes with the address itself */
@@ -257,10 +263,7 @@ function FactsPanel({
     map_url !== undefined && status !== "past" && primary.href !== map_url;
   const hours = get_event_hours(event);
   const has_when = date !== null || hours !== null;
-  const has_where =
-    venue_name !== undefined ||
-    venue_address !== undefined ||
-    location !== undefined;
+  const has_where = has_venue_details(event) || location !== undefined;
   /** A draft can know none of them — then the panel is the call to action alone */
   const has_facts =
     has_when ||
@@ -302,12 +305,7 @@ function FactsPanel({
             <div>
               <dt className={cn(LABEL_CLASS, theme.accent)}>Where</dt>
               <dd className={cn("mt-1", VALUE_CLASS)}>
-                {venue_name ? <span>{venue_name}</span> : null}
-                {venue_address ? (
-                  <span className="block text-xs font-normal text-base-content/70">
-                    {venue_address}
-                  </span>
-                ) : null}
+                <VenuePlace event={event} theme={theme} />
                 {location === undefined ? null : (
                   <span className="block">{location}</span>
                 )}

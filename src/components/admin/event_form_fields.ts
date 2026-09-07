@@ -6,6 +6,12 @@ import {
   type EventFormField,
 } from "../../lib/events/form_mapping";
 
+/**
+ * Kotwica formularza wydarzenia w DOM — podglad czyta z niego wartosci przez
+ * `document.getElementById`, bo stoi obok formularza, a nie w jego drzewie Reacta.
+ */
+export const EVENT_FORM_ID = "event-form";
+
 export type FieldKind =
   | "text"
   | "date"
@@ -113,7 +119,7 @@ const CATALOGUE = [
   },
   {
     title: "Miejsce",
-    hint: "Każde pole niezależne. Wszystkie trzy puste = wydarzenie bez obiektu.",
+    hint: "Każde pole niezależne. Wszystkie puste = wydarzenie bez obiektu.",
     fields: [
       {
         name: "city",
@@ -138,7 +144,7 @@ const CATALOGUE = [
         name: "venue.streetAddress",
         label: "Ulica i numer",
         placeholder: "Carrer de Cristóbal de Moura, 49",
-        hint: "Link do mapy powstaje z tego adresu i miasta — nie z nazwy obiektu.",
+        hint: "Link do mapy powstaje z tego adresu i miasta — nie z nazwy obiektu ani z jego strony.",
       },
       {
         name: "venue.postalCode",

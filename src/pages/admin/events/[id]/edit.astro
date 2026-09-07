@@ -1,11 +1,13 @@
 ---
 import AdminLayout from "../../../../layouts/AdminLayout.astro";
-import { EventForm } from "../../../../components/admin";
+import { EventForm, EventPreview } from "../../../../components/admin";
+import PreviewFont from "../../../../components/admin/PreviewFont.astro";
 import { BUTTON_CLASS, CARD_CLASS } from "../../../../components/admin/styles";
 import {
   get_event_by_id,
   get_event_name,
   get_event_path,
+  to_iso_day,
   type TradeFairEvent,
 } from "../../../../components/events-data";
 import {
@@ -120,6 +122,9 @@ if (view.kind === "failure") {
 } else if (rejected !== null) {
   Astro.response.status = rejected.status;
 }
+
+/** Dzien serwera dla pierwszego renderu podgladu; po hydracji liczy go przegladarka. */
+const today_iso = to_iso_day(new Date());
 ---
 
 <AdminLayout
@@ -132,7 +137,9 @@ if (view.kind === "failure") {
     <button type="submit" class={BUTTON_CLASS}>Wyloguj</button>
   </form>
 
-  <div class="mx-auto w-full max-w-3xl">
+  <PreviewFont slot="head" />
+
+  <div class="mx-auto w-full max-w-6xl">
     {
       view.kind === "form" ? (
         <Fragment>
@@ -158,14 +165,22 @@ if (view.kind === "failure") {
             )}
           </p>
 
-          <EventForm
-            mode="edit"
-            action={action}
-            cancelHref={ADMIN_EVENTS_PATH}
-            values={view.values}
-            errors={rejected?.errors ?? []}
-            message={rejected?.message ?? null}
+          <EventPreview
+            client:load
+            initialFields={view.values.toString()}
+            todayIso={today_iso}
           />
+
+          <div class="mx-auto w-full max-w-3xl">
+            <EventForm
+              mode="edit"
+              action={action}
+              cancelHref={ADMIN_EVENTS_PATH}
+              values={view.values}
+              errors={rejected?.errors ?? []}
+              message={rejected?.message ?? null}
+            />
+          </div>
         </Fragment>
       ) : (
         <div class={CARD_CLASS}>

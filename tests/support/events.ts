@@ -5,11 +5,12 @@ import { MARKETS_PATH } from "../../src/components/events-data";
 /** Wspólne lokatory i kroki wydarzeń — dzielone przez spece listingu i stron detalu. */
 
 /**
- * Zawęża pole opcjonalne w `TradeFairEvent`. Brak danych to zmiana zestawu
- * startowego fixture'a, a nie regresja strony — komunikat ma o tym mówić wprost.
+ * Zawęża pole opcjonalne w `TradeFairEvent` albo wynik helpera, ktory na szkicu bez
+ * danych oddaje `null`. Brak danych to zmiana zestawu startowego fixture'a, a nie
+ * regresja strony — komunikat ma o tym mówić wprost.
  */
-export function required<T>(value: T | undefined, what: string): T {
-  if (value === undefined) {
+export function required<T>(value: T | null | undefined, what: string): T {
+  if (value === undefined || value === null) {
     throw new Error(`${what} zniknęło z danych, na których stoi ten test.`);
   }
 

@@ -1,8 +1,15 @@
 import {
+  get_event_name,
   get_venue_map_url,
+  type EventDateParts,
   type EventStatus,
   type TradeFairEvent,
 } from "./events-data";
+
+/** Day or day range as the card, the banner and the detail page all write it: "19", "16–17" */
+export function format_event_days(date: EventDateParts): string {
+  return date.is_range ? `${date.start_day}–${date.end_day}` : date.start_day;
+}
 
 export interface StatusTheme {
   /** Badge copy stating our presence at the event */
@@ -20,8 +27,8 @@ export interface StatusTheme {
 }
 
 /**
- * Status is carried by hue, not by transparency — green reads as live,
- * cyan as brand-default and the deeper blue as archived.
+ * Status is carried by hue, not by transparency — green reads as live, cyan as
+ * brand-default, the deeper blue as archived and amber as still being arranged.
  */
 export const STATUS_THEME: Record<EventStatus, StatusTheme> = {
   ongoing: {
@@ -58,13 +65,28 @@ export const STATUS_THEME: Record<EventStatus, StatusTheme> = {
     link: "text-info hover:text-info-content focus-visible:ring-info",
     heading_link: "hover:text-info focus-visible:text-info",
   },
+  undated: {
+    label: "Date to be announced",
+    card: "border-white/5",
+    badge: "border-warning/30 bg-warning/10 text-warning",
+    dot: "bg-warning",
+    date_block: "border-warning/30 bg-warning/10",
+    accent: "text-warning",
+    topic: "border-warning/20 bg-warning/5 text-warning",
+    link: "text-warning hover:text-warning/80 focus-visible:ring-warning",
+    heading_link: "hover:text-warning focus-visible:text-warning",
+  },
 };
 
-/** Workshops are ours, so the badge states hosting instead of attendance */
+/**
+ * Workshops are ours, so the badge states hosting instead of attendance — except with no
+ * date, where the missing day is the only thing worth saying about the event yet.
+ */
 export const WORKSHOP_LABEL: Record<EventStatus, string> = {
   ongoing: "Happening now",
   upcoming: "We are hosting",
   past: "We hosted",
+  undated: "Date to be announced",
 };
 
 /** Shape of the status badge — colour comes from `StatusTheme.badge`, the dot from `.dot` */
@@ -107,7 +129,7 @@ export function get_event_link(
     return {
       href: event.url,
       label: "Event website",
-      sr_label: `${event.name} — opens in a new tab`,
+      sr_label: `${get_event_name(event)} — opens in a new tab`,
     };
   }
 

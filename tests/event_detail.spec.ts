@@ -36,6 +36,8 @@ const MISSING_PATH = "/markets/nie-ma-takiego";
 const PROMOTED_LIMIT = 2;
 
 const WORKSHOP = get_seed_event(SEED_EVENT_IDS.upcoming_workshop);
+const WORKSHOP_NAME = required(WORKSHOP.name, "Nazwa warsztatu");
+const WORKSHOP_TOPICS = required(WORKSHOP.topics, "Tematy warsztatu");
 /** Cudza konferencja bez venue: własna strona zamiast dojazdu, wstęp nie nasz */
 const CONFERENCE = get_seed_event(SEED_EVENT_IDS.upcoming_conference);
 /** Cudza konferencja z venue i edycją — dojazd stoi obok CTA, nie zamiast niego */
@@ -48,17 +50,15 @@ function status_now(event: TradeFairEvent) {
 
 test.describe("Wejścia na stronę wydarzenia", () => {
   for (const event of [CONFERENCE, WORKSHOP]) {
-    test(`listing: tytuł „${event.name}” otwiera jego stronę`, async ({
-      page,
-    }) => {
+    const name = required(event.name, "Nazwa wydarzenia z fixture'a");
+
+    test(`listing: tytuł „${name}” otwiera jego stronę`, async ({ page }) => {
       await page.goto(MARKETS_PATH);
 
-      await page.getByRole("link", { name: event.name, exact: true }).click();
+      await page.getByRole("link", { name, exact: true }).click();
 
       await expect(page).toHaveURL(new RegExp(`${get_event_path(event)}$`));
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-        event.name,
-      );
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(name);
     });
   }
 
@@ -92,7 +92,9 @@ test.describe("Wejścia na stronę wydarzenia", () => {
     await banner.locator(`a[href="${get_event_path(last)}"]`).click();
 
     await expect(page).toHaveURL(new RegExp(`${get_event_path(last)}$`));
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(last.name);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      required(last.name, "Nazwa promowanego wydarzenia"),
+    );
   });
 });
 
@@ -105,11 +107,11 @@ test.describe("Strona wydarzenia — treść", () => {
 
     await page.goto(get_event_path(WORKSHOP));
     const main = detail_main(page);
-    const date = format_event_date(WORKSHOP);
+    const date = required(format_event_date(WORKSHOP), "Daty warsztatu");
 
-    await expect(page).toHaveTitle(`${WORKSHOP.name} — BlockchainWares`);
+    await expect(page).toHaveTitle(`${WORKSHOP_NAME} — BlockchainWares`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      WORKSHOP.name,
+      WORKSHOP_NAME,
     );
     await expect(
       main.getByText(get_status_badge_label(WORKSHOP, status_now(WORKSHOP)), {
@@ -143,7 +145,7 @@ test.describe("Strona wydarzenia — treść", () => {
     ).toBeVisible();
     await expect(main.getByText(format_admission(admission))).toBeVisible();
 
-    for (const topic of WORKSHOP.topics) {
+    for (const topic of WORKSHOP_TOPICS) {
       await expect(main.getByText(topic, { exact: true })).toBeVisible();
     }
 
@@ -248,10 +250,10 @@ test.describe("Strona wydarzenia — JSON-LD", () => {
     );
     expect(events[0].offers?.url).toBe(`${SITE}${get_event_path(WORKSHOP)}`);
     expect(events[0].isAccessibleForFree).toBe(true);
-    expect(events[0].location.address["@type"]).toBe("PostalAddress");
-    expect(events[0].location.address.streetAddress).toBe(
-      WORKSHOP.venue?.streetAddress,
-    );
+
+    const address = required(events[0].location, "Miejsce warsztatu").address;
+    expect(address["@type"]).toBe("PostalAddress");
+    expect(address.streetAddress).toBe(WORKSHOP.venue?.streetAddress);
   });
 
   test("konferencja bez wstępu na naszych zasadach zostaje bez oferty", async ({
@@ -314,14 +316,16 @@ test.describe("Strona wydarzenia bez JavaScriptu", () => {
       const main = detail_main(page);
 
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-        WORKSHOP.name,
+        WORKSHOP_NAME,
       );
       await expect(
         main.getByText(get_status_badge_label(WORKSHOP, status_now(WORKSHOP)), {
           exact: true,
         }),
       ).toBeVisible();
-      await expect(main.getByText(WORKSHOP.description)).toBeVisible();
+      await expect(
+        main.getByText(required(WORKSHOP.description, "Opis warsztatu")),
+      ).toBeVisible();
       await expect(
         main.getByText(required(WORKSHOP.venue, "Miejsce warsztatu").name, {
           exact: true,
@@ -333,7 +337,7 @@ test.describe("Strona wydarzenia bez JavaScriptu", () => {
         ),
       ).toBeVisible();
 
-      for (const topic of WORKSHOP.topics) {
+      for (const topic of WORKSHOP_TOPICS) {
         await expect(main.getByText(topic, { exact: true })).toBeVisible();
       }
 

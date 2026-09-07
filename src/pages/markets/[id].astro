@@ -4,6 +4,7 @@ import { EventDetail, Navigation, Footer } from "../../components";
 import type { RelatedEvent } from "../../components/EventDetail";
 import {
   get_event_by_id,
+  get_event_name,
   get_event_path,
   get_event_status,
   group_events_by_status,
@@ -20,6 +21,9 @@ export const prerender = false;
 const OTHER_EVENTS_LIMIT = 3;
 const RELATED_ORDER = ["ongoing", "upcoming", "past"] as const;
 const DESCRIPTION_LIMIT = 155;
+/** Draft with nothing written about it yet — the tag still has to say what the page is */
+const FALLBACK_DESCRIPTION =
+  "An event on the BlockchainWares calendar — details are still being confirmed.";
 /** Same order as the events cache TTL — a crawler retrying sooner hits the same outage */
 const RETRY_AFTER_SECONDS = "60";
 
@@ -107,11 +111,14 @@ const related: RelatedEvent[] = groups
 
 const title =
   view.kind === "event"
-    ? `${view.event.name} — BlockchainWares`
+    ? `${get_event_name(view.event)} — BlockchainWares`
     : view.failure.title;
 const description =
   view.kind === "event"
-    ? truncate(view.event.description, DESCRIPTION_LIMIT)
+    ? truncate(
+        view.event.description ?? FALLBACK_DESCRIPTION,
+        DESCRIPTION_LIMIT,
+      )
     : view.failure.description;
 
 const event_schema =
@@ -139,7 +146,7 @@ const breadcrumb_schema =
           {
             "@type": "ListItem",
             position: 3,
-            name: view.event.name,
+            name: get_event_name(view.event),
             item: new URL(get_event_path(view.event), Astro.site).href,
           },
         ],

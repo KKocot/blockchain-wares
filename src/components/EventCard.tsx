@@ -4,6 +4,7 @@ import {
   format_event_date,
   format_venue_address,
   get_event_end_datetime,
+  get_event_name,
   get_event_path,
   get_event_start_datetime,
   type EventStatus,
@@ -86,7 +87,7 @@ export function EventCard({ event, status }: EventCardProps) {
                 theme.heading_link,
               )}
             >
-              {event.name}
+              {get_event_name(event)}
             </a>
           </h3>
 
@@ -146,7 +147,7 @@ export function EventCard({ event, status }: EventCardProps) {
         </p>
 
         <ul role="list" className="flex flex-wrap gap-2 list-none p-0 m-0">
-          {event.topics.map((topic) => (
+          {event.topics?.map((topic) => (
             <li key={topic} className={cn(TOPIC_PILL_CLASS, theme.topic)}>
               {topic}
             </li>
@@ -187,7 +188,10 @@ function DateBlock({
   theme: StatusTheme;
 }) {
   const date = format_event_date(event);
-  const is_range = event.startDate !== event.endDate;
+
+  if (date === null) {
+    return null;
+  }
 
   return (
     <div
@@ -201,7 +205,7 @@ function DateBlock({
     >
       <span className="text-2xl font-bold leading-none md:text-3xl">
         <time dateTime={get_event_start_datetime(event)}>{date.start_day}</time>
-        {is_range ? (
+        {date.is_range ? (
           <>
             –
             <time dateTime={get_event_end_datetime(event)}>{date.end_day}</time>

@@ -4,6 +4,7 @@ import {
   format_event_date,
   format_venue_address,
   get_event_end_datetime,
+  get_event_name,
   get_event_path,
   get_event_start_datetime,
   get_venue_map_url,
@@ -13,6 +14,7 @@ import {
 } from "./events-data";
 import {
   ADMISSION_PILL_CLASS,
+  format_event_days,
   get_event_link,
   get_status_badge_label,
   STATUS_BADGE_CLASS,
@@ -41,6 +43,7 @@ const CTA_PRIMARY_CLASS: Record<EventStatus, string> = {
   ongoing: "bg-success text-success-content hover:bg-success/90",
   upcoming: "bg-secondary text-secondary-content hover:bg-secondary/90",
   past: "bg-info text-info-content hover:bg-info/90",
+  undated: "bg-warning text-warning-content hover:bg-warning/90",
 };
 
 const CTA_BASE =
@@ -59,8 +62,7 @@ const BACK_LINK_CLASS =
 export function EventDetail({ event, status, related }: EventDetailProps) {
   const theme = STATUS_THEME[status];
   const date = format_event_date(event);
-  const is_range = event.startDate !== event.endDate;
-  const days = is_range ? `${date.start_day}–${date.end_day}` : date.start_day;
+  const days = date && format_event_days(date);
   const kind_label = event.kind === "workshop" ? "Workshop" : "Conference";
 
   return (
@@ -109,7 +111,7 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
           </div>
 
           <h1 className="mt-4 text-3xl font-bold leading-tight text-balance drop-shadow-lg md:text-4xl lg:text-5xl">
-            {event.name}
+            {get_event_name(event)}
           </h1>
 
           <p
@@ -118,7 +120,8 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
               theme.accent,
             )}
           >
-            {date.month} {days}, {date.year} · {event.city}, {event.country}
+            {date ? `${date.month} ${days}, ${date.year} · ` : null}
+            {event.city}, {event.country}
           </p>
         </header>
 
@@ -161,7 +164,7 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
                 role="list"
                 className="mt-4 flex flex-wrap gap-2 list-none p-0 m-0"
               >
-                {event.topics.map((topic) => (
+                {event.topics?.map((topic) => (
                   <li key={topic} className={cn(TOPIC_PILL_CLASS, theme.topic)}>
                     {topic}
                   </li>
@@ -280,23 +283,25 @@ function FactsPanel({
           </div>
         ) : null}
 
-        <div>
-          <dt className={cn(LABEL_CLASS, theme.accent)}>Organizer</dt>
-          <dd className={cn("mt-1", VALUE_CLASS)}>
-            <a
-              href={event.organizer.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "font-semibold underline-offset-4 transition-colors duration-150 hover:underline",
-                theme.link,
-              )}
-            >
-              {event.organizer.name}
-              <span className="sr-only"> {SR_NEW_TAB}</span>
-            </a>
-          </dd>
-        </div>
+        {event.organizer ? (
+          <div>
+            <dt className={cn(LABEL_CLASS, theme.accent)}>Organizer</dt>
+            <dd className={cn("mt-1", VALUE_CLASS)}>
+              <a
+                href={event.organizer.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "font-semibold underline-offset-4 transition-colors duration-150 hover:underline",
+                  theme.link,
+                )}
+              >
+                {event.organizer.name}
+                <span className="sr-only"> {SR_NEW_TAB}</span>
+              </a>
+            </dd>
+          </div>
+        ) : null}
       </dl>
 
       <div className="mt-6 border-t border-white/10 pt-5">
@@ -348,7 +353,10 @@ function DateBlock({
   theme: StatusTheme;
 }) {
   const date = format_event_date(event);
-  const is_range = event.startDate !== event.endDate;
+
+  if (date === null) {
+    return null;
+  }
 
   return (
     <span
@@ -360,7 +368,7 @@ function DateBlock({
     >
       <span className="text-4xl font-bold leading-none md:text-5xl">
         <time dateTime={get_event_start_datetime(event)}>{date.start_day}</time>
-        {is_range ? (
+        {date.is_range ? (
           <>
             –
             <time dateTime={get_event_end_datetime(event)}>{date.end_day}</time>
@@ -386,10 +394,6 @@ function RelatedEvents({ related }: { related: RelatedEvent[] }) {
       <ul role="list" className="mt-4 flex flex-col gap-3 list-none p-0 m-0">
         {related.map(({ event, status }) => {
           const date = format_event_date(event);
-          const days =
-            event.startDate === event.endDate
-              ? date.start_day
-              : `${date.start_day}–${date.end_day}`;
 
           return (
             <li key={event.id}>
@@ -403,10 +407,12 @@ function RelatedEvents({ related }: { related: RelatedEvent[] }) {
                     STATUS_THEME[status].accent,
                   )}
                 >
-                  {date.month} {days}, {date.year}
+                  {date
+                    ? `${date.month} ${format_event_days(date)}, ${date.year}`
+                    : null}
                 </span>
                 <span className="min-w-0 text-sm font-semibold text-base-content md:text-base">
-                  {event.shortName ?? event.name}
+                  {event.shortName ?? get_event_name(event)}
                   <span className="block text-xs font-normal text-base-content/70">
                     {event.city}, {event.country}
                   </span>

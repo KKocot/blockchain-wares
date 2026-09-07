@@ -151,12 +151,15 @@ test.describe("load_events — pobranie", () => {
     expect(snapshot.status.fetchedAt).not.toBeNull();
   });
 
-  test("rekord bez wymaganych pól wypada z listy, reszta zostaje", async () => {
+  test("rekord w złym formacie wypada z listy, reszta zostaje", async () => {
     const source = await fresh_source();
+    // Wymagane jest samo `id` — z listy zdejmuje dopiero pole obecne i nieczytelne
+    // (tu: data) oraz brak identyfikatora, bo bez niego nie ma adresu strony.
     stub_fetch(async () =>
       json_body([
         event_record(),
-        { id: "spec-event-broken" },
+        { id: "spec-event-broken", startDate: "wczoraj" },
+        { name: "spec-event-bez-id" },
         event_record({ id: BETA_ID }),
       ]),
     );
@@ -164,7 +167,7 @@ test.describe("load_events — pobranie", () => {
     const snapshot = await source.load_events();
 
     expect(ids_of(snapshot.events)).toEqual([ALPHA_ID, BETA_ID]);
-    expect(snapshot.status.rejected).toBe(1);
+    expect(snapshot.status.rejected).toBe(2);
     expect(snapshot.status.error).toBeNull();
   });
 
@@ -230,7 +233,10 @@ test.describe("load_events — awaria API przy niepustym cache", () => {
   test("niepusta lista, z której nic nie przechodzi walidacji, jest błędem", async () => {
     const source = await warm();
     stub_fetch(async () =>
-      json_body([{ id: "spec-event-broken" }, { nope: true }]),
+      json_body([
+        { id: "spec-event-broken", countryCode: "POLSKA" },
+        { nope: true },
+      ]),
     );
 
     const snapshot = await source.load_events({ force: true });
@@ -359,7 +365,7 @@ test.describe("parse_event", () => {
     if (event === null) throw new Error("Zły obrazek zdjął cały rekord.");
 
     expect(event.image).toBeUndefined();
-    expect(build_event_schema(event, SITE).image).toBeUndefined();
+    expect(build_event_schema(event, SITE)?.image).toBeUndefined();
   });
 
   test("pusty string w polu opcjonalnym znaczy brak, nie powód odrzucenia", () => {

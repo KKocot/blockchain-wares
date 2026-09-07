@@ -28,10 +28,13 @@ const IMAGE_SRC = /^(?:https?:\/\/\S+|\/[^/\s]\S*)$/;
 const RESOLUTION_BASE = "https://resolution.invalid";
 
 /**
- * `null` = rekord nie nadaje sie do renderu. Pole opcjonalne obecne, ale w zlym
- * ksztalcie tez wywala caly rekord: skoro nie rozumiemy tego, co przyszlo,
- * zgadywanie polowy wydarzenia jest gorsze niz jego brak. Jedyny wyjatek to
- * `image` — patrz `read_image()`.
+ * `null` = rekord nie nadaje sie do renderu, czyli dzis wylacznie brak `id`: tylko ono
+ * jest wymagane, bo napedza trase `/markets/<id>`. Kazde inne pole moze byc puste —
+ * wlasciciel zapisuje szkic i uzupelnia go pozniej.
+ *
+ * Pole **obecne, ale w zlym ksztalcie** dalej wywala caly rekord: brak wartosci to
+ * zgoda na szkic, wartosc ktorej nie rozumiemy to uszkodzone dane, a zgadywanie polowy
+ * wydarzenia jest gorsze niz jego brak. Jedyny wyjatek to `image` — patrz `read_image()`.
  *
  * Adresy przechodza przez wzorzec `https?://`, bo trafiaja wprost do `href`
  * i do JSON-LD — `javascript:` z bazy bylby wtedy linkiem do kliknięcia.
@@ -41,32 +44,20 @@ export function parse_event(value: unknown): TradeFairEvent | null {
   if (source === null) return null;
 
   const id = matched(source.id, EVENT_ID);
-  const name = text(source.name);
-  const city = text(source.city);
-  const country = text(source.country);
-  const countryCode = matched(source.countryCode, COUNTRY_CODE);
-  const startDate = matched(source.startDate, ISO_DAY);
-  const endDate = matched(source.endDate, ISO_DAY);
+  if (id === null) return null;
+
   const image = read_image(source.image);
-  const description = text(source.description);
-  const organizer = read_organizer(source.organizer);
-  const topics = read_topics(source.topics);
-
-  if (
-    id === null ||
-    name === null ||
-    city === null ||
-    country === null ||
-    countryCode === null ||
-    startDate === null ||
-    endDate === null ||
-    description === null ||
-    organizer === null ||
-    topics === null
-  ) {
-    return null;
-  }
-
+  const name = optional(source.name, text);
+  const city = optional(source.city, text);
+  const country = optional(source.country, text);
+  const countryCode = optional(source.countryCode, (raw) =>
+    matched(raw, COUNTRY_CODE),
+  );
+  const startDate = optional(source.startDate, (raw) => matched(raw, ISO_DAY));
+  const endDate = optional(source.endDate, (raw) => matched(raw, ISO_DAY));
+  const description = optional(source.description, text);
+  const organizer = optional(source.organizer, read_organizer);
+  const topics = optional(source.topics, read_topics);
   const shortName = optional(source.shortName, text);
   const edition = optional(source.edition, text);
   const kind = optional(source.kind, read_kind);
@@ -80,6 +71,15 @@ export function parse_event(value: unknown): TradeFairEvent | null {
   const url = optional(source.url, (raw) => matched(raw, HTTP_URL));
 
   if (
+    name === null ||
+    city === null ||
+    country === null ||
+    countryCode === null ||
+    startDate === null ||
+    endDate === null ||
+    description === null ||
+    organizer === null ||
+    topics === null ||
     shortName === null ||
     edition === null ||
     kind === null ||
@@ -177,8 +177,10 @@ function read_kind(value: unknown): EventKind | null {
   return value === "conference" || value === "workshop" ? value : null;
 }
 
+/** Pusta lista znaczy „bez tematow", nie „rekord do wyrzucenia" — jak brak pola. */
 function read_topics(value: unknown): string[] | null {
-  if (!Array.isArray(value) || value.length === 0) return null;
+  if (!Array.isArray(value)) return null;
+  if (value.length === 0) return [];
 
   const topics: string[] = [];
   for (const entry of value) {

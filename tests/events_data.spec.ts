@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { build_event_schema, to_json_ld } from "../src/components/event-schema";
+import {
+  build_event_schema,
+  to_json_ld,
+  type EventSchema,
+} from "../src/components/event-schema";
 import {
   format_admission,
   format_venue_address,
@@ -16,6 +20,20 @@ import {
   type TradeFairEvent,
 } from "../src/components/events-data";
 import { SEED_EVENTS } from "./fixtures/events";
+import { required } from "./support/events";
+
+/**
+ * Wydarzenie z datami ma dostać blok `Event` — `null` w tych testach to regresja,
+ * a nie stan do obsłużenia. Wariant bez dat ma własny spec.
+ */
+function dated_schema(
+  ...args: Parameters<typeof build_event_schema>
+): EventSchema {
+  return required(
+    build_event_schema(...args),
+    `Schemat JSON-LD wydarzenia "${args[0].id}"`,
+  );
+}
 
 const SITE = new URL("https://blockchainwares.com.pl");
 
@@ -27,7 +45,7 @@ const FREE_ADMISSION: EventAdmission = {
 };
 
 /** Wydarzenie własne: jeden dzień, godziny zegarowe, link do mapy zamiast strony */
-const WORKSHOP: TradeFairEvent = {
+const WORKSHOP = {
   id: "test-workshop",
   name: "Test Workshop",
   kind: "workshop",
@@ -52,10 +70,10 @@ const WORKSHOP: TradeFairEvent = {
   organizer: { name: "BlockchainWares", url: "https://blockchainwares.com.pl" },
   description: "Test description",
   topics: ["Topic"],
-};
+} satisfies TradeFairEvent;
 
 /** Konferencja: zakres dni bez godzin, własna strona */
-const CONFERENCE: TradeFairEvent = {
+const CONFERENCE = {
   id: "test-conference",
   name: "Test Conference",
   city: "Barcelona",
@@ -68,22 +86,24 @@ const CONFERENCE: TradeFairEvent = {
   organizer: { name: "Organizer", url: "https://example.com/" },
   description: "Test description",
   topics: ["Topic"],
-};
+} satisfies TradeFairEvent;
 
 /** Konferencja po drugiej stronie globu — jej doba nie może zależeć od strefy renderera */
-const TOKYO_CONFERENCE: TradeFairEvent = {
+const TOKYO_CONFERENCE = {
   ...CONFERENCE,
   id: "test-conference-tokyo",
   city: "Tokyo",
   country: "Japan",
   countryCode: "JP",
   utcOffset: "+09:00",
-};
+} satisfies TradeFairEvent;
 
 const WORKSHOP_START_MS = new Date(
-  get_event_start_datetime(WORKSHOP),
+  required(get_event_start_datetime(WORKSHOP), "Otwarcie warsztatu"),
 ).getTime();
-const WORKSHOP_END_MS = new Date(get_event_end_datetime(WORKSHOP)).getTime();
+const WORKSHOP_END_MS = new Date(
+  required(get_event_end_datetime(WORKSHOP), "Zamknięcie warsztatu"),
+).getTime();
 
 const WORKSHOP_MAP_URL =
   "https://www.google.com/maps/search/?api=1&query=Carrer%20de%20Prova%2C%2049%2C%2008019%20Barcelona";
@@ -155,7 +175,7 @@ test.describe("get_event_status — granice godzin", () => {
 
 test.describe("JSON-LD", () => {
   test("wydarzenie z harmonogramem: pełny kształt schematu", () => {
-    expect(build_event_schema(WORKSHOP, SITE)).toEqual({
+    expect(dated_schema(WORKSHOP, SITE)).toEqual({
       "@context": "https://schema.org",
       "@type": "Event",
       name: "Test Workshop",
@@ -195,44 +215,46 @@ test.describe("JSON-LD", () => {
   });
 
   test("link do mapy nie trafia do Place.url", () => {
-    const schema = build_event_schema(WORKSHOP, SITE);
+    const schema = dated_schema(WORKSHOP, SITE);
+    const location = required(schema.location, "Miejsce w schemacie");
 
-    expect("url" in schema.location).toBe(false);
+    expect("url" in location).toBe(false);
     // Wydarzenie własne nie ma strony, więc Event.url też się nie pojawia.
     expect("url" in schema).toBe(false);
   });
 
   test("wydarzenie bez harmonogramu: daty dzienne i miasto jako miejsce", () => {
-    const schema = build_event_schema(CONFERENCE, SITE);
+    const schema = dated_schema(CONFERENCE, SITE);
+    const location = required(schema.location, "Miejsce w schemacie");
 
     expect(schema.startDate).toBe("2026-09-16");
     expect(schema.endDate).toBe("2026-09-17");
     expect(schema.url).toBe("https://example.com/");
-    expect(schema.location.name).toBe("Barcelona");
-    expect("hasMap" in schema.location).toBe(false);
-    expect("streetAddress" in schema.location.address).toBe(false);
+    expect(location.name).toBe("Barcelona");
+    expect("hasMap" in location).toBe(false);
+    expect("streetAddress" in location.address).toBe(false);
   });
 
   test("wydarzenie bez wstępu na własnych zasadach nie dostaje oferty", () => {
-    const schema = build_event_schema(CONFERENCE, SITE);
+    const schema = dated_schema(CONFERENCE, SITE);
 
     expect("offers" in schema).toBe(false);
     expect("isAccessibleForFree" in schema).toBe(false);
   });
 
   test("płatny wstęp nie jest oznaczany jako darmowy", () => {
-    const paid: TradeFairEvent = {
+    const paid = {
       ...WORKSHOP,
       admission: { ...FREE_ADMISSION, price: "120" },
-    };
-    const schema = build_event_schema(paid, SITE);
+    } satisfies TradeFairEvent;
+    const schema = dated_schema(paid, SITE);
 
     expect(schema.offers?.price).toBe("120");
     expect("isAccessibleForFree" in schema).toBe(false);
   });
 
   test("schemat ze strony wydarzenia kieruje ofertę na tę stronę", () => {
-    const schema = build_event_schema(WORKSHOP, SITE, get_event_path(WORKSHOP));
+    const schema = dated_schema(WORKSHOP, SITE, get_event_path(WORKSHOP));
 
     expect(schema.offers?.url).toBe(
       "https://blockchainwares.com.pl/markets/test-workshop",
@@ -241,13 +263,13 @@ test.describe("JSON-LD", () => {
 
   test("bez ścieżki oferta zostaje przy listingu", () => {
     // Listing emituje schematy wszystkich wydarzeń naraz — tam oferta nie ma dokąd celować.
-    expect(build_event_schema(WORKSHOP, SITE).offers?.url).toBe(
+    expect(dated_schema(WORKSHOP, SITE).offers?.url).toBe(
       "https://blockchainwares.com.pl/markets",
     );
   });
 
   test("escapowanie nie zmienia danych — round-trip 1:1", () => {
-    const schemas = SEED_EVENTS.map((event) => build_event_schema(event, SITE));
+    const schemas = SEED_EVENTS.map((event) => dated_schema(event, SITE));
     const serialized = to_json_ld(schemas);
 
     // Adres Maps URLs API zawiera `&`, jeden ze znaków uciekanych do \\uXXXX.

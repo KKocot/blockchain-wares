@@ -4,6 +4,7 @@ import { EventForm } from "../../../../components/admin";
 import { BUTTON_CLASS, CARD_CLASS } from "../../../../components/admin/styles";
 import {
   get_event_by_id,
+  get_event_name,
   get_event_path,
   type TradeFairEvent,
 } from "../../../../components/events-data";
@@ -123,7 +124,7 @@ if (view.kind === "failure") {
 
 <AdminLayout
   title={view.kind === "form" && view.event !== null
-    ? `Edycja: ${view.event.name}`
+    ? `Edycja: ${get_event_name(view.event)}`
     : "Edycja wydarzenia"}
   description="Panel BlockchainWares — edycja wydarzenia."
 >

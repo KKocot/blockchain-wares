@@ -1,5 +1,7 @@
 import {
   format_event_date,
+  get_event_days,
+  get_event_name,
   get_promoted_events,
   type TradeFairEvent,
 } from "./events-data";
@@ -31,9 +33,16 @@ const EN_DASH = "–";
 
 /** "Sep 19", "Sep 16–17", "Sep 30–Oct 1" — `format_event_date()` owns the month names */
 function format_days(event: TradeFairEvent): string {
-  const { start_day, end_day, month } = format_event_date(event);
+  const date = format_event_date(event);
 
-  if (event.startDate === event.endDate) {
+  // Unreachable: the tag names promoted events, and an undated one is never promoted
+  if (date === null) {
+    return "";
+  }
+
+  const { start_day, end_day, month, is_range } = date;
+
+  if (!is_range) {
     return `${month} ${start_day}`;
   }
 
@@ -47,9 +56,11 @@ function format_days(event: TradeFairEvent): string {
 /** Year only when it is not the current one — "EBC 2026" in 2026 would state it twice */
 function format_when(event: TradeFairEvent, now: Date): string {
   const days = format_days(event);
-  const year = event.startDate.slice(0, 4);
+  const year = get_event_days(event)?.start.slice(0, 4);
 
-  return year === String(now.getFullYear()) ? days : `${days}, ${year}`;
+  return year === undefined || year === String(now.getFullYear())
+    ? days
+    : `${days}, ${year}`;
 }
 
 /**
@@ -61,7 +72,9 @@ function format_entry(
   now: Date,
   compact: boolean,
 ): string {
-  const label = compact ? (event.shortName ?? event.name) : event.name;
+  const label = compact
+    ? (event.shortName ?? get_event_name(event))
+    : get_event_name(event);
 
   return `${label} (${event.city}, ${format_when(event, now)})`;
 }

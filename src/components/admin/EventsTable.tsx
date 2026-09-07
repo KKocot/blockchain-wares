@@ -18,9 +18,15 @@ const STATUS_LABEL: Record<EventStatus, string> = {
   ongoing: "Trwa",
   upcoming: "Nadchodzi",
   past: "Zakończone",
+  undated: "Bez terminu",
 };
 
-const STATUS_ORDER: readonly EventStatus[] = ["ongoing", "upcoming", "past"];
+const STATUS_ORDER: readonly EventStatus[] = [
+  "ongoing",
+  "upcoming",
+  "past",
+  "undated",
+];
 
 const KIND_LABEL = {
   workshop: "Warsztat",

@@ -4,6 +4,7 @@ import { cn } from "../lib/utils";
 import {
   format_event_date,
   get_event_end_datetime,
+  get_event_name,
   get_event_start_datetime,
   get_event_path,
   get_event_status,
@@ -187,8 +188,12 @@ function BannerEntry({
 }: BannerEntryProps) {
   const accent = is_ongoing ? ONGOING_ACCENT : UPCOMING_ACCENT;
   const date = format_event_date(event);
-  const is_range = event.startDate !== event.endDate;
-  const event_label = event.shortName ?? event.name;
+  // Unreachable: `get_promoted_events()` never hands over an event with no dates
+  const event_label = event.shortName ?? get_event_name(event);
+
+  if (date === null) {
+    return null;
+  }
 
   return (
     <span
@@ -218,7 +223,7 @@ function BannerEntry({
               <time dateTime={get_event_start_datetime(event)}>
                 {date.start_day}
               </time>
-              {is_range ? (
+              {date.is_range ? (
                 <>
                   –
                   <time dateTime={get_event_end_datetime(event)}>

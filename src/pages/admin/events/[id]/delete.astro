@@ -5,6 +5,8 @@ import {
   format_admission,
   format_venue_address,
   get_event_by_id,
+  get_event_days,
+  get_event_name,
   get_event_path,
   get_event_status,
   type EventStatus,
@@ -31,6 +33,7 @@ const STATUS_LABEL: Record<EventStatus, string> = {
   ongoing: "Trwa",
   upcoming: "Nadchodzi",
   past: "Zakończone",
+  undated: "Bez terminu",
 };
 
 const KIND_LABEL = {
@@ -102,10 +105,14 @@ function message_of(cause: unknown): string {
 }
 
 function format_term(event: TradeFairEvent): string {
+  const dates = get_event_days(event);
+
+  if (dates === null) {
+    return "bez terminu";
+  }
+
   const days =
-    event.endDate === event.startDate
-      ? event.startDate
-      : `${event.startDate} → ${event.endDate}`;
+    dates.start === dates.end ? dates.start : `${dates.start} → ${dates.end}`;
   const schedule = event.schedule;
 
   return schedule === undefined
@@ -267,7 +274,7 @@ const back_label = show_delete
         <section class={cn(CARD_CLASS, "space-y-4")}>
           <div class="flex flex-wrap items-start justify-between gap-3">
             <h2 class="min-w-0 text-base font-semibold break-words">
-              {view.event.name}
+              {get_event_name(view.event)}
             </h2>
 
             <span

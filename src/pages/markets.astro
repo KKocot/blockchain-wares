@@ -38,9 +38,11 @@ const title = "Markets & Events — BlockchainWares";
 // Named events would freeze here on the day of the build; the calendar lives in the API
 const description = build_markets_description(events, now);
 
-const event_schemas = events.map((event) =>
-  build_event_schema(event, Astro.site),
-);
+// Wydarzenie bez daty nie dostaje bloku `Event` — `startDate` jest w schema.org
+// wymagany, a znacznik odrzucony przez Google jest gorszy niz jego brak.
+const event_schemas = events
+  .map((event) => build_event_schema(event, Astro.site))
+  .filter((schema) => schema !== null);
 ---
 
 <Layout title={title} description={description} canonicalPath={MARKETS_PATH}>

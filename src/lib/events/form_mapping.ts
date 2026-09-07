@@ -167,16 +167,16 @@ export function is_field_error(
 function form_values(event: TradeFairEvent) {
   return {
     id: event.id,
-    name: event.name,
+    name: event.name ?? "",
     shortName: event.shortName ?? "",
     edition: event.edition ?? "",
     kind: event.kind ?? "",
     utcOffset: event.utcOffset ?? "",
-    city: event.city,
-    country: event.country,
-    countryCode: event.countryCode,
-    startDate: event.startDate,
-    endDate: event.endDate,
+    city: event.city ?? "",
+    country: event.country ?? "",
+    countryCode: event.countryCode ?? "",
+    startDate: event.startDate ?? "",
+    endDate: event.endDate ?? "",
     "schedule.startTime": event.schedule?.startTime ?? "",
     "schedule.endTime": event.schedule?.endTime ?? "",
     "schedule.utcOffset": event.schedule?.utcOffset ?? "",
@@ -191,10 +191,10 @@ function form_values(event: TradeFairEvent) {
     "admission.validFrom": event.admission?.validFrom ?? "",
     url: event.url ?? "",
     image: event.image ?? "",
-    "organizer.name": event.organizer.name,
-    "organizer.url": event.organizer.url,
-    description: event.description,
-    topics: event.topics.join(`${TOPIC_SEPARATOR} `),
+    "organizer.name": event.organizer?.name ?? "",
+    "organizer.url": event.organizer?.url ?? "",
+    description: event.description ?? "",
+    topics: event.topics?.join(`${TOPIC_SEPARATOR} `) ?? "",
   };
 }
 

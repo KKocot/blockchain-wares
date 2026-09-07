@@ -25,6 +25,8 @@ const STATIC_VARIANTS: Variants = {
   visible: { opacity: 1, y: 0 },
 };
 
+// Szkic bez terminu zostaje w panelu: `SECTION_HEADINGS` ma juz dla niego naglowek,
+// ale o wypuszczeniu go na strone publiczna decyduje warstwa prezentacji.
 const SECTION_ORDER: EventStatus[] = ["ongoing", "upcoming", "past"];
 
 const SECTION_HEADINGS: Record<
@@ -38,6 +40,11 @@ const SECTION_HEADINGS: Record<
     accent_class: "text-secondary",
   },
   past: { lead: "Past", accent: "events", accent_class: "text-info" },
+  undated: {
+    lead: "Dates to be",
+    accent: "announced",
+    accent_class: "text-warning",
+  },
 };
 
 interface EventSection {

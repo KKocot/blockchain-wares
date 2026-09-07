@@ -9,7 +9,7 @@ import { build_markets_description } from "../src/components/events-meta";
 import { SEED_EVENTS } from "./fixtures/events";
 import { log_in } from "./support/admin";
 import { ADMIN_EVENTS_PATH, event_row } from "./support/admin_events";
-import { is_event_schema, read_json_ld } from "./support/events";
+import { is_event_schema, read_json_ld, required } from "./support/events";
 
 /**
  * Opis `/markets` powstaje z wydarzeń, które strona i tak renderuje — nazwana w nim
@@ -178,12 +178,13 @@ test.describe("Opis strony wydarzeń", () => {
     expect(description).not.toContain("European Blockchain Convention");
 
     for (const event of promoted) {
-      const label = event.shortName ?? event.name;
+      const name = required(event.name, "Nazwa promowanego wydarzenia");
+      const label = event.shortName ?? name;
       expect(
-        description.includes(event.name) || description.includes(label),
-        `Opis nie nazywa promowanego wydarzenia "${event.name}": ${description}`,
+        description.includes(name) || description.includes(label),
+        `Opis nie nazywa promowanego wydarzenia "${name}": ${description}`,
       ).toBe(true);
-      expect(description).toContain(event.city);
+      expect(description).toContain(required(event.city, "Miasto wydarzenia"));
     }
   });
 });

@@ -29,7 +29,7 @@ import type {
   EventFormErrorField,
   EventFormField,
 } from "../../src/lib/events/form_mapping";
-import { SEED_EVENT_IDS } from "../fixtures/events";
+import { HARNESS_USER_AGENT, SEED_EVENT_IDS } from "../fixtures/events";
 import { NAV_TIMEOUT } from "./admin";
 
 /** Wspólne lokatory i kroki panelu wydarzeń — dzielone przez spece CRUD-a. */
@@ -278,6 +278,7 @@ export async function read_fixture_event(
 ): Promise<Record<string, unknown> | null> {
   const response = await fetch(
     `${EVENTS_API_BASE_URL}/events/${encodeURIComponent(id)}`,
+    { headers: { "user-agent": HARNESS_USER_AGENT } },
   );
   if (response.status === 404) return null;
 
@@ -290,7 +291,9 @@ export async function read_fixture_event(
 }
 
 async function read_fixture_ids(): Promise<string[]> {
-  const response = await fetch(`${EVENTS_API_BASE_URL}/events`);
+  const response = await fetch(`${EVENTS_API_BASE_URL}/events`, {
+    headers: { "user-agent": HARNESS_USER_AGENT },
+  });
   expect(
     response.ok,
     `Fixture wydarzeń odpowiedział ${response.status} na listę.`,
@@ -303,7 +306,10 @@ async function read_fixture_ids(): Promise<string[]> {
 async function drop_fixture_event(id: string): Promise<void> {
   await fetch(`${EVENTS_API_BASE_URL}/events/${encodeURIComponent(id)}`, {
     method: "DELETE",
-    headers: { "x-api-key": E2E_EVENTS_API_KEY },
+    headers: {
+      "x-api-key": E2E_EVENTS_API_KEY,
+      "user-agent": HARNESS_USER_AGENT,
+    },
   });
 }
 

@@ -1,5 +1,6 @@
 import type { TradeFairEvent } from "../../components/events-data";
 import { get_events_api_url, get_events_ttl_millis } from "../env";
+import { SSR_USER_AGENT } from "../net/user_agent";
 import { parse_event } from "./parse_event";
 import type {
   EventsCacheEntry,
@@ -94,7 +95,10 @@ async function fetch_entry(): Promise<EventsCacheEntry> {
   try {
     response = await fetch(url, {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      headers: { accept: "application/json" },
+      headers: {
+        accept: "application/json",
+        "user-agent": SSR_USER_AGENT,
+      },
       redirect: "follow",
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import type { TradeFairEvent } from "../../components/events-data";
 import { get_events_api_key, get_events_api_url } from "../env";
+import { SSR_USER_AGENT } from "../net/user_agent";
 import { parse_event } from "./parse_event";
 import { invalidate_events_cache, load_events } from "./source";
 
@@ -180,6 +181,7 @@ function build_headers(api_key: string, has_body: boolean): HeadersInit {
   const headers: Record<string, string> = {
     accept: "application/json",
     "x-api-key": api_key,
+    "user-agent": SSR_USER_AGENT,
   };
   if (has_body) headers["content-type"] = "application/json";
   return headers;

@@ -11,6 +11,13 @@ import {
 /** Prefiks modułu `blockchain-wares` w backend-api; fixture montuje CRUD pod nim. */
 export const EVENTS_API_PREFIX = "/blockchain-wares";
 
+/**
+ * Nagłówek własnych żądań testów do fixture'a (sprzątanie stanu, odczyt rekordu).
+ * Bez niego `ssr_user_agent.spec.ts` nie odróżniłby ruchu harnessu od ruchu aplikacji
+ * i wywracał się, gdy równoległy worker akurat sprząta.
+ */
+export const HARNESS_USER_AGENT = "PlaywrightHarness/1.0 (+tests/support)";
+
 export const SEED_EVENT_IDS = {
   past_conference: "fixture-past-conference-lisbon",
   ongoing_conference: "fixture-ongoing-conference-oslo",

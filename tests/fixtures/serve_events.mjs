@@ -10,6 +10,14 @@ import { createServer } from "node:http";
 
 const HEALTH_PATH = "/health";
 const RESET_PATH = "/__reset";
+const REQUESTS_PATH = "/__requests";
+/**
+ * Podglad naglowkow, ktore realnie doszly do modulu — stad spec czyta `User-Agent`
+ * zadan SSR. Kursor jest monotoniczny (`?since=`), a nie indeks w tablicy: projekty
+ * i workery Playwrighta chodza na jednym fixturze i przycinanie bufora przestawiloby
+ * numerację pod cudzym kursorem. `/__reset` tego nie czysci z tego samego powodu.
+ */
+const REQUEST_LOG_LIMIT = 500;
 // Tyle samo, ile hook `parse` mutujacych tras w backend-api — po przekroczeniu 413.
 const BODY_LIMIT_BYTES = 64 * 1024;
 const JSON_HEADERS = {
@@ -55,6 +63,39 @@ function clone(value) {
 }
 
 let events = clone(seed);
+
+/** Rosnie bez konca; `entries` bywa przyciete od poczatku, kursor nie. */
+let sequence = 0;
+let entries = [];
+
+function record(request, path) {
+  sequence += 1;
+  entries.push({
+    seq: sequence,
+    method: request.method,
+    path,
+    userAgent: request.headers["user-agent"] ?? null,
+  });
+
+  if (entries.length > REQUEST_LOG_LIMIT) {
+    entries = entries.slice(-REQUEST_LOG_LIMIT);
+  }
+}
+
+/** Zapisy nowsze niz `since`; `oldest` mowi, czy kursor nie wypadl juz z bufora. */
+function read_entries(query) {
+  const since = Number.parseInt(
+    new URLSearchParams(query).get("since") ?? "",
+    10,
+  );
+  const from = Number.isFinite(since) ? since : 0;
+
+  return {
+    next: sequence,
+    oldest: entries.length === 0 ? sequence : entries[0].seq,
+    entries: entries.filter((entry) => entry.seq > from),
+  };
+}
 
 function send(response, status, payload) {
   response.writeHead(status, JSON_HEADERS);
@@ -182,7 +223,12 @@ function handle_delete(response, id) {
   send(response, 200, removed);
 }
 
-async function route(request, response, path) {
+async function route(request, response, path, query) {
+  if (path === REQUESTS_PATH) {
+    send(response, 200, read_entries(query));
+    return;
+  }
+
   if (path === HEALTH_PATH) {
     send(response, 200, { status: "ok", events: events.length });
     return;
@@ -266,9 +312,14 @@ async function route(request, response, path) {
 }
 
 const server = createServer((request, response) => {
-  const path = (request.url ?? "/").split("?")[0];
+  const [path, query = ""] = (request.url ?? "/").split("?");
 
-  route(request, response, path).catch((error) => {
+  // Tylko trasy modulu: health-check webServera i odpyty samego podgladu to nie ruch aplikacji.
+  if (path === LIST_PATH || path.startsWith(ITEM_PREFIX)) {
+    record(request, path);
+  }
+
+  route(request, response, path, query).catch((error) => {
     console.error("[events-fixture] request failed", error);
     if (!response.headersSent) {
       fail(response, 500, "Fixture failure.");

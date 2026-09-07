@@ -25,6 +25,12 @@ export const EVENTS_API_BASE_URL = `${EVENTS_FIXTURE_ORIGIN}${EVENTS_API_PREFIX}
  */
 export const EVENTS_FIXTURE_RESET_URL = `${EVENTS_FIXTURE_ORIGIN}/__reset`;
 
+/**
+ * Podgląd nagłówków, które doszły do fixture'a — stąd spec czyta `User-Agent`
+ * żądań SSR, zamiast wierzyć na słowo kodowi, który je ustawia.
+ */
+export const EVENTS_FIXTURE_REQUESTS_URL = `${EVENTS_FIXTURE_ORIGIN}/__requests`;
+
 /** Klucz serwisowy serwera testowego — backend odrzuca krótsze niż 32 znaki. */
 export const E2E_EVENTS_API_KEY =
   "playwright-e2e-events-service-key-local-only";

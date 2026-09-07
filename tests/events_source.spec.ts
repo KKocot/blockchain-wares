@@ -368,6 +368,77 @@ test.describe("parse_event", () => {
     expect(build_event_schema(event, SITE)?.image).toBeUndefined();
   });
 
+  test("częściowa grupa przechodzi — backend przyjmuje każde pole osobno", () => {
+    const event = parse_event(
+      event_record({
+        organizer: { name: "Sam organizator" },
+        venue: { name: "Sama sala" },
+        schedule: { startTime: "10:00" },
+        admission: { price: "0" },
+      }),
+    );
+
+    expect(event?.organizer).toEqual({ name: "Sam organizator" });
+    expect(event?.venue).toEqual({ name: "Sama sala" });
+    expect(event?.schedule).toEqual({ startTime: "10:00" });
+    expect(event?.admission).toEqual({ price: "0" });
+  });
+
+  test("druga połowa grupy przechodzi tak samo — żadne pole nie jest wiodące", () => {
+    const event = parse_event(
+      event_record({
+        organizer: { url: "https://example.invalid/org" },
+        venue: { streetAddress: "Ulica Testowa 7", postalCode: "80-001" },
+        schedule: { endTime: "16:00", timeZoneLabel: "CEST" },
+        admission: { requiresRegistration: true },
+      }),
+    );
+
+    expect(event?.organizer).toEqual({ url: "https://example.invalid/org" });
+    expect(event?.venue).toEqual({
+      streetAddress: "Ulica Testowa 7",
+      postalCode: "80-001",
+    });
+    expect(event?.schedule).toEqual({
+      endTime: "16:00",
+      timeZoneLabel: "CEST",
+    });
+    expect(event?.admission).toEqual({ requiresRegistration: true });
+  });
+
+  test("grupa bez ani jednej wartości znaczy tyle, co jej brak", () => {
+    const event = parse_event(
+      event_record({
+        organizer: {},
+        venue: { name: "  " },
+        schedule: {},
+        admission: {},
+      }),
+    );
+
+    expect(event?.organizer).toBeUndefined();
+    expect(event?.venue).toBeUndefined();
+    expect(event?.schedule).toBeUndefined();
+    expect(event?.admission).toBeUndefined();
+  });
+
+  test("zły format w grupie dalej zdejmuje cały rekord", () => {
+    for (const overrides of [
+      { schedule: { startTime: "25:00" } },
+      { schedule: { utcOffset: "+2:00" } },
+      { admission: { price: "za darmo" } },
+      { admission: { priceCurrency: "zloty" } },
+      { admission: { requiresRegistration: "tak" } },
+      { venue: { name: 7 } },
+      { organizer: { url: "example.invalid/org" } },
+    ]) {
+      expect(
+        parse_event(event_record(overrides)),
+        JSON.stringify(overrides),
+      ).toBeNull();
+    }
+  });
+
   test("pusty string w polu opcjonalnym znaczy brak, nie powód odrzucenia", () => {
     const event = parse_event(
       event_record({ shortName: "", edition: "   ", url: "" }),

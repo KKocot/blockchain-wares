@@ -15,6 +15,8 @@ import {
   type EventKind,
   type TradeFairEvent,
 } from "./events-data";
+import { get_event_hours } from "./event-theme";
+import { EventHours } from "./EventHours";
 
 const EASE: [number, number, number, number] = [0.44, 0, 0.56, 1];
 
@@ -268,12 +270,9 @@ function build_meta(
       ) : null}
       {`, ${date.year}`}
     </span>,
-    event.schedule ? (
-      <span key="hours">
-        {event.schedule.startTime}–{event.schedule.endTime}{" "}
-        {event.schedule.timeZoneLabel}
-      </span>
-    ) : null,
+    get_event_hours(event) === null ? null : (
+      <EventHours key="hours" event={event} />
+    ),
     place ? <span key="place">{place}</span> : null,
   ];
 

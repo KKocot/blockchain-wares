@@ -168,9 +168,19 @@ function is_blank(value: unknown): boolean {
 /** `undefined` = pola nie bylo, `null` = bylo, ale nie da sie go odczytac. */
 function optional<T>(
   value: unknown,
-  read: (raw: unknown) => T | null,
+  read: (raw: unknown) => T | null | undefined,
 ): T | null | undefined {
   return is_blank(value) ? undefined : read(value);
+}
+
+/**
+ * Grupa zagniezdzona bez ani jednej wartosci znaczy tyle, co jej brak: pusty obiekt
+ * przeszedlby dalej i kazal widokom rysowac wiersz, w ktorym nic nie ma.
+ */
+function present<T extends object>(group: T): T | undefined {
+  return Object.values(group).some((value) => value !== undefined)
+    ? group
+    : undefined;
 }
 
 function read_kind(value: unknown): EventKind | null {
@@ -192,24 +202,43 @@ function read_topics(value: unknown): string[] | null {
   return topics;
 }
 
-function read_organizer(value: unknown): TradeFairEvent["organizer"] | null {
+/**
+ * Grupy zagniezdzone czyta sie polami niezaleznie: `organizer.name` bez adresu,
+ * sala bez ulicy czy sama godzina otwarcia to dane niepelne, nie uszkodzone —
+ * backend przyjmuje kazde z osobna, wiec front tez musi je pokazac. Wartosc
+ * **obecna w zlym formacie** dalej zdejmuje caly rekord, jak wszedzie indziej.
+ */
+function read_organizer(
+  value: unknown,
+): TradeFairEvent["organizer"] | null | undefined {
   const source = as_record(value);
   if (source === null) return null;
 
-  const name = text(source.name);
-  const url = matched(source.url, HTTP_URL);
+  const name = optional(source.name, text);
+  const url = optional(source.url, (raw) => matched(raw, HTTP_URL));
 
-  return name !== null && url !== null ? { name, url } : null;
+  if (name === null || url === null) return null;
+
+  return present({ name, url });
 }
 
-function read_schedule(value: unknown): EventSchedule | null {
+function read_schedule(value: unknown): EventSchedule | null | undefined {
   const source = as_record(value);
   if (source === null) return null;
 
-  const startTime = matched(source.startTime, CLOCK_TIME);
-  const endTime = matched(source.endTime, CLOCK_TIME);
-  const utcOffset = matched(source.utcOffset, UTC_OFFSET);
-  const timeZoneLabel = text(source.timeZoneLabel);
+  const startTime = optional(
+    source.startTime,
+    (raw) => matched(raw, CLOCK_TIME) as ClockTime | null,
+  );
+  const endTime = optional(
+    source.endTime,
+    (raw) => matched(raw, CLOCK_TIME) as ClockTime | null,
+  );
+  const utcOffset = optional(
+    source.utcOffset,
+    (raw) => matched(raw, UTC_OFFSET) as UtcOffset | null,
+  );
+  const timeZoneLabel = optional(source.timeZoneLabel, text);
 
   if (
     startTime === null ||
@@ -220,19 +249,14 @@ function read_schedule(value: unknown): EventSchedule | null {
     return null;
   }
 
-  return {
-    startTime: startTime as ClockTime,
-    endTime: endTime as ClockTime,
-    utcOffset: utcOffset as UtcOffset,
-    timeZoneLabel,
-  };
+  return present({ startTime, endTime, utcOffset, timeZoneLabel });
 }
 
-function read_venue(value: unknown): EventVenue | null {
+function read_venue(value: unknown): EventVenue | null | undefined {
   const source = as_record(value);
   if (source === null) return null;
 
-  const name = text(source.name);
+  const name = optional(source.name, text);
   const streetAddress = optional(source.streetAddress, text);
   const postalCode = optional(source.postalCode, text);
 
@@ -240,26 +264,32 @@ function read_venue(value: unknown): EventVenue | null {
     return null;
   }
 
-  return { name, streetAddress, postalCode };
+  return present({ name, streetAddress, postalCode });
 }
 
-function read_admission(value: unknown): EventAdmission | null {
+function read_admission(value: unknown): EventAdmission | null | undefined {
   const source = as_record(value);
   if (source === null) return null;
 
-  const price = matched(source.price, PRICE);
-  const priceCurrency = matched(source.priceCurrency, CURRENCY_CODE);
-  const validFrom = matched(source.validFrom, ISO_DAY);
-  const requiresRegistration = source.requiresRegistration;
+  const price = optional(source.price, (raw) => matched(raw, PRICE));
+  const priceCurrency = optional(source.priceCurrency, (raw) =>
+    matched(raw, CURRENCY_CODE),
+  );
+  const validFrom = optional(source.validFrom, (raw) => matched(raw, ISO_DAY));
+  const requiresRegistration = optional(source.requiresRegistration, read_flag);
 
   if (
     price === null ||
     priceCurrency === null ||
     validFrom === null ||
-    typeof requiresRegistration !== "boolean"
+    requiresRegistration === null
   ) {
     return null;
   }
 
-  return { price, priceCurrency, requiresRegistration, validFrom };
+  return present({ price, priceCurrency, requiresRegistration, validFrom });
+}
+
+function read_flag(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
 }

@@ -2,11 +2,11 @@ import { expect, test } from "@playwright/test";
 import { NO_JS_TAG } from "../playwright.config";
 import { build_event_schema } from "../src/components/event-schema";
 import {
+  format_admission,
   get_event_link,
   get_status_badge_label,
 } from "../src/components/event-theme";
 import {
-  format_admission,
   format_event_date,
   format_venue_address,
   get_event_end_datetime,
@@ -128,13 +128,20 @@ test.describe("Strona wydarzenia — treść", () => {
     const starts = main.locator(
       `time[datetime="${get_event_start_datetime(WORKSHOP)}"]`,
     );
-    await expect(starts).toHaveText([date.start_day, schedule.startTime]);
+    await expect(starts).toHaveText([
+      date.start_day,
+      required(schedule.startTime, "Godzina otwarcia warsztatu"),
+    ]);
     await expect(
       main.locator(`time[datetime="${get_event_end_datetime(WORKSHOP)}"]`),
-    ).toHaveText([schedule.endTime]);
-    await expect(main.getByText(schedule.timeZoneLabel)).toBeVisible();
+    ).toHaveText([required(schedule.endTime, "Godzina zamknięcia warsztatu")]);
+    await expect(
+      main.getByText(required(schedule.timeZoneLabel, "Strefa warsztatu")),
+    ).toBeVisible();
 
-    await expect(main.getByText(venue.name, { exact: true })).toBeVisible();
+    await expect(
+      main.getByText(required(venue.name, "Nazwa miejsca"), { exact: true }),
+    ).toBeVisible();
     await expect(
       main.getByText(
         required(format_venue_address(WORKSHOP), "Adres warsztatu"),
@@ -143,7 +150,11 @@ test.describe("Strona wydarzenia — treść", () => {
         },
       ),
     ).toBeVisible();
-    await expect(main.getByText(format_admission(admission))).toBeVisible();
+    await expect(
+      main.getByText(
+        required(format_admission(admission), "Wstęp na warsztat"),
+      ),
+    ).toBeVisible();
 
     for (const topic of WORKSHOP_TOPICS) {
       await expect(main.getByText(topic, { exact: true })).toBeVisible();
@@ -327,13 +338,17 @@ test.describe("Strona wydarzenia bez JavaScriptu", () => {
         main.getByText(required(WORKSHOP.description, "Opis warsztatu")),
       ).toBeVisible();
       await expect(
-        main.getByText(required(WORKSHOP.venue, "Miejsce warsztatu").name, {
-          exact: true,
-        }),
+        main.getByText(
+          required(
+            required(WORKSHOP.venue, "Miejsce warsztatu").name,
+            "Nazwa miejsca warsztatu",
+          ),
+          { exact: true },
+        ),
       ).toBeVisible();
       await expect(
         main.getByText(
-          format_admission(required(WORKSHOP.admission, "Wstęp na warsztat")),
+          required(format_admission(WORKSHOP.admission), "Wstęp na warsztat"),
         ),
       ).toBeVisible();
 

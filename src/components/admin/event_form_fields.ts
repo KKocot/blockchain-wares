@@ -79,7 +79,7 @@ const CATALOGUE = [
   },
   {
     title: "Termin",
-    hint: "Godziny są opcjonalne, ale albo wypełniasz wszystkie cztery pola harmonogramu, albo żadne.",
+    hint: "Każde pole niezależne — sama godzina otwarcia też jest informacją. Wszystkie puste = wydarzenie bez godzin.",
     fields: [
       { name: "startDate", label: "Data od", kind: "date" },
       {
@@ -113,7 +113,7 @@ const CATALOGUE = [
   },
   {
     title: "Miejsce",
-    hint: "Nazwa obiektu jest wymagana, jeśli podajesz ulicę lub kod pocztowy. Wszystkie trzy puste = wydarzenie bez obiektu.",
+    hint: "Każde pole niezależne. Wszystkie trzy puste = wydarzenie bez obiektu.",
     fields: [
       {
         name: "city",
@@ -138,7 +138,7 @@ const CATALOGUE = [
         name: "venue.streetAddress",
         label: "Ulica i numer",
         placeholder: "Carrer de Cristóbal de Moura, 49",
-        hint: "Z tego adresu powstaje link do mapy — nie z nazwy obiektu.",
+        hint: "Link do mapy powstaje z tego adresu i miasta — nie z nazwy obiektu.",
       },
       {
         name: "venue.postalCode",
@@ -150,7 +150,7 @@ const CATALOGUE = [
   },
   {
     title: "Wstęp",
-    hint: "Sam znacznik rejestracji nie tworzy warunków wstępu — potrzebne są cena, waluta i data. Wszystkie trzy puste = brak warunków.",
+    hint: "Sam znacznik rejestracji nie tworzy warunków wstępu. Pozostałe trzy pola puste = brak warunków.",
     fields: [
       {
         name: "admission.price",
@@ -176,7 +176,7 @@ const CATALOGUE = [
   },
   {
     title: "Organizator",
-    hint: "Nazwa i strona idą razem albo wcale — połowa organizatora nikogo nie nazywa.",
+    hint: "Nazwa i strona są niezależne — sama nazwa też nazywa organizatora.",
     fields: [
       { name: "organizer.name", label: "Nazwa organizatora" },
       {
@@ -264,9 +264,12 @@ export const FIELD_LABELS = new Map<EventFormErrorField, string>([
   [REGISTRATION_FIELD, REGISTRATION_LABEL],
 ]);
 
-/** Żadne pole nie jest obowiązkowe, więc `required` mówi już tylko o rozpoczętej grupie. */
+/**
+ * Żadne pole nie jest obowiązkowe — `required` nie przychodzi już z żadnego z nich,
+ * a wpis zostaje na wypadek kodu doklejonego do `?error=` ręcznie.
+ */
 export const CODE_TEXT: Record<EventFormErrorCode, string> = {
-  required: "Uzupełnij to pole albo wyczyść pozostałe pola tej grupy.",
+  required: "Uzupełnij to pole.",
   invalid: "Wartość ma niewłaściwy format.",
 };
 

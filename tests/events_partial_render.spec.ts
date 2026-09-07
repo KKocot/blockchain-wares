@@ -52,6 +52,36 @@ const VENUE_HOMELESS: TradeFairEvent = {
   id: "draft-venue-homeless",
   venue: { name: "Draft Congress Hall", streetAddress: "Draft Street 49" },
 };
+/** Godzina otwarcia ogłoszona przed godziną zamknięcia — pół harmonogramu, nie błąd */
+const HALF_DAY: TradeFairEvent = {
+  ...DATED,
+  id: "draft-half-day",
+  schedule: { startTime: "10:00", timeZoneLabel: "CEST" },
+};
+/** Znamy nazwę organizatora, nie znamy jego strony */
+const ORGANIZER_NAMED: TradeFairEvent = {
+  ...DATED,
+  id: "draft-organizer-named",
+  organizer: { name: "Draft Organizers" },
+};
+/** Odwrotnie: strona bez nazwy — link mówi wtedy adresem, nie słowem „undefined" */
+const ORGANIZER_LINKED: TradeFairEvent = {
+  ...DATED,
+  id: "draft-organizer-linked",
+  organizer: { url: "https://example.invalid/draft-org" },
+};
+/** Wstęp wolny ogłoszony bez waluty i bez daty obowiązywania */
+const FREE_ONLY: TradeFairEvent = {
+  ...DATED,
+  id: "draft-free-only",
+  admission: { price: "0" },
+};
+/** Sama kwota bez waluty nie nazywa żadnej sumy, więc na pigułce nie ma czego pokazać */
+const PRICED_NO_CURRENCY: TradeFairEvent = {
+  ...DATED,
+  id: "draft-priced-no-currency",
+  admission: { price: "25" },
+};
 const LOCATED: TradeFairEvent = {
   ...VENUE_HOMELESS,
   id: "draft-located",
@@ -180,6 +210,27 @@ test.describe("Karta wydarzenia przy niepełnych danych", () => {
     expect(html).not.toContain(MAPS_PREFIX);
   });
 
+  test("sama godzina otwarcia mówi „from”, nie zmyśla końca dnia", async () => {
+    const html = await render_card(HALF_DAY, "upcoming");
+
+    expect_clean(html, "karta z samą godziną otwarcia");
+    expect(text_of(html)).toContain("from 10:00 CEST");
+    expect(html).not.toContain("10:00–");
+  });
+
+  test("wstęp wolny bez waluty zostaje na pigułce, sama kwota z niej znika", async () => {
+    const free = await render_card(FREE_ONLY, "upcoming");
+
+    expect_clean(free, "karta z samym wstępem wolnym");
+    expect(text_of(free)).toContain("Free entry");
+    expect(text_of(free)).not.toContain("Free entry ·");
+
+    const priced = await render_card(PRICED_NO_CURRENCY, "upcoming");
+
+    expect_clean(priced, "karta z kwotą bez waluty");
+    expect(text_of(priced)).not.toContain("25");
+  });
+
   test("komplet danych zostaje bez zmian i dostaje dojazd", async () => {
     const html = await render_card(LOCATED, "upcoming");
 
@@ -290,6 +341,47 @@ test.describe("Strona wydarzenia przy niepełnych danych", () => {
     expect_clean(html, "detal kompletny");
     expect(html).toContain("Jan 16–17, 2099 · Barcelona, Spain");
     expect(html).toContain(MAPS_PREFIX);
+  });
+
+  test("sam organizator z nazwą: wiersz jest, linku nie ma", async () => {
+    const html = await render_detail(ORGANIZER_NAMED, "upcoming");
+
+    expect_clean(html, "detal z samą nazwą organizatora");
+    expect(html).toContain(">Organizer<");
+    expect(text_of(html)).toContain("Draft Organizers");
+    expect(html).not.toContain("example.invalid");
+  });
+
+  test("sam adres organizatora: link mówi adresem, nie pustką", async () => {
+    const html = await render_detail(ORGANIZER_LINKED, "upcoming");
+
+    expect_clean(html, "detal z samym adresem organizatora");
+    expect(html).toContain(">Organizer<");
+    expect(html).toContain('href="https://example.invalid/draft-org"');
+    expect(text_of(html)).toContain("https://example.invalid/draft-org");
+  });
+
+  test("pół harmonogramu wypełnia sekcję „When”, nie zostawia myślnika bez godziny", async () => {
+    const html = await render_detail(HALF_DAY, "upcoming");
+
+    expect_clean(html, "detal z samą godziną otwarcia");
+    expect(html).toContain(">When<");
+    expect(text_of(html)).toContain("from 10:00 CEST");
+    expect(html).not.toContain("10:00–");
+  });
+
+  test("częściowy wstęp daje jeden wiersz, nie dwa z pustym drugim", async () => {
+    const free = await render_detail(FREE_ONLY, "upcoming");
+
+    expect_clean(free, "detal z samym wstępem wolnym");
+    expect(free).toContain(">Admission<");
+    expect(text_of(free)).toContain("Free entry");
+    expect(text_of(free)).not.toContain("registration");
+
+    const priced = await render_detail(PRICED_NO_CURRENCY, "upcoming");
+
+    expect_clean(priced, "detal z kwotą bez waluty");
+    expect(priced).not.toContain(">Admission<");
   });
 
   test("szkic na liście innych wydarzeń dostaje status zamiast pustej kolumny", async () => {

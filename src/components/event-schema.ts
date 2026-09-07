@@ -29,13 +29,15 @@ interface OfferSchema {
   priceCurrency: string;
   availability: string;
   url: string;
-  validFrom: string;
+  /** Absent until we know since when the terms hold — the offer stands without it */
+  validFrom?: string;
 }
 
 interface OrganizationSchema {
   "@type": "Organization";
   name: string;
-  url: string;
+  /** Absent for an organizer we can name but not link */
+  url?: string;
 }
 
 export interface EventSchema {
@@ -87,23 +89,46 @@ function build_location_schema(event: TradeFairEvent): PlaceSchema | undefined {
   };
 }
 
+/**
+ * Ticketing terms, `undefined` until a sum and its currency are both stated: a price
+ * with no currency names no sum, and schema.org reads the pair or nothing.
+ * `isAccessibleForFree` still carries a free entry announced without a currency.
+ */
 function build_offer_schema(
   event: TradeFairEvent,
   site: URL | string | undefined,
   offer_path: string,
 ): OfferSchema | undefined {
-  if (!event.admission) {
+  const { price, priceCurrency, validFrom } = event.admission ?? {};
+
+  if (price === undefined || priceCurrency === undefined) {
     return undefined;
   }
 
   return {
     "@type": "Offer",
-    price: event.admission.price,
-    priceCurrency: event.admission.priceCurrency,
+    price,
+    priceCurrency,
     availability: "https://schema.org/InStock",
     url: new URL(offer_path, site).href,
-    validFrom: event.admission.validFrom,
+    ...(validFrom ? { validFrom } : {}),
   };
+}
+
+/**
+ * Who runs the event, `undefined` while nobody is named: an `Organization` reachable
+ * by URL but with no name reads as broken markup, and a name is all schema.org asks for.
+ */
+function build_organizer_schema(
+  event: TradeFairEvent,
+): OrganizationSchema | undefined {
+  const { name, url } = event.organizer ?? {};
+
+  if (name === undefined) {
+    return undefined;
+  }
+
+  return { "@type": "Organization", name, ...(url ? { url } : {}) };
 }
 
 /**
@@ -149,6 +174,7 @@ export function build_event_schema(
   const is_free =
     event.admission !== undefined && Number(event.admission.price) === 0;
   const location = build_location_schema(event);
+  const organizer = build_organizer_schema(event);
   const image = build_image_url(event, site);
 
   return {
@@ -165,15 +191,7 @@ export function build_event_schema(
     ...(event.url ? { url: event.url } : {}),
     ...(offers ? { offers } : {}),
     ...(location ? { location } : {}),
-    ...(event.organizer
-      ? {
-          organizer: {
-            "@type": "Organization" as const,
-            name: event.organizer.name,
-            url: event.organizer.url,
-          },
-        }
-      : {}),
+    ...(organizer ? { organizer } : {}),
   };
 }
 

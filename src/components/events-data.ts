@@ -7,20 +7,24 @@ export type ClockTime = `${number}:${number}`;
 /** Signed UTC offset, e.g. "+02:00" */
 export type UtcOffset = `${"+" | "-"}${number}:${number}`;
 
-/** Clock times of a single-day event, kept apart from the date-only `startDate`/`endDate` */
+/**
+ * Clock times of a single-day event, kept apart from the date-only `startDate`/`endDate`.
+ * Every part stands on its own: an event may be announced with an opening hour long
+ * before anyone knows when it closes.
+ */
 export interface EventSchedule {
   /** Local start */
-  startTime: ClockTime;
+  startTime?: ClockTime;
   /** Local end */
-  endTime: ClockTime;
+  endTime?: ClockTime;
   /** UTC offset of both times — machine-readable half, goes into `dateTime` and JSON-LD */
-  utcOffset: UtcOffset;
+  utcOffset?: UtcOffset;
   /** Zone name shown to readers next to the times, e.g. "CEST" */
-  timeZoneLabel: string;
+  timeZoneLabel?: string;
 }
 
 export interface EventVenue {
-  name: string;
+  name?: string;
   /** Street and number as written locally, e.g. "Carrer de Cristóbal de Moura, 49" */
   streetAddress?: string;
   postalCode?: string;
@@ -29,12 +33,12 @@ export interface EventVenue {
 /** What it takes to get in — drives the card pill and the JSON-LD `Offer` */
 export interface EventAdmission {
   /** Decimal string, schema.org style; "0" reads as free entry */
-  price: string;
+  price?: string;
   /** ISO 4217 code, e.g. "EUR" */
-  priceCurrency: string;
-  requiresRegistration: boolean;
+  priceCurrency?: string;
+  requiresRegistration?: boolean;
   /** First day the offer holds, ISO `YYYY-MM-DD` — the day we announced it */
-  validFrom: string;
+  validFrom?: string;
 }
 
 /**
@@ -79,10 +83,10 @@ export interface TradeFairEvent {
    * the field recommended, and an event with no picture still has to be reachable.
    */
   image?: string;
-  /** Both parts are stated together or not at all — half an organizer names nobody */
+  /** A name we can print, an address we can link, or either one on its own */
   organizer?: {
-    name: string;
-    url: string;
+    name?: string;
+    url?: string;
   };
   description?: string;
   topics?: string[];
@@ -249,7 +253,7 @@ function get_event_day(event: TradeFairEvent, now: Date): string {
 function has_ended(event: TradeFairEvent, now: Date): boolean {
   const closing = get_event_end_datetime(event);
 
-  if (!event.schedule || closing === undefined) {
+  if (event.schedule?.endTime === undefined || closing === undefined) {
     return false;
   }
 
@@ -263,7 +267,7 @@ function has_ended(event: TradeFairEvent, now: Date): boolean {
 function has_started(event: TradeFairEvent, now: Date): boolean {
   const opening = get_event_start_datetime(event);
 
-  if (!event.schedule || opening === undefined) {
+  if (event.schedule?.startTime === undefined || opening === undefined) {
     return true;
   }
 
@@ -372,19 +376,6 @@ export function get_promoted_events(
   return [...groups.ongoing, ...groups.upcoming].slice(0, limit);
 }
 
-/** Card copy: what it costs, then whether anyone has to sign up */
-export function format_admission(admission: EventAdmission): string {
-  const price =
-    Number(admission.price) === 0
-      ? "Free entry"
-      : `${admission.price} ${admission.priceCurrency}`;
-  const registration = admission.requiresRegistration
-    ? "registration required"
-    : "no registration";
-
-  return `${price} · ${registration}`;
-}
-
 /** Postal line shown under the venue name — `undefined` until we know the street */
 export function format_venue_address(
   event: TradeFairEvent,
@@ -410,11 +401,14 @@ const MAPS_SEARCH_URL = "https://www.google.com/maps/search/?api=1&query=";
 /**
  * Directions to the venue, searched by postal address rather than by name —
  * a hotel of the same name stands next door and wins the name search.
+ *
+ * Both halves of the address are needed: a street with no city is searched worldwide
+ * and lands in the wrong town, and a link pointing elsewhere is worse than no link.
  */
 export function get_venue_map_url(event: TradeFairEvent): string | undefined {
   const address = format_venue_address(event);
 
-  if (!address) {
+  if (!address || !event.city) {
     return undefined;
   }
 
@@ -428,38 +422,36 @@ export function get_venue_map_url(event: TradeFairEvent): string | undefined {
 export function get_event_start_datetime(
   event: TradeFairEvent,
 ): string | undefined {
-  const days = get_event_days(event);
-
-  if (days === null) {
-    return undefined;
-  }
-
-  if (!event.schedule) {
-    return days.start;
-  }
-
-  const { startTime, utcOffset } = event.schedule;
-
-  return `${days.start}T${startTime}:00${utcOffset}`;
+  return build_datetime(event, get_event_days(event)?.start, "startTime");
 }
 
 /** Counterpart of `get_event_start_datetime()` for the closing moment */
 export function get_event_end_datetime(
   event: TradeFairEvent,
 ): string | undefined {
-  const days = get_event_days(event);
+  return build_datetime(event, get_event_days(event)?.end, "endTime");
+}
 
-  if (days === null) {
+/**
+ * The day alone until that end of the day is on the clock. The zone comes from
+ * `get_event_utc_offset()`, so a schedule that states an hour but no offset is still
+ * read in the event's own zone rather than drifting away from its calendar days;
+ * with no offset anywhere the time floats in the renderer's zone, exactly as the days do.
+ */
+function build_datetime(
+  event: TradeFairEvent,
+  day: string | undefined,
+  edge: "startTime" | "endTime",
+): string | undefined {
+  const time = event.schedule?.[edge];
+
+  if (day === undefined) {
     return undefined;
   }
 
-  if (!event.schedule) {
-    return days.end;
-  }
-
-  const { endTime, utcOffset } = event.schedule;
-
-  return `${days.end}T${endTime}:00${utcOffset}`;
+  return time === undefined
+    ? day
+    : `${day}T${time}:00${get_event_utc_offset(event) ?? ""}`;
 }
 
 /**

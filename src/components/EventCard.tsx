@@ -1,6 +1,5 @@
 import { cn } from "../lib/utils";
 import {
-  format_admission,
   format_event_date,
   format_venue_address,
   get_event_end_datetime,
@@ -14,7 +13,9 @@ import {
 import {
   ADMISSION_PILL_CLASS,
   DETAILS_PENDING_SHORT,
+  format_admission,
   format_event_location,
+  get_event_hours,
   get_event_link,
   get_status_badge_label,
   STATUS_BADGE_CLASS,
@@ -22,6 +23,7 @@ import {
   TOPIC_PILL_CLASS,
   type StatusTheme,
 } from "./event-theme";
+import { EventHours } from "./EventHours";
 
 interface EventCardProps {
   event: TradeFairEvent;
@@ -38,7 +40,10 @@ export function EventCard({ event, status }: EventCardProps) {
   const link = get_event_link(event, status);
   const date = format_event_date(event);
   const location = format_event_location(event);
+  const venue_name = event.venue?.name;
   const venue_address = format_venue_address(event);
+  const admission = format_admission(event.admission);
+  const has_hours = get_event_hours(event) !== null;
   const topics = event.topics ?? [];
   /**
    * A draft whose card would be a bare headline says so instead. Anything at all under
@@ -47,8 +52,9 @@ export function EventCard({ event, status }: EventCardProps) {
   const is_bare =
     date === null &&
     location === undefined &&
-    event.venue === undefined &&
-    event.schedule === undefined &&
+    venue_name === undefined &&
+    venue_address === undefined &&
+    !has_hours &&
     !event.description &&
     topics.length === 0;
 
@@ -89,9 +95,9 @@ export function EventCard({ event, status }: EventCardProps) {
             </span>
           ) : null}
 
-          {event.admission ? (
+          {admission ? (
             <span className={cn(ADMISSION_PILL_CLASS, theme.topic)}>
-              {format_admission(event.admission)}
+              {admission}
             </span>
           ) : null}
         </div>
@@ -122,7 +128,7 @@ export function EventCard({ event, status }: EventCardProps) {
             </p>
           )}
 
-          {event.schedule ? (
+          {has_hours ? (
             <p
               className={cn(
                 "mt-1 flex items-center gap-2 text-sm font-medium",
@@ -130,20 +136,11 @@ export function EventCard({ event, status }: EventCardProps) {
               )}
             >
               <ClockIcon />
-              <span>
-                <time dateTime={get_event_start_datetime(event)}>
-                  {event.schedule.startTime}
-                </time>
-                –
-                <time dateTime={get_event_end_datetime(event)}>
-                  {event.schedule.endTime}
-                </time>{" "}
-                {event.schedule.timeZoneLabel}
-              </span>
+              <EventHours event={event} />
             </p>
           ) : null}
 
-          {event.venue ? (
+          {venue_name || venue_address ? (
             <p
               className={cn(
                 "mt-1 flex items-start gap-2 text-sm font-medium",
@@ -152,7 +149,7 @@ export function EventCard({ event, status }: EventCardProps) {
             >
               <VenueIcon />
               <span className="min-w-0">
-                {event.venue.name}
+                {venue_name}
                 {venue_address ? (
                   <span className="block text-xs font-normal text-base-content/70">
                     {venue_address}

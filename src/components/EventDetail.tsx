@@ -1,12 +1,12 @@
 import { cn } from "../lib/utils";
 import {
-  format_admission,
   format_event_date,
   format_venue_address,
   get_event_end_datetime,
   get_event_name,
   get_event_path,
   get_event_start_datetime,
+  get_venue_map_url,
   MARKETS_PATH,
   type EventDateParts,
   type EventStatus,
@@ -14,22 +14,23 @@ import {
 } from "./events-data";
 import {
   ADMISSION_PILL_CLASS,
+  ADMISSION_SEPARATOR,
   DETAILS_PENDING_LONG,
+  format_admission,
   format_event_days,
   format_event_location,
+  get_event_hours,
   get_event_link,
-  get_venue_directions_url,
   get_status_badge_label,
   STATUS_BADGE_CLASS,
   STATUS_THEME,
   TOPIC_PILL_CLASS,
   type StatusTheme,
 } from "./event-theme";
+import { EventHours } from "./EventHours";
+import { RelatedEvents, type RelatedEvent } from "./RelatedEvents";
 
-export interface RelatedEvent {
-  event: TradeFairEvent;
-  status: EventStatus;
-}
+export type { RelatedEvent };
 
 interface EventDetailProps {
   event: TradeFairEvent;
@@ -69,6 +70,7 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
   const theme = STATUS_THEME[status];
   const date = format_event_date(event);
   const kind_label = event.kind === "workshop" ? "Workshop" : "Conference";
+  const admission = format_admission(event.admission);
   const topics = event.topics ?? [];
   // Both halves are optional, so the separator is written by the join, never by hand
   const headline_meta = [
@@ -120,9 +122,9 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
               </span>
             ) : null}
 
-            {event.admission ? (
+            {admission ? (
               <span className={cn(ADMISSION_PILL_CLASS, theme.topic)}>
-                {format_admission(event.admission)}
+                {admission}
               </span>
             ) : null}
           </div>
@@ -235,8 +237,13 @@ function FactsPanel({
 }) {
   const date = format_event_date(event);
   const location = format_event_location(event);
+  const venue_name = event.venue?.name;
   const venue_address = format_venue_address(event);
-  const map_url = get_venue_directions_url(event);
+  const admission = format_admission(event.admission);
+  const organizer_url = event.organizer?.url;
+  /** A link with no name of its own says where it goes with the address itself */
+  const organizer_label = event.organizer?.name ?? organizer_url;
+  const map_url = get_venue_map_url(event);
   const event_link = get_event_link(event, status);
   const primary = event_link
     ? { ...event_link, external: true }
@@ -248,14 +255,18 @@ function FactsPanel({
       };
   const show_map_link =
     map_url !== undefined && status !== "past" && primary.href !== map_url;
-  const has_when = date !== null || event.schedule !== undefined;
-  const has_where = event.venue !== undefined || location !== undefined;
+  const hours = get_event_hours(event);
+  const has_when = date !== null || hours !== null;
+  const has_where =
+    venue_name !== undefined ||
+    venue_address !== undefined ||
+    location !== undefined;
   /** A draft can know none of them — then the panel is the call to action alone */
   const has_facts =
     has_when ||
     has_where ||
-    event.admission !== undefined ||
-    event.organizer !== undefined;
+    admission !== undefined ||
+    organizer_label !== undefined;
 
   return (
     <div
@@ -278,18 +289,11 @@ function FactsPanel({
                 {date === null ? null : (
                   <DateBlock date={date} event={event} theme={theme} />
                 )}
-                {event.schedule ? (
+                {hours === null ? null : (
                   <span className={cn("mt-2 block", VALUE_CLASS)}>
-                    <time dateTime={get_event_start_datetime(event)}>
-                      {event.schedule.startTime}
-                    </time>
-                    –
-                    <time dateTime={get_event_end_datetime(event)}>
-                      {event.schedule.endTime}
-                    </time>{" "}
-                    {event.schedule.timeZoneLabel}
+                    <EventHours event={event} />
                   </span>
-                ) : null}
+                )}
               </dd>
             </div>
           ) : null}
@@ -298,7 +302,7 @@ function FactsPanel({
             <div>
               <dt className={cn(LABEL_CLASS, theme.accent)}>Where</dt>
               <dd className={cn("mt-1", VALUE_CLASS)}>
-                {event.venue ? <span>{event.venue.name}</span> : null}
+                {venue_name ? <span>{venue_name}</span> : null}
                 {venue_address ? (
                   <span className="block text-xs font-normal text-base-content/70">
                     {venue_address}
@@ -311,38 +315,40 @@ function FactsPanel({
             </div>
           ) : null}
 
-          {event.admission ? (
+          {admission ? (
             <div>
               <dt className={cn(LABEL_CLASS, theme.accent)}>Admission</dt>
               <dd className={cn("mt-1", VALUE_CLASS)}>
                 {/* Split of the one-line pill copy — the separator is the helper's own */}
-                {format_admission(event.admission)
-                  .split(" · ")
-                  .map((line) => (
-                    <span key={line} className="block first-letter:uppercase">
-                      {line}
-                    </span>
-                  ))}
+                {admission.split(ADMISSION_SEPARATOR).map((line) => (
+                  <span key={line} className="block first-letter:uppercase">
+                    {line}
+                  </span>
+                ))}
               </dd>
             </div>
           ) : null}
 
-          {event.organizer ? (
+          {organizer_label ? (
             <div>
               <dt className={cn(LABEL_CLASS, theme.accent)}>Organizer</dt>
               <dd className={cn("mt-1", VALUE_CLASS)}>
-                <a
-                  href={event.organizer.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    "font-semibold underline-offset-4 transition-colors duration-150 hover:underline",
-                    theme.link,
-                  )}
-                >
-                  {event.organizer.name}
-                  <span className="sr-only"> {SR_NEW_TAB}</span>
-                </a>
+                {organizer_url ? (
+                  <a
+                    href={organizer_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "font-semibold underline-offset-4 transition-colors duration-150 hover:underline",
+                      theme.link,
+                    )}
+                  >
+                    {organizer_label}
+                    <span className="sr-only"> {SR_NEW_TAB}</span>
+                  </a>
+                ) : (
+                  organizer_label
+                )}
               </dd>
             </div>
           ) : null}
@@ -431,52 +437,5 @@ function DateBlock({
       </span>
       <span className="text-xs font-medium">{date.year}</span>
     </span>
-  );
-}
-
-/** The rest of the calendar, compact — date, name, place */
-function RelatedEvents({ related }: { related: RelatedEvent[] }) {
-  return (
-    <section aria-labelledby="other-events-heading" className="mt-10 md:mt-12">
-      <h2 id="other-events-heading" className="text-xl font-bold md:text-2xl">
-        Other <span className="text-secondary">events</span>
-      </h2>
-
-      <ul role="list" className="mt-4 flex flex-col gap-3 list-none p-0 m-0">
-        {related.map(({ event, status }) => {
-          const date = format_event_date(event);
-          const location = format_event_location(event);
-
-          return (
-            <li key={event.id}>
-              <a
-                href={get_event_path(event)}
-                className="flex flex-col gap-1 rounded-2xl border border-white/5 bg-base-200/30 px-5 py-4 transition-shadow duration-300 hover:shadow-card-hover md:flex-row md:items-baseline md:gap-4"
-              >
-                <span
-                  className={cn(
-                    "text-xs font-semibold uppercase tracking-wider md:w-40 md:shrink-0",
-                    STATUS_THEME[status].accent,
-                  )}
-                >
-                  {/* A draft has no day to show, so its status stands in for one */}
-                  {date === null
-                    ? STATUS_THEME[status].label
-                    : `${date.month} ${format_event_days(date)}, ${date.year}`}
-                </span>
-                <span className="min-w-0 text-sm font-semibold text-base-content md:text-base">
-                  {event.shortName ?? get_event_name(event)}
-                  {location === undefined ? null : (
-                    <span className="block text-xs font-normal text-base-content/70">
-                      {location}
-                    </span>
-                  )}
-                </span>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
   );
 }

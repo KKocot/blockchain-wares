@@ -22,7 +22,7 @@ export const FORM_SCOPE = "form";
 
 export type EventFormErrorField = EventFormField | typeof FORM_SCOPE;
 
-/** `required` nie znaczy juz „pole obowiazkowe" — zostalo dla grupy wypelnionej w polowie. */
+/** Zadne pole nie jest obowiazkowe: `required` zostalo dla pustego formularza (`FORM_SCOPE`). */
 export type EventFormErrorCode = "required" | "invalid";
 
 export interface EventFormError {
@@ -279,12 +279,8 @@ function clean_text(raw: string, multiline: boolean): string | null {
   return forbidden.test(value) ? null : value.trim();
 }
 
-function fail(
-  reader: FormReader,
-  field: EventFormErrorField,
-  code: EventFormErrorCode = "invalid",
-): Slot<never> {
-  reader.errors.push({ field, code });
+function fail(reader: FormReader, field: EventFormErrorField): Slot<never> {
+  reader.errors.push({ field, code: "invalid" });
   return INVALID;
 }
 
@@ -337,18 +333,11 @@ function read_venue(reader: FormReader): Slot<EventVenue> {
   const street = text(reader, "venue.streetAddress");
   const postal = text(reader, "venue.postalCode");
 
-  const group = group_state<EventVenue>([name, street, postal]);
-  if (group !== null) return group;
-  if (name.state !== "value") return fail(reader, "venue.name", "required");
-
-  return {
-    state: "value",
-    value: {
-      name: name.value,
-      streetAddress: value_of(street),
-      postalCode: value_of(postal),
-    },
-  };
+  return group([name, street, postal], () => ({
+    name: value_of(name),
+    streetAddress: value_of(street),
+    postalCode: value_of(postal),
+  }));
 }
 
 function read_schedule(reader: FormReader): Slot<EventSchedule> {
@@ -357,33 +346,12 @@ function read_schedule(reader: FormReader): Slot<EventSchedule> {
   const zone = offset(reader, "schedule.utcOffset");
   const label = text(reader, "schedule.timeZoneLabel");
 
-  const group = group_state<EventSchedule>([start, end, zone, label]);
-  if (group !== null) return group;
-
-  if (
-    start.state !== "value" ||
-    end.state !== "value" ||
-    zone.state !== "value" ||
-    label.state !== "value"
-  ) {
-    report_missing(reader, [
-      ["schedule.startTime", start],
-      ["schedule.endTime", end],
-      ["schedule.utcOffset", zone],
-      ["schedule.timeZoneLabel", label],
-    ]);
-    return INVALID;
-  }
-
-  return {
-    state: "value",
-    value: {
-      startTime: start.value as ClockTime,
-      endTime: end.value as ClockTime,
-      utcOffset: zone.value,
-      timeZoneLabel: label.value,
-    },
-  };
+  return group([start, end, zone, label], () => ({
+    startTime: value_of(start) as ClockTime | undefined,
+    endTime: value_of(end) as ClockTime | undefined,
+    utcOffset: value_of(zone),
+    timeZoneLabel: value_of(label),
+  }));
 }
 
 function read_admission(reader: FormReader): Slot<EventAdmission> {
@@ -391,74 +359,35 @@ function read_admission(reader: FormReader): Slot<EventAdmission> {
   const currency = text(reader, "admission.priceCurrency", CURRENCY_CODE);
   const validFrom = text(reader, "admission.validFrom", ISO_DAY);
 
-  const group = group_state<EventAdmission>([price, currency, validFrom]);
-  if (group !== null) return group;
-
-  if (
-    price.state !== "value" ||
-    currency.state !== "value" ||
-    validFrom.state !== "value"
-  ) {
-    report_missing(reader, [
-      ["admission.price", price],
-      ["admission.priceCurrency", currency],
-      ["admission.validFrom", validFrom],
-    ]);
-    return INVALID;
-  }
-
-  return {
-    state: "value",
-    value: {
-      price: price.value,
-      priceCurrency: currency.value,
-      requiresRegistration: checkbox(reader, "admission.requiresRegistration"),
-      validFrom: validFrom.value,
-    },
-  };
+  return group([price, currency, validFrom], () => ({
+    price: value_of(price),
+    priceCurrency: value_of(currency),
+    requiresRegistration: checkbox(reader, "admission.requiresRegistration"),
+    validFrom: value_of(validFrom),
+  }));
 }
 
-/** Obie polowy razem albo wcale: polowa organizatora nikogo nie nazywa. */
 function read_organizer(reader: FormReader): Slot<TradeFairEvent["organizer"]> {
   const name = text(reader, "organizer.name");
   const url = text(reader, "organizer.url", HTTP_URL);
 
-  const group = group_state<TradeFairEvent["organizer"]>([name, url]);
-  if (group !== null) return group;
-
-  if (name.state !== "value" || url.state !== "value") {
-    report_missing(reader, [
-      ["organizer.name", name],
-      ["organizer.url", url],
-    ]);
-    return INVALID;
-  }
-
-  return { state: "value", value: { name: name.value, url: url.value } };
+  return group([name, url], () => ({
+    name: value_of(name),
+    url: value_of(url),
+  }));
 }
 
 /**
- * Stan grupy przed zajrzeniem w pojedyncze pola; `null` znaczy „sa dane, skladaj".
- * Grupa pusta w calosci daje `clear`, a nie obiekt z pustymi stringami.
+ * Grupa zagniezdzona: kazde pole niezalezne, bo backend przyjmuje kazde z osobna.
+ * Zle wypelnione pole wywala grupe, komplet nieobecnych znaczy „bez zmian", a grupa
+ * bez ani jednej wartosci — „skasuj", zamiast obiektu z pustymi stringami.
  */
-function group_state<T>(slots: readonly Slot<unknown>[]): Slot<T> | null {
+function group<T>(slots: readonly Slot<unknown>[], build: () => T): Slot<T> {
   if (slots.some((slot) => slot.state === "invalid")) return INVALID;
   if (slots.every((slot) => slot.state === "absent")) return ABSENT;
   if (slots.every((slot) => slot.state !== "value")) return CLEAR;
 
-  return null;
-}
-
-/** Grupa czesciowo wypelniona: brakujace pola dostaja `required`, zle maja `invalid`. */
-function report_missing(
-  reader: FormReader,
-  parts: readonly (readonly [EventFormField, Slot<string>])[],
-): void {
-  for (const [field, slot] of parts) {
-    if (slot.state === "absent" || slot.state === "clear") {
-      reader.errors.push({ field, code: "required" });
-    }
-  }
+  return { state: "value", value: build() };
 }
 
 function value_of<T>(slot: Slot<T>): T | undefined {

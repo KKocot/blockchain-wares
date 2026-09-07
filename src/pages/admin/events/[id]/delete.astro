@@ -2,7 +2,6 @@
 import AdminLayout from "../../../../layouts/AdminLayout.astro";
 import { BUTTON_CLASS, CARD_CLASS } from "../../../../components/admin/styles";
 import {
-  format_admission,
   format_venue_address,
   get_event_by_id,
   get_event_days,
@@ -13,6 +12,9 @@ import {
   type TradeFairEvent,
 } from "../../../../components/events-data";
 import {
+  format_admission,
+  format_event_hours,
+  format_event_location,
   STATUS_BADGE_CLASS,
   STATUS_THEME,
 } from "../../../../components/event-theme";
@@ -113,11 +115,27 @@ function format_term(event: TradeFairEvent): string {
 
   const days =
     dates.start === dates.end ? dates.start : `${dates.start} → ${dates.end}`;
-  const schedule = event.schedule;
+  const hours = format_event_hours(event);
 
-  return schedule === undefined
-    ? days
-    : `${days}, ${schedule.startTime}–${schedule.endTime} ${schedule.timeZoneLabel}`;
+  return hours === undefined ? days : `${days}, ${hours}`;
+}
+
+/** Wiersz tylko wtedy, gdy ma tresc — pusty mowilby o wydarzeniu nieprawde. */
+function push_row(rows: DetailRow[], label: string, parts: (string | undefined)[]): void {
+  const value = parts.filter((part) => part !== undefined).join(" · ");
+
+  if (value !== "") {
+    rows.push({ label, value });
+  }
+}
+
+function format_place(event: TradeFairEvent): string | undefined {
+  const place = format_event_location(event);
+  const code = event.countryCode;
+
+  if (place === undefined) return code;
+
+  return code === undefined ? place : `${place} (${code})`;
 }
 
 /** Tyle, ile trzeba, zeby rozpoznac wydarzenie — nie kopia formularza. */
@@ -132,27 +150,11 @@ function build_details(event: TradeFairEvent): DetailRow[] {
           : `${KIND_LABEL[event.kind ?? "conference"]} · ${event.edition}`,
     },
     { label: "Termin", value: format_term(event), mono: true },
-    {
-      label: "Miejsce",
-      value: `${event.city}, ${event.country} (${event.countryCode})`,
-    },
   ];
 
-  const venue = event.venue;
-  if (venue !== undefined) {
-    const address = format_venue_address(event);
-    rows.push({
-      label: "Obiekt",
-      value: address === undefined ? venue.name : `${venue.name} · ${address}`,
-    });
-  }
-
-  if (event.admission !== undefined) {
-    rows.push({
-      label: "Wstęp (tekst na stronie)",
-      value: format_admission(event.admission),
-    });
-  }
+  push_row(rows, "Miejsce", [format_place(event)]);
+  push_row(rows, "Obiekt", [event.venue?.name, format_venue_address(event)]);
+  push_row(rows, "Wstęp (tekst na stronie)", [format_admission(event.admission)]);
 
   return rows;
 }

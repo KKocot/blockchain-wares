@@ -268,21 +268,56 @@ test.describe("Panel wydarzeń — odrzucony zapis", () => {
     const rejected = await submit_form(page, submit_button(page, "create"));
     expect(rejected.status()).toBe(422);
 
-    await expect_field_error(page, "venue.name", "required");
     await expect_field_error(page, "countryCode", "invalid");
     await expect_field_error(page, "image", "invalid");
-    await expect(
-      error_summary(page).getByRole("link", { name: "Nazwa obiektu" }),
-    ).toHaveAttribute("href", `#${field_id("venue.name")}`);
+    // Puste pole rozpoczętej grupy nie jest już błędem: obiekt bez nazwy zostaje obiektem.
+    await expect(event_field(page, "venue.name")).toHaveAttribute(
+      "aria-invalid",
+      "false",
+    );
     await expect(
       error_summary(page).getByRole("link", { name: "Kod kraju" }),
     ).toHaveAttribute("href", `#${field_id("countryCode")}`);
+    await expect(
+      error_summary(page).getByRole("link", { name: "Obraz" }),
+    ).toHaveAttribute("href", `#${field_id("image")}`);
 
     await expect(event_field(page, "description")).toHaveValue(
       values.description,
     );
     await expect(registration_checkbox(page)).toBeChecked();
     expect(await read_fixture_event(values.id)).toBeNull();
+  });
+
+  test("grupa wypełniona w połowie zapisuje się tak, jak ją wpisano", async ({
+    page,
+  }) => {
+    const id = scoped_event_id("polowa-grupy");
+    const values = {
+      ...sample_event_values(id),
+      "venue.streetAddress": "",
+      "venue.postalCode": "",
+      "schedule.endTime": "",
+      "schedule.timeZoneLabel": "",
+      "admission.priceCurrency": "",
+      "admission.validFrom": "",
+      "organizer.url": "",
+    };
+
+    await log_in(page);
+    await create_event_via_panel(page, values);
+
+    const saved = await read_fixture_event(id);
+    expect(saved?.venue).toEqual({ name: values["venue.name"] });
+    expect(saved?.schedule).toEqual({
+      startTime: values["schedule.startTime"],
+      utcOffset: values["schedule.utcOffset"],
+    });
+    expect(saved?.admission).toEqual({
+      price: values["admission.price"],
+      requiresRegistration: true,
+    });
+    expect(saved?.organizer).toEqual({ name: values["organizer.name"] });
   });
 });
 

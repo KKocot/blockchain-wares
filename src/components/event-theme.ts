@@ -1,10 +1,14 @@
 import {
   get_event_name,
   get_venue_map_url,
+  type ClockTime,
+  type EventAdmission,
   type EventDateParts,
   type EventStatus,
   type TradeFairEvent,
 } from "./events-data";
+
+const EN_DASH = "–";
 
 /**
  * Wording every view falls back to while an event is still a draft: the card states it
@@ -25,20 +29,11 @@ export function format_event_location(
   return place.length === 0 ? undefined : place.join(", ");
 }
 
-/**
- * Directions to the venue, but only from an address that names its city: a street and
- * number alone are searched worldwide and land in the wrong town. A map link pointing
- * somewhere else is worse than no map link.
- */
-export function get_venue_directions_url(
-  event: TradeFairEvent,
-): string | undefined {
-  return event.city ? get_venue_map_url(event) : undefined;
-}
-
 /** Day or day range as the card, the banner and the detail page all write it: "19", "16–17" */
 export function format_event_days(date: EventDateParts): string {
-  return date.is_range ? `${date.start_day}–${date.end_day}` : date.start_day;
+  return date.is_range
+    ? `${date.start_day}${EN_DASH}${date.end_day}`
+    : date.start_day;
 }
 
 export interface StatusTheme {
@@ -163,15 +158,128 @@ export function get_event_link(
     };
   }
 
-  const map_url = get_venue_directions_url(event);
+  const map_url = get_venue_map_url(event);
 
-  if (map_url && event.venue && status !== "past") {
+  if (map_url && status !== "past") {
+    // The address behind the link names a city, so the fallback is never empty
+    const place =
+      event.venue?.name ??
+      format_event_location(event) ??
+      get_event_name(event);
+
     return {
       href: map_url,
       label: "Venue & directions",
-      sr_label: `${event.venue.name} on the map — opens in a new tab`,
+      sr_label: `${place} on the map — opens in a new tab`,
     };
   }
 
   return null;
+}
+
+/** Separator between the two halves of the admission copy — the pill and the panel share it */
+export const ADMISSION_SEPARATOR = " · ";
+
+/**
+ * Card copy: what it costs, then whether anyone has to sign up. Either half may be
+ * missing, and so may both — then there is nothing to put on the pill.
+ * A price with no currency states no sum, so it is dropped rather than shown bare;
+ * a free entry needs no currency to be free.
+ */
+export function format_admission(
+  admission: EventAdmission | undefined,
+): string | undefined {
+  if (admission === undefined) {
+    return undefined;
+  }
+
+  const parts = [
+    format_price(admission),
+    format_registration(admission),
+  ].filter((part): part is string => part !== undefined);
+
+  return parts.length === 0 ? undefined : parts.join(ADMISSION_SEPARATOR);
+}
+
+function format_price(admission: EventAdmission): string | undefined {
+  if (admission.price === undefined) {
+    return undefined;
+  }
+
+  if (Number(admission.price) === 0) {
+    return "Free entry";
+  }
+
+  return admission.priceCurrency === undefined
+    ? undefined
+    : `${admission.price} ${admission.priceCurrency}`;
+}
+
+function format_registration(admission: EventAdmission): string | undefined {
+  if (admission.requiresRegistration === undefined) {
+    return undefined;
+  }
+
+  return admission.requiresRegistration
+    ? "registration required"
+    : "no registration";
+}
+
+/** Wording of a day known at one end only — the other hour is not announced yet */
+const HOURS_FROM = "from";
+const HOURS_UNTIL = "until";
+
+export interface EventHoursParts {
+  /** Introduces a half-known day, e.g. "from"; absent once both hours are known */
+  prefix?: string;
+  startTime?: ClockTime;
+  endTime?: ClockTime;
+  /** Zone the hours are stated in, e.g. "CEST" */
+  timeZoneLabel?: string;
+}
+
+/**
+ * Clock times the event states, `null` when it states none — a zone label with no hour
+ * to attach it to says nothing, so it never reaches a page on its own.
+ */
+export function get_event_hours(event: TradeFairEvent): EventHoursParts | null {
+  const { startTime, endTime, timeZoneLabel } = event.schedule ?? {};
+
+  if (startTime === undefined && endTime === undefined) {
+    return null;
+  }
+
+  return {
+    prefix: get_hours_prefix(startTime, endTime),
+    startTime,
+    endTime,
+    timeZoneLabel,
+  };
+}
+
+function get_hours_prefix(
+  startTime: ClockTime | undefined,
+  endTime: ClockTime | undefined,
+): string | undefined {
+  if (startTime === undefined) return HOURS_UNTIL;
+  if (endTime === undefined) return HOURS_FROM;
+
+  return undefined;
+}
+
+/** One-line form of `get_event_hours()` for the places that write text, not markup */
+export function format_event_hours(event: TradeFairEvent): string | undefined {
+  const hours = get_event_hours(event);
+
+  if (hours === null) {
+    return undefined;
+  }
+
+  const range = [hours.startTime, hours.endTime]
+    .filter((time): time is ClockTime => time !== undefined)
+    .join(EN_DASH);
+
+  return [hours.prefix, range, hours.timeZoneLabel]
+    .filter((part): part is string => part !== undefined)
+    .join(" ");
 }

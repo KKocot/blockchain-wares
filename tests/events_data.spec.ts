@@ -4,8 +4,8 @@ import {
   to_json_ld,
   type EventSchema,
 } from "../src/components/event-schema";
+import { format_admission } from "../src/components/event-theme";
 import {
-  format_admission,
   format_venue_address,
   get_event_by_id,
   get_event_end_datetime,
@@ -163,6 +163,40 @@ test.describe("get_event_status — granice godzin", () => {
     expect(get_event_status(CONFERENCE, next_day)).toBe("past");
   });
 
+  test("sama godzina otwarcia domyka status startu, dnia nie zamyka wcześniej", () => {
+    const opening_only = {
+      ...WORKSHOP,
+      schedule: { startTime: "10:00", utcOffset: "+02:00" },
+    } satisfies TradeFairEvent;
+    const before = new Date("2026-09-19T07:59:59Z");
+    const after = new Date("2026-09-19T08:00:00Z");
+    const late_evening = new Date("2026-09-19T21:30:00Z");
+
+    expect(get_event_status(opening_only, before)).toBe("upcoming");
+    expect(get_event_status(opening_only, after)).toBe("ongoing");
+    // 23:30 w strefie wydarzenia: bez godziny zamknięcia dzień trwa do północy.
+    expect(get_event_status(opening_only, late_evening)).toBe("ongoing");
+  });
+
+  test("harmonogram bez strefy liczy dobę strefą wydarzenia, nie renderera", () => {
+    // `schedule.utcOffset` wygrywa, gdy jest; bez niego zostaje `utcOffset` wydarzenia,
+    // więc niepełny harmonogram nie odrywa godzin od dni wydarzenia.
+    const zoneless = {
+      ...TOKYO_CONFERENCE,
+      schedule: { startTime: "10:00", timeZoneLabel: "JST" },
+    } satisfies TradeFairEvent;
+
+    expect(get_event_start_datetime(zoneless)).toBe(
+      "2026-09-16T10:00:00+09:00",
+    );
+    expect(get_event_status(zoneless, new Date("2026-09-16T00:59:59Z"))).toBe(
+      "upcoming",
+    );
+    expect(get_event_status(zoneless, new Date("2026-09-16T01:00:00Z"))).toBe(
+      "ongoing",
+    );
+  });
+
   test("doba wydarzenia zaczyna się w jego strefie, nie w strefie renderera", () => {
     // 2026-09-16, 00:30 w Tokio — u renderera (UTC albo CEST) trwa jeszcze 15.09
     const opening_night = new Date("2026-09-15T15:30:00Z");
@@ -251,6 +285,46 @@ test.describe("JSON-LD", () => {
 
     expect(schema.offers?.price).toBe("120");
     expect("isAccessibleForFree" in schema).toBe(false);
+  });
+
+  test("niepełna grupa trafia do JSON-LD tylko wtedy, gdy jest poprawna", () => {
+    const partial = {
+      ...WORKSHOP,
+      admission: { price: "0", requiresRegistration: false },
+      organizer: { name: "Sam organizator" },
+    } satisfies TradeFairEvent;
+    const schema = dated_schema(partial, SITE);
+
+    // Cena bez waluty nie składa się na `Offer`, ale wstęp wolny zostaje ogłoszony.
+    expect("offers" in schema).toBe(false);
+    expect(schema.isAccessibleForFree).toBe(true);
+    expect(schema.organizer).toEqual({
+      "@type": "Organization",
+      name: "Sam organizator",
+    });
+  });
+
+  test("organizator bez nazwy nie staje się pustą Organization", () => {
+    const anonymous = {
+      ...WORKSHOP,
+      organizer: { url: "https://example.invalid/org" },
+    } satisfies TradeFairEvent;
+
+    expect("organizer" in dated_schema(anonymous, SITE)).toBe(false);
+  });
+
+  test("adres bez miasta nie dokleja mapy prowadzącej w złe miejsce", () => {
+    const homeless = {
+      ...WORKSHOP,
+      city: undefined,
+    } satisfies TradeFairEvent;
+    const location = required(
+      dated_schema(homeless, SITE).location,
+      "Miejsce w schemacie",
+    );
+
+    expect("hasMap" in location).toBe(false);
+    expect(location.address.streetAddress).toBe("Carrer de Prova, 49");
   });
 
   test("schemat ze strony wydarzenia kieruje ofertę na tę stronę", () => {

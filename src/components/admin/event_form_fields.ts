@@ -146,6 +146,21 @@ const CATALOGUE = [
         mono: true,
         placeholder: "08019",
       },
+      {
+        name: "venue.room",
+        label: "Sala lub piętro",
+        full: true,
+        placeholder: "Meeting Room 0.5+0.6, ground floor",
+        hint: "Sala wewnątrz obiektu. Sama, bez nazwy budynku, też jest całą wiedzą o miejscu.",
+      },
+      {
+        name: "venue.url",
+        label: "Strona obiektu",
+        kind: "url",
+        full: true,
+        placeholder: "https://",
+        hint: "Prowadzi do budynku, nie do wydarzenia. Bez nazwy obiektu karta pokaże sam adres strony.",
+      },
     ],
   },
   {

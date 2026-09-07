@@ -7,6 +7,7 @@ import type {
   TradeFairEvent,
   UtcOffset,
 } from "../../components/events-data";
+import type { EventDraft } from "./mutations";
 import { parse_event } from "./parse_event";
 
 /**
@@ -21,6 +22,7 @@ export const FORM_SCOPE = "form";
 
 export type EventFormErrorField = EventFormField | typeof FORM_SCOPE;
 
+/** `required` nie znaczy juz „pole obowiazkowe" — zostalo dla grupy wypelnionej w polowie. */
 export type EventFormErrorCode = "required" | "invalid";
 
 export interface EventFormError {
@@ -29,34 +31,35 @@ export interface EventFormError {
 }
 
 /**
- * Trzy stany pola opcjonalnego: klucz nieobecny = bez zmian, `null` = kasowanie
- * (`$unset` po stronie API), wartosc = ustawienie. Pole wymagane nie ma wariantu
- * `null` — puste w formularzu jest bledem, nie zgoda na rekord bez nazwy.
+ * Trzy stany pola: klucz nieobecny = bez zmian, `null` = kasowanie (`$unset` po stronie
+ * API), wartosc = ustawienie. Zadne pole nie jest obowiazkowe — wlasciciel zapisuje szkic
+ * i uzupelnia go pozniej. `id` jest jedynym bez wariantu `null`: rekord bez niego nie ma
+ * adresu, wiec puste pole znaczy „nie przysylaj" (backend zlozy slug), nigdy „skasuj".
  */
 export interface EventFormPatch {
   id?: string;
-  name?: string;
+  name?: string | null;
   shortName?: string | null;
   edition?: string | null;
   kind?: EventKind | null;
   utcOffset?: UtcOffset | null;
-  city?: string;
-  country?: string;
-  countryCode?: string;
-  startDate?: string;
-  endDate?: string;
+  city?: string | null;
+  country?: string | null;
+  countryCode?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
   schedule?: EventSchedule | null;
   venue?: EventVenue | null;
   admission?: EventAdmission | null;
   url?: string | null;
-  image?: string;
-  organizer?: TradeFairEvent["organizer"];
-  description?: string;
-  topics?: string[];
+  image?: string | null;
+  organizer?: TradeFairEvent["organizer"] | null;
+  description?: string | null;
+  topics?: string[] | null;
 }
 
 export type EventFormResult =
-  | { ok: true; event: TradeFairEvent }
+  | { ok: true; event: EventDraft }
   | { ok: false; errors: EventFormError[] };
 
 export type EventPatchResult =
@@ -72,6 +75,9 @@ const COUNTRY_CODE = /^[A-Z]{2}$/;
 const CURRENCY_CODE = /^[A-Z]{3}$/;
 const PRICE = /^\d+(?:\.\d{1,2})?$/;
 const HTTP_URL = /^https?:\/\/\S+$/;
+/** Sciezka od korzenia albo pelny adres — `parse_event` cicho zdejmuje reszte, a wpisany
+ *  z bledem obraz ma wrocic do poprawki, nie zniknac po zapisie. */
+const IMAGE_SRC = /^(?:https?:\/\/\S+|\/[^/\s]\S*)$/;
 
 /** U+FFFD swiadczy o rozjechanym kodowaniu — wartosc jest juz wtedy uszkodzona. */
 const FORBIDDEN_CHARS = /[\u0000-\u001F\u007F\uFFFD]/;
@@ -86,26 +92,16 @@ const TOPIC_SEPARATOR = ",";
 /** Wartosc zaznaczonego checkboxa bez atrybutu `value`. */
 const CHECKBOX_ON = "on";
 
-/** Klucz obiektu -> input do podswietlenia. Grupa wskazuje swoje pierwsze pole. */
-const REQUIRED_KEYS = {
-  id: "id",
-  name: "name",
-  city: "city",
-  country: "country",
-  countryCode: "countryCode",
-  startDate: "startDate",
-  endDate: "endDate",
-  image: "image",
-  organizer: "organizer.name",
-  description: "description",
-  topics: "topics",
-} as const satisfies Record<string, EventFormField>;
+/** Slug zastepczy na czas sprawdzenia ksztaltu szkicu, ktory `id` zostawil backendowi. */
+const PLACEHOLDER_ID = "draft";
 
-type RequiredKey = keyof typeof REQUIRED_KEYS;
-
-/** Pelne wydarzenie z formularza tworzenia: puste pole opcjonalne to brak wartosci. */
+/**
+ * Wydarzenie z formularza tworzenia: puste pole to brak wartosci, nie blad — pusty
+ * formularz zapisuje szkic. Bez `id` wynik nie niesie tego pola i slug sklada backend
+ * z nazwy wydarzenia.
+ */
 export function read_event_form(fields: URLSearchParams): EventFormResult {
-  const { patch, errors } = build_patch(fields, "create");
+  const { patch, errors } = build_patch(fields);
   if (errors.length > 0) return { ok: false, errors };
 
   const candidate: Record<string, unknown> = {};
@@ -114,11 +110,20 @@ export function read_event_form(fields: URLSearchParams): EventFormResult {
   }
 
   // Ostatnia bramka to ta sama funkcja, ktora czyta rekordy z API: regul ksztaltu
-  // nie ma tu drugiej kopii, ta warstwa dokłada im tylko wskazanie pola.
-  const event = parse_event(candidate);
-  return event === null
-    ? { ok: false, errors: [{ field: FORM_SCOPE, code: "invalid" }] }
-    : { ok: true, event };
+  // nie ma tu drugiej kopii, ta warstwa dokłada im tylko wskazanie pola. `id` jest tam
+  // wymagane, wiec szkic bez niego przechodzi przez slug zastepczy i oddaje go zaraz potem.
+  const supplied = typeof candidate.id === "string";
+  const event = parse_event(
+    supplied ? candidate : { ...candidate, id: PLACEHOLDER_ID },
+  );
+  if (event === null) {
+    return { ok: false, errors: [{ field: FORM_SCOPE, code: "invalid" }] };
+  }
+  if (supplied) return { ok: true, event };
+
+  const draft: EventDraft = { ...event };
+  delete draft.id;
+  return { ok: true, event: draft };
 }
 
 /**
@@ -126,7 +131,7 @@ export function read_event_form(fields: URLSearchParams): EventFormResult {
  * `venue.*` znaczy „skasuj venue" — bez tego panel nie umie niczego wyczyscic.
  */
 export function read_event_patch(fields: URLSearchParams): EventPatchResult {
-  const { patch, errors } = build_patch(fields, "update");
+  const { patch, errors } = build_patch(fields);
 
   // Zadanie bez ani jednego pola to blad zadania, nie zapis pustej zmiany.
   if (errors.length === 0 && Object.keys(patch).length === 0) {
@@ -212,44 +217,38 @@ const ABSENT = { state: "absent" } as const;
 const CLEAR = { state: "clear" } as const;
 const INVALID = { state: "invalid" } as const;
 
-/** `mode` to jedyna roznica trybow: przy `create` brak pola wymaganego jest bledem. */
 interface FormReader {
   fields: URLSearchParams;
   errors: EventFormError[];
-  mode: "create" | "update";
 }
 
 /** Jedno czytanie dla obu kierunkow — tworzenie to patch z kompletem pol. */
-function build_patch(
-  fields: URLSearchParams,
-  mode: FormReader["mode"],
-): { patch: EventFormPatch; errors: EventFormError[] } {
-  const reader: FormReader = { fields, errors: [], mode };
+function build_patch(fields: URLSearchParams): {
+  patch: EventFormPatch;
+  errors: EventFormError[];
+} {
+  const reader: FormReader = { fields, errors: [] };
 
   const patch: EventFormPatch = {
-    ...required_entry("id", text(reader, "id", EVENT_ID), reader),
-    ...required_entry("name", text(reader, "name"), reader),
+    ...id_entry(text(reader, "id", EVENT_ID)),
+    ...optional_entry("name", text(reader, "name")),
     ...optional_entry("shortName", text(reader, "shortName")),
     ...optional_entry("edition", text(reader, "edition")),
     ...optional_entry("kind", read_kind(reader)),
     ...optional_entry("utcOffset", offset(reader, "utcOffset")),
-    ...required_entry("city", text(reader, "city"), reader),
-    ...required_entry("country", text(reader, "country"), reader),
-    ...required_entry(
-      "countryCode",
-      text(reader, "countryCode", COUNTRY_CODE),
-      reader,
-    ),
-    ...required_entry("startDate", text(reader, "startDate", ISO_DAY), reader),
-    ...required_entry("endDate", text(reader, "endDate", ISO_DAY), reader),
+    ...optional_entry("city", text(reader, "city")),
+    ...optional_entry("country", text(reader, "country")),
+    ...optional_entry("countryCode", text(reader, "countryCode", COUNTRY_CODE)),
+    ...optional_entry("startDate", text(reader, "startDate", ISO_DAY)),
+    ...optional_entry("endDate", text(reader, "endDate", ISO_DAY)),
     ...optional_entry("schedule", read_schedule(reader)),
     ...optional_entry("venue", read_venue(reader)),
     ...optional_entry("admission", read_admission(reader)),
     ...optional_entry("url", text(reader, "url", HTTP_URL)),
-    ...required_entry("image", text(reader, "image"), reader),
-    ...required_entry("organizer", read_organizer(reader), reader),
-    ...required_entry("description", text(reader, "description"), reader),
-    ...required_entry("topics", read_topics(reader), reader),
+    ...optional_entry("image", text(reader, "image", IMAGE_SRC)),
+    ...optional_entry("organizer", read_organizer(reader)),
+    ...optional_entry("description", text(reader, "description")),
+    ...optional_entry("topics", read_topics(reader)),
   };
 
   return { patch, errors: reader.errors };
@@ -419,13 +418,13 @@ function read_admission(reader: FormReader): Slot<EventAdmission> {
   };
 }
 
-/** Organizator jest wymagany, wiec pusta grupa to blad, a nie kasowanie. */
+/** Obie polowy razem albo wcale: polowa organizatora nikogo nie nazywa. */
 function read_organizer(reader: FormReader): Slot<TradeFairEvent["organizer"]> {
   const name = text(reader, "organizer.name");
   const url = text(reader, "organizer.url", HTTP_URL);
 
   const group = group_state<TradeFairEvent["organizer"]>([name, url]);
-  if (group !== null && group.state !== "clear") return group;
+  if (group !== null) return group;
 
   if (name.state !== "value" || url.state !== "value") {
     report_missing(reader, [
@@ -466,24 +465,12 @@ function value_of<T>(slot: Slot<T>): T | undefined {
   return slot.state === "value" ? slot.value : undefined;
 }
 
-/** Jedyne miejsce zglaszajace brak pola wymaganego — drugie dawaloby ten sam kod dwa razy. */
-function required_entry<K extends RequiredKey, T>(
-  key: K,
-  slot: Slot<T>,
-  reader: FormReader,
-): Partial<Record<K, T>> {
-  if (slot.state === "value") {
-    return { [key]: slot.value } as Partial<Record<K, T>>;
-  }
-  // `invalid` ma juz swoj blad na tym samym inpucie.
-  if (
-    slot.state !== "invalid" &&
-    (slot.state === "clear" || reader.mode === "create")
-  ) {
-    reader.errors.push({ field: REQUIRED_KEYS[key], code: "required" });
-  }
-
-  return {};
+/**
+ * `id` bez wariantu „skasuj": puste pole znaczy „nie przysylaj" — przy tworzeniu slug
+ * sklada backend, a przy edycji rekord zostaje pod dotychczasowym adresem.
+ */
+function id_entry(slot: Slot<string>): { id?: string } {
+  return slot.state === "value" ? { id: slot.value } : {};
 }
 
 function optional_entry<K extends string, T>(

@@ -303,7 +303,8 @@ async function read_fixture_ids(): Promise<string[]> {
   return events.map((event) => event.id);
 }
 
-async function drop_fixture_event(id: string): Promise<void> {
+/** Sprzątanie po rekordzie, którego identyfikator nadał backend — poza prefiksem projektu. */
+export async function drop_fixture_event(id: string): Promise<void> {
   await fetch(`${EVENTS_API_BASE_URL}/events/${encodeURIComponent(id)}`, {
     method: "DELETE",
     headers: {

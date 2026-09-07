@@ -1,5 +1,7 @@
 import { cn } from "../../lib/utils";
 import {
+  get_event_days,
+  get_event_name,
   get_event_path,
   group_events_by_status,
   type EventStatus,
@@ -37,6 +39,11 @@ const DANGER_BUTTON_CLASS =
   "inline-flex items-center rounded-md border border-error/40 bg-error/10 px-3 py-1.5 text-sm font-medium text-error transition-colors duration-150 hover:border-error/70 hover:bg-error/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error";
 
 const CELL_CLASS = "border-b border-base-300/60 px-3 py-3 align-top";
+
+/** Szkic bywa zapisany bez terminu i bez miejsca — pusta komorka nie mowi o tym nic. */
+const EMPTY_CLASS = "text-base-content/40";
+const EMPTY_DATE = "bez terminu";
+const EMPTY_PLACE = "bez miejsca";
 
 const HEAD_CELL_CLASS =
   "border-b border-base-300 px-3 py-2 text-xs font-semibold tracking-wide text-base-content/60 uppercase";
@@ -82,7 +89,7 @@ function EventCell({
 
   return (
     <div className="min-w-0 space-y-1">
-      <p className="font-medium break-words">{event.name}</p>
+      <p className="font-medium break-words">{get_event_name(event)}</p>
       <p className="admin-mono text-xs break-all text-base-content/60">
         {event.id}
       </p>
@@ -102,12 +109,16 @@ function EventCell({
 function DateCell({ event }: { event: TradeFairEvent }) {
   const schedule = event.schedule;
   const zone = schedule?.utcOffset ?? event.utcOffset;
+  const days = get_event_days(event);
 
   return (
     <div className="space-y-1">
       <p className="admin-mono text-xs whitespace-nowrap">
-        {event.startDate}
-        {event.endDate !== event.startDate && ` → ${event.endDate}`}
+        {days === null ? (
+          <span className={EMPTY_CLASS}>{EMPTY_DATE}</span>
+        ) : (
+          `${days.start}${days.end === days.start ? "" : ` → ${days.end}`}`
+        )}
       </p>
 
       {schedule !== undefined && (
@@ -124,10 +135,18 @@ function DateCell({ event }: { event: TradeFairEvent }) {
 }
 
 function PlaceCell({ event }: { event: TradeFairEvent }) {
+  const place = [event.city, event.country].filter(
+    (part): part is string => part !== undefined,
+  );
+
   return (
     <div className="min-w-0 space-y-1">
       <p className="break-words">
-        {event.city}, {event.country}{" "}
+        {place.length === 0 ? (
+          <span className={EMPTY_CLASS}>{EMPTY_PLACE}</span>
+        ) : (
+          place.join(", ")
+        )}{" "}
         <span className="admin-mono text-xs text-base-content/60">
           {event.countryCode}
         </span>
@@ -155,7 +174,7 @@ function ActionsCell({
       {actions.map((action) => (
         <a key={action.label} href={action.href} className={action.className}>
           {action.label}
-          <span className="sr-only"> — {event.name}</span>
+          <span className="sr-only"> — {get_event_name(event)}</span>
         </a>
       ))}
     </div>

@@ -24,8 +24,9 @@ export interface FieldSpec {
   label: string;
   /** Brak = zwykly `text`. */
   kind?: FieldKind;
-  required?: boolean;
   hint?: string;
+  /** Zdanie doklejane do `hint` tylko w formularzu tworzenia. */
+  createHint?: string;
   placeholder?: string;
   options?: readonly FieldOption[];
   /** Kolumny stalej szerokosci (kody, offsety) czytaja sie tylko monospace. */
@@ -59,12 +60,12 @@ const CATALOGUE = [
       {
         name: "id",
         label: "Identyfikator",
-        required: true,
         mono: true,
         placeholder: "ebc-2026-barcelona",
         hint: "Małe litery, cyfry i myślniki — buduje adres /markets/<id>.",
+        createHint: "Puste = powstanie z nazwy wydarzenia.",
       },
-      { name: "name", label: "Nazwa", required: true, full: true },
+      { name: "name", label: "Nazwa", full: true },
       { name: "shortName", label: "Nazwa skrócona", placeholder: "EBC 2026" },
       { name: "edition", label: "Edycja", placeholder: "EBC12" },
       {
@@ -80,12 +81,11 @@ const CATALOGUE = [
     title: "Termin",
     hint: "Godziny są opcjonalne, ale albo wypełniasz wszystkie cztery pola harmonogramu, albo żadne.",
     fields: [
-      { name: "startDate", label: "Data od", kind: "date", required: true },
+      { name: "startDate", label: "Data od", kind: "date" },
       {
         name: "endDate",
         label: "Data do",
         kind: "date",
-        required: true,
         hint: "Dla wydarzenia jednodniowego ta sama co „Data od”.",
       },
       {
@@ -118,14 +118,12 @@ const CATALOGUE = [
       {
         name: "city",
         label: "Miasto",
-        required: true,
         placeholder: "Barcelona",
       },
-      { name: "country", label: "Kraj", required: true, placeholder: "Spain" },
+      { name: "country", label: "Kraj", placeholder: "Spain" },
       {
         name: "countryCode",
         label: "Kod kraju",
-        required: true,
         mono: true,
         placeholder: "ES",
         hint: "Dwie wielkie litery, ISO 3166-1 alpha-2.",
@@ -178,13 +176,13 @@ const CATALOGUE = [
   },
   {
     title: "Organizator",
+    hint: "Nazwa i strona idą razem albo wcale — połowa organizatora nikogo nie nazywa.",
     fields: [
-      { name: "organizer.name", label: "Nazwa organizatora", required: true },
+      { name: "organizer.name", label: "Nazwa organizatora" },
       {
         name: "organizer.url",
         label: "Strona organizatora",
         kind: "url",
-        required: true,
         placeholder: "https://",
       },
       {
@@ -203,7 +201,6 @@ const CATALOGUE = [
       {
         name: "image",
         label: "Obraz",
-        required: true,
         full: true,
         placeholder: "/assets/img/events/ebc-2026.jpg",
         hint: "Ścieżka od korzenia serwisu albo pełny URL — trafia do JSON-LD.",
@@ -211,7 +208,6 @@ const CATALOGUE = [
       {
         name: "topics",
         label: "Tematy",
-        required: true,
         full: true,
         placeholder: "Hive, blockchain, EDA",
         hint: "Lista po przecinku. Temat z przecinkiem w nazwie jest niezapisywalny — zostanie rozbity na dwa.",
@@ -220,7 +216,6 @@ const CATALOGUE = [
         name: "description",
         label: "Opis",
         kind: "textarea",
-        required: true,
         full: true,
       },
     ],
@@ -269,15 +264,16 @@ export const FIELD_LABELS = new Map<EventFormErrorField, string>([
   [REGISTRATION_FIELD, REGISTRATION_LABEL],
 ]);
 
+/** Żadne pole nie jest obowiązkowe, więc `required` mówi już tylko o rozpoczętej grupie. */
 export const CODE_TEXT: Record<EventFormErrorCode, string> = {
-  required: "Pole jest wymagane.",
+  required: "Uzupełnij to pole albo wyczyść pozostałe pola tej grupy.",
   invalid: "Wartość ma niewłaściwy format.",
 };
 
 export const FORM_TEXT: Record<EventFormErrorCode, string> = {
   required: "Formularz nie zawierał żadnej wartości do zapisania.",
   invalid:
-    "Z podanych pól nie da się złożyć wydarzenia — sprawdź daty, adres obrazu i wymagane pola.",
+    "Z podanych pól nie da się złożyć wydarzenia — sprawdź daty, adres obrazu i formaty pozostałych wartości.",
 };
 
 /** Kod bledu spoza kontraktu — lepszy niz czerwona ramka bez slowa wyjasnienia. */

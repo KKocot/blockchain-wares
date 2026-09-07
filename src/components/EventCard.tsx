@@ -7,11 +7,14 @@ import {
   get_event_name,
   get_event_path,
   get_event_start_datetime,
+  type EventDateParts,
   type EventStatus,
   type TradeFairEvent,
 } from "./events-data";
 import {
   ADMISSION_PILL_CLASS,
+  DETAILS_PENDING_SHORT,
+  format_event_location,
   get_event_link,
   get_status_badge_label,
   STATUS_BADGE_CLASS,
@@ -33,7 +36,21 @@ export function EventCard({ event, status }: EventCardProps) {
   const theme = STATUS_THEME[status];
   const badge_label = get_status_badge_label(event, status);
   const link = get_event_link(event, status);
+  const date = format_event_date(event);
+  const location = format_event_location(event);
   const venue_address = format_venue_address(event);
+  const topics = event.topics ?? [];
+  /**
+   * A draft whose card would be a bare headline says so instead. Anything at all under
+   * the title — a day, a place, a topic — already gives the card a body of its own.
+   */
+  const is_bare =
+    date === null &&
+    location === undefined &&
+    event.venue === undefined &&
+    event.schedule === undefined &&
+    !event.description &&
+    topics.length === 0;
 
   return (
     <article
@@ -47,7 +64,9 @@ export function EventCard({ event, status }: EventCardProps) {
         "hover:shadow-card-hover",
       )}
     >
-      <DateBlock event={event} theme={theme} />
+      {date === null ? null : (
+        <DateBlock date={date} event={event} theme={theme} />
+      )}
 
       <div className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -91,15 +110,17 @@ export function EventCard({ event, status }: EventCardProps) {
             </a>
           </h3>
 
-          <p
-            className={cn(
-              "mt-2 flex items-center gap-2 text-sm font-medium",
-              theme.accent,
-            )}
-          >
-            <PinIcon />
-            {event.city}, {event.country}
-          </p>
+          {location === undefined ? null : (
+            <p
+              className={cn(
+                "mt-2 flex items-center gap-2 text-sm font-medium",
+                theme.accent,
+              )}
+            >
+              <PinIcon />
+              {location}
+            </p>
+          )}
 
           {event.schedule ? (
             <p
@@ -142,17 +163,27 @@ export function EventCard({ event, status }: EventCardProps) {
           ) : null}
         </div>
 
-        <p className="text-sm leading-relaxed text-base-content/80 md:text-base">
-          {event.description}
-        </p>
+        {event.description ? (
+          <p className="text-sm leading-relaxed text-base-content/80 md:text-base">
+            {event.description}
+          </p>
+        ) : null}
 
-        <ul role="list" className="flex flex-wrap gap-2 list-none p-0 m-0">
-          {event.topics?.map((topic) => (
-            <li key={topic} className={cn(TOPIC_PILL_CLASS, theme.topic)}>
-              {topic}
-            </li>
-          ))}
-        </ul>
+        {is_bare ? (
+          <p className="text-sm leading-relaxed text-base-content/60 md:text-base">
+            {DETAILS_PENDING_SHORT}
+          </p>
+        ) : null}
+
+        {topics.length === 0 ? null : (
+          <ul role="list" className="flex flex-wrap gap-2 list-none p-0 m-0">
+            {topics.map((topic) => (
+              <li key={topic} className={cn(TOPIC_PILL_CLASS, theme.topic)}>
+                {topic}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {link ? (
           <a
@@ -178,21 +209,17 @@ export function EventCard({ event, status }: EventCardProps) {
 }
 
 /**
- * Highlighted date block (days / month / year)
+ * Highlighted date block (days / month / year) — the caller drops it for a dateless draft
  */
 function DateBlock({
+  date,
   event,
   theme,
 }: {
+  date: EventDateParts;
   event: TradeFairEvent;
   theme: StatusTheme;
 }) {
-  const date = format_event_date(event);
-
-  if (date === null) {
-    return null;
-  }
-
   return (
     <div
       className={cn(

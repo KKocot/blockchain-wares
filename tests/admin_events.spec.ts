@@ -14,6 +14,7 @@ import {
   delete_path,
   DELETE_CONFIRM_FIELD,
   DELETE_CONFIRM_VALUE,
+  drop_fixture_event,
   edit_path,
   error_summary,
   event_field,
@@ -41,8 +42,23 @@ test.describe.configure({ mode: "default" });
 const DELETE_BUTTON = "Usuń wydarzenie";
 const MISSING_HEADING = "Nie ma takiego wydarzenia";
 
+/** Identyfikator nadany przez backend, gdy formularz go nie podał: `event-` + 8 znaków. */
+const GENERATED_ID = /^event-[a-z2-9]{8}$/;
+
+/**
+ * Rekordy, których identyfikator wymyślił backend — nie mają prefiksu projektu, więc
+ * `reset_events()` ich nie sprząta i przeżyłyby bieg, blokując reset kolejnemu.
+ */
+const generated: string[] = [];
+
 test.beforeEach(async () => {
   await reset_events();
+});
+
+test.afterEach(async () => {
+  for (const id of generated.splice(0)) {
+    await drop_fixture_event(id);
+  }
 });
 
 test.describe("Panel wydarzeń — pełna ścieżka", () => {
@@ -128,6 +144,9 @@ test.describe("Panel wydarzeń — pełna ścieżka", () => {
       "venue.streetAddress": "",
       "venue.postalCode": "",
       url: "",
+      // Pola, które kiedyś blokowały zapis — pusto ma je kasować, nie odrzucać.
+      city: "",
+      description: "",
     });
     expect(
       (await submit_form(page, submit_button(page, "edit"))).status(),
@@ -142,6 +161,8 @@ test.describe("Panel wydarzeń — pełna ścieżka", () => {
       "venue.streetAddress",
       "venue.postalCode",
       "url",
+      "city",
+      "description",
     ] as const) {
       await expect(event_field(page, field)).toHaveValue("");
     }
@@ -151,6 +172,50 @@ test.describe("Panel wydarzeń — pełna ścieżka", () => {
     expect(stored).not.toBeNull();
     expect(stored?.venue ?? null).toBeNull();
     expect(stored?.url ?? null).toBeNull();
+    expect(stored?.city ?? null).toBeNull();
+    expect(stored?.description ?? null).toBeNull();
+  });
+});
+
+test.describe("Panel wydarzeń — szkic", () => {
+  test("pusty formularz zapisuje wydarzenie, a identyfikator składa backend", async ({
+    page,
+  }) => {
+    await log_in(page);
+    await page.goto(NEW_EVENT_PATH);
+
+    expect(
+      (await submit_form(page, submit_button(page, "create"))).status(),
+      "Pusty formularz nie skończył się przekierowaniem na listę.",
+    ).toBe(303);
+
+    const created = new URL(page.url()).searchParams.get("event") ?? "";
+    generated.push(created);
+    expect(created).toMatch(GENERATED_ID);
+
+    await expect_notice(page, "created", created);
+    await expect(event_row(page, created)).toHaveCount(1);
+    // Puste pole ma nie dojechać do API jako pusty string ani jako `null`.
+    expect(await read_fixture_event(created)).toEqual({ id: created });
+  });
+
+  test("sama nazwa wystarczy: identyfikator powstaje z jej slugu", async ({
+    page,
+  }) => {
+    const expected = scoped_event_id("szkic-z-nazwy");
+    const name = expected.replaceAll("-", " ");
+
+    await log_in(page);
+    await page.goto(NEW_EVENT_PATH);
+    await fill_event_form(page, { name });
+
+    expect(
+      (await submit_form(page, submit_button(page, "create"))).status(),
+    ).toBe(303);
+
+    await expect_notice(page, "created", expected);
+    await expect(event_row(page, expected)).toContainText(name);
+    expect(await read_fixture_event(expected)).toEqual({ id: expected, name });
   });
 });
 
@@ -188,10 +253,12 @@ test.describe("Panel wydarzeń — odrzucony zapis", () => {
   }) => {
     const values = {
       ...sample_event_values(scoped_event_id("walidacja")),
-      // Pola bez atrybutu `required`/`pattern`: przeglądarka je przepuszcza,
-      // więc odrzucenie musi przyjść z serwera i wskazać input.
+      // Żadne pole nie ma atrybutu `required` ani `pattern`, więc odrzucenie musi
+      // przyjść z serwera i wskazać input. Puste znaczy „bez wartości", ale wpisany
+      // z błędem format zostaje błędem — także ten, który parser cicho by zdjął.
       "venue.name": "",
       countryCode: "pl",
+      image: "assets/img/og-image.png",
     };
 
     await log_in(page);
@@ -203,6 +270,7 @@ test.describe("Panel wydarzeń — odrzucony zapis", () => {
 
     await expect_field_error(page, "venue.name", "required");
     await expect_field_error(page, "countryCode", "invalid");
+    await expect_field_error(page, "image", "invalid");
     await expect(
       error_summary(page).getByRole("link", { name: "Nazwa obiektu" }),
     ).toHaveAttribute("href", `#${field_id("venue.name")}`);

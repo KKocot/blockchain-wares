@@ -40,30 +40,29 @@ function describe(...ids: readonly (string | null)[]): string | undefined {
   return used.length === 0 ? undefined : used.join(" ");
 }
 
-function FieldLabel({ spec, id }: { spec: FieldSpec; id: string }) {
-  return (
-    <label htmlFor={id} className={LABEL_CLASS}>
-      {spec.label}
-      {spec.required === true && (
-        <span aria-hidden="true" className="ml-1 text-error">
-          *
-        </span>
-      )}
-    </label>
-  );
+/** Podpowiedz zalezna od trybu: slug z nazwy powstaje wylacznie przy tworzeniu. */
+function field_hint(
+  spec: FieldSpec,
+  mode: EventFormProps["mode"],
+): string | undefined {
+  const extra = mode === "create" ? spec.createHint : undefined;
+  if (extra === undefined) return spec.hint;
+
+  return spec.hint === undefined ? extra : `${spec.hint} ${extra}`;
 }
 
 interface FormFieldProps {
   spec: FieldSpec;
+  hint: string | undefined;
   value: string;
   code: EventFormErrorCode | null;
   /** Identyfikator jest kluczem adresu `/markets/<id>` — przy edycji tylko do odczytu. */
   locked: boolean;
 }
 
-function FormField({ spec, value, code, locked }: FormFieldProps) {
+function FormField({ spec, hint, value, code, locked }: FormFieldProps) {
   const id = field_id(spec.name);
-  const hint_id = spec.hint === undefined ? null : `${id}-hint`;
+  const hint_id = hint === undefined ? null : `${id}-hint`;
   const error_id = code === null ? null : `${id}-error`;
   const described = describe(error_id, hint_id);
   const invalid = code !== null;
@@ -77,7 +76,9 @@ function FormField({ spec, value, code, locked }: FormFieldProps) {
 
   return (
     <div className={cn("min-w-0", spec.full === true && "sm:col-span-2")}>
-      <FieldLabel spec={spec} id={id} />
+      <label htmlFor={id} className={LABEL_CLASS}>
+        {spec.label}
+      </label>
 
       {spec.kind === "select" ? (
         <select
@@ -99,7 +100,6 @@ function FormField({ spec, value, code, locked }: FormFieldProps) {
           id={id}
           name={spec.name}
           rows={6}
-          required={spec.required === true}
           defaultValue={value}
           aria-invalid={invalid}
           aria-describedby={described}
@@ -110,7 +110,6 @@ function FormField({ spec, value, code, locked }: FormFieldProps) {
           id={id}
           name={spec.name}
           type={input_type(spec.kind)}
-          required={spec.required === true}
           readOnly={locked}
           placeholder={spec.placeholder}
           defaultValue={value}
@@ -128,7 +127,7 @@ function FormField({ spec, value, code, locked }: FormFieldProps) {
 
       {hint_id !== null && (
         <p id={hint_id} className="mt-1 text-xs text-base-content/60">
-          {spec.hint}
+          {hint}
         </p>
       )}
     </div>
@@ -272,6 +271,7 @@ export function EventForm({
               <FormField
                 key={spec.name}
                 spec={spec}
+                hint={field_hint(spec, mode)}
                 value={value_of(spec.name)}
                 code={found.get(spec.name) ?? null}
                 locked={mode === "edit" && spec.name === "id"}
@@ -297,9 +297,9 @@ export function EventForm({
         </a>
 
         <p className="text-xs text-base-content/60">
-          Pola z gwiazdką są wymagane.
-          {mode === "edit" &&
-            " Puste pole opcjonalne kasuje dotychczasową wartość, a identyfikatora nie da się zmienić — nowy adres zerwałby linki."}
+          {mode === "edit"
+            ? "Żadne pole nie jest wymagane, ale puste kasuje dotychczasową wartość. Identyfikatora nie da się zmienić — nowy adres zerwałby linki."
+            : "Żadne pole nie jest wymagane — pusty formularz zapisze szkic do uzupełnienia później."}
         </p>
       </div>
     </form>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState, type ReactElement } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { cn } from "../lib/utils";
 import {
@@ -11,6 +11,7 @@ import {
   get_promoted_events,
   MARKETS_PATH,
   parse_iso_day,
+  type EventDateParts,
   type EventKind,
   type TradeFairEvent,
 } from "./events-data";
@@ -218,32 +219,12 @@ function BannerEntry({
               accent.text,
             )}
           >
-            <span>
-              {date.month}{" "}
-              <time dateTime={get_event_start_datetime(event)}>
-                {date.start_day}
-              </time>
-              {date.is_range ? (
-                <>
-                  –
-                  <time dateTime={get_event_end_datetime(event)}>
-                    {date.end_day}
-                  </time>
-                </>
-              ) : null}
-              {`, ${date.year}`}
-            </span>
-            {event.schedule ? (
-              <>
-                <span aria-hidden="true">·</span>
-                <span>
-                  {event.schedule.startTime}–{event.schedule.endTime}{" "}
-                  {event.schedule.timeZoneLabel}
-                </span>
-              </>
-            ) : null}
-            <span aria-hidden="true">·</span>
-            <span>{event.city}</span>
+            {build_meta(event, date).map((part, index) => (
+              <Fragment key={part.key}>
+                {index === 0 ? null : <span aria-hidden="true">·</span>}
+                {part}
+              </Fragment>
+            ))}
           </span>
 
           <span className="sr-only">: </span>
@@ -263,6 +244,40 @@ function BannerEntry({
       </a>
     </span>
   );
+}
+
+/**
+ * Meta line of one entry — day, hours, place. Only the parts we know are built, so the
+ * `·` between them is never left leading, trailing or doubled on a half-filled event.
+ */
+function build_meta(
+  event: TradeFairEvent,
+  date: EventDateParts,
+): ReactElement[] {
+  // The city alone in a strip this narrow; the country stands in when it is all we have
+  const place = event.city ?? event.country;
+
+  const parts: (ReactElement | null)[] = [
+    <span key="date">
+      {date.month}{" "}
+      <time dateTime={get_event_start_datetime(event)}>{date.start_day}</time>
+      {date.is_range ? (
+        <>
+          –<time dateTime={get_event_end_datetime(event)}>{date.end_day}</time>
+        </>
+      ) : null}
+      {`, ${date.year}`}
+    </span>,
+    event.schedule ? (
+      <span key="hours">
+        {event.schedule.startTime}–{event.schedule.endTime}{" "}
+        {event.schedule.timeZoneLabel}
+      </span>
+    ) : null,
+    place ? <span key="place">{place}</span> : null,
+  ];
+
+  return parts.filter((part): part is ReactElement => part !== null);
 }
 
 /**

@@ -95,9 +95,10 @@ export type EventPatch = Partial<Omit<TradeFairEvent, OptionalEventKey>> & {
   [K in OptionalEventKey]?: TradeFairEvent[K] | null;
 };
 
-export function create_event(
-  event: TradeFairEvent,
-): Promise<EventMutationResult> {
+/** Szkic do zapisu: bez `id` slug sklada backend z nazwy, a bez nazwy losuje go sam. */
+export type EventDraft = Partial<TradeFairEvent>;
+
+export function create_event(event: EventDraft): Promise<EventMutationResult> {
   return send("POST", EVENTS_PATH, event);
 }
 

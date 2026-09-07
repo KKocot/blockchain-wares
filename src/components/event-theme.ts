@@ -6,6 +6,36 @@ import {
   type TradeFairEvent,
 } from "./events-data";
 
+/**
+ * Wording every view falls back to while an event is still a draft: the card states it
+ * in one line, the event page in full. Nothing is silently left blank instead.
+ */
+export const DETAILS_PENDING_SHORT = "Details are still being arranged.";
+export const DETAILS_PENDING_LONG =
+  "Details are still being arranged. Dates, venue and the full description land here as soon as they are confirmed.";
+
+/** Place of an event from whichever half we know — `undefined` while we know neither */
+export function format_event_location(
+  event: TradeFairEvent,
+): string | undefined {
+  const place = [event.city, event.country].filter(
+    (part): part is string => part !== undefined && part.trim() !== "",
+  );
+
+  return place.length === 0 ? undefined : place.join(", ");
+}
+
+/**
+ * Directions to the venue, but only from an address that names its city: a street and
+ * number alone are searched worldwide and land in the wrong town. A map link pointing
+ * somewhere else is worse than no map link.
+ */
+export function get_venue_directions_url(
+  event: TradeFairEvent,
+): string | undefined {
+  return event.city ? get_venue_map_url(event) : undefined;
+}
+
 /** Day or day range as the card, the banner and the detail page all write it: "19", "16–17" */
 export function format_event_days(date: EventDateParts): string {
   return date.is_range ? `${date.start_day}–${date.end_day}` : date.start_day;
@@ -133,7 +163,7 @@ export function get_event_link(
     };
   }
 
-  const map_url = get_venue_map_url(event);
+  const map_url = get_venue_directions_url(event);
 
   if (map_url && event.venue && status !== "past") {
     return {

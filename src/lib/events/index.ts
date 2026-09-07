@@ -24,6 +24,7 @@ export {
   create_event,
   delete_event,
   update_event,
+  type EventDraft,
   type EventMutationErrorCode,
   type EventMutationFailure,
   type EventMutationResult,

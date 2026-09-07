@@ -20,6 +20,11 @@ const REQUESTS_PATH = "/__requests";
 const REQUEST_LOG_LIMIT = 500;
 // Tyle samo, ile hook `parse` mutujacych tras w backend-api — po przekroczeniu 413.
 const BODY_LIMIT_BYTES = 64 * 1024;
+
+/** Limity skladania `id`, gdy POST go nie podal — z `constants.ts` i `service.ts` backendu. */
+const EVENT_ID_MAX_LENGTH = 100;
+const ID_ATTEMPT_LIMIT = 100;
+const GENERATED_ID_PREFIX = "event";
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",
@@ -171,14 +176,75 @@ function index_of(id) {
   return events.findIndex((event) => event.id === id);
 }
 
+/** Odbicie `event_id.ts` z backend-api: slug z nazwy, a bez użytecznej nazwy — losowy. */
+function slugify_event_id(name) {
+  return name
+    .toLowerCase()
+    .replace(/ł/g, "l")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function trim_to_length(value, max_length) {
+  return value.slice(0, max_length).replace(/-+$/, "");
+}
+
+function random_event_id() {
+  const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
+  let suffix = "";
+
+  for (let index = 0; index < 8; index += 1) {
+    suffix += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+
+  return `${GENERATED_ID_PREFIX}-${suffix}`;
+}
+
+/**
+ * Slug podany jawnie jest wyborem wołającego, więc kolizja to jego błąd (409). Slug
+ * wyliczony ustępuje zajętemu i próbuje `-2`, `-3` — inaczej dwa szkice o tej samej
+ * nazwie nie dałyby się zapisać.
+ */
+function generate_event_id(name) {
+  const slug =
+    typeof name === "string"
+      ? trim_to_length(slugify_event_id(name), EVENT_ID_MAX_LENGTH)
+      : "";
+  const base = slug.length > 0 ? slug : random_event_id();
+
+  for (let attempt = 1; attempt <= ID_ATTEMPT_LIMIT; attempt += 1) {
+    const suffix = attempt <= 1 ? "" : `-${attempt}`;
+    const candidate = `${trim_to_length(base, EVENT_ID_MAX_LENGTH - suffix.length)}${suffix}`;
+    if (index_of(candidate) === -1) return candidate;
+  }
+
+  return null;
+}
+
 async function handle_create(request, response) {
   const body = await read_event_body(request, response);
   if (!body) return;
 
-  if (typeof body.id !== "string" || body.id.length === 0) {
-    fail(response, 400, "Event id is required.");
+  if (body.id !== undefined && typeof body.id !== "string") {
+    fail(response, 400, "Event id must be a string.");
     return;
   }
+
+  if (body.id === undefined) {
+    const generated = generate_event_id(body.name);
+    if (generated === null) {
+      fail(response, 409, "No free id left after all attempts.");
+      return;
+    }
+
+    const created = { ...clone(body), id: generated };
+    events.push(created);
+    send(response, 201, created);
+    return;
+  }
+
   if (index_of(body.id) !== -1) {
     fail(response, 409, `Event "${body.id}" already exists.`);
     return;

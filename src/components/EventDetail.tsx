@@ -7,15 +7,18 @@ import {
   get_event_name,
   get_event_path,
   get_event_start_datetime,
-  get_venue_map_url,
   MARKETS_PATH,
+  type EventDateParts,
   type EventStatus,
   type TradeFairEvent,
 } from "./events-data";
 import {
   ADMISSION_PILL_CLASS,
+  DETAILS_PENDING_LONG,
   format_event_days,
+  format_event_location,
   get_event_link,
+  get_venue_directions_url,
   get_status_badge_label,
   STATUS_BADGE_CLASS,
   STATUS_THEME,
@@ -51,6 +54,9 @@ const CTA_BASE =
 
 const LABEL_CLASS = "text-[11px] font-semibold uppercase tracking-wider";
 const VALUE_CLASS = "text-sm font-medium text-base-content md:text-base";
+/** Draft placeholder: the panel shape of the listing's empty state, page width */
+const PENDING_NOTE_CLASS =
+  "rounded-[32px] border border-white/5 bg-base-200/30 px-6 py-8 text-base leading-relaxed text-base-content/80 shadow-card backdrop-blur-sm md:rounded-[40px] md:px-8 md:py-10 md:text-lg";
 const BACK_LINK_CLASS =
   "inline-flex items-center gap-2 rounded-sm text-sm font-semibold text-secondary transition-colors duration-150 hover:text-secondary/80";
 
@@ -62,8 +68,19 @@ const BACK_LINK_CLASS =
 export function EventDetail({ event, status, related }: EventDetailProps) {
   const theme = STATUS_THEME[status];
   const date = format_event_date(event);
-  const days = date && format_event_days(date);
   const kind_label = event.kind === "workshop" ? "Workshop" : "Conference";
+  const topics = event.topics ?? [];
+  // Both halves are optional, so the separator is written by the join, never by hand
+  const headline_meta = [
+    date === null
+      ? undefined
+      : `${date.month} ${format_event_days(date)}, ${date.year}`,
+    format_event_location(event),
+  ]
+    .filter((part): part is string => part !== undefined)
+    .join(" · ");
+  /** Nothing to read yet: the page says so rather than opening empty sections */
+  const is_sparse = !event.description && topics.length === 0;
 
   return (
     <main className="relative min-h-screen px-4 pt-28 pb-20 md:pt-36 md:pb-28">
@@ -114,15 +131,16 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
             {get_event_name(event)}
           </h1>
 
-          <p
-            className={cn(
-              "mt-3 text-base font-semibold md:text-lg",
-              theme.accent,
-            )}
-          >
-            {date ? `${date.month} ${days}, ${date.year} · ` : null}
-            {event.city}, {event.country}
-          </p>
+          {headline_meta === "" ? null : (
+            <p
+              className={cn(
+                "mt-3 text-base font-semibold md:text-lg",
+                theme.accent,
+              )}
+            >
+              {headline_meta}
+            </p>
+          )}
         </header>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
@@ -138,39 +156,48 @@ export function EventDetail({ event, status, related }: EventDetailProps) {
             className="animate-fade-in-up lg:col-start-1 lg:row-start-1"
             style={{ animationDelay: "0.56s" }}
           >
-            <section aria-labelledby="event-about-heading">
-              <h2
-                id="event-about-heading"
-                className="text-xl font-bold md:text-2xl"
-              >
-                What it is <span className={theme.accent}>about</span>
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-base-content/80 md:text-lg">
-                {event.description}
-              </p>
-            </section>
+            {event.description ? (
+              <section aria-labelledby="event-about-heading">
+                <h2
+                  id="event-about-heading"
+                  className="text-xl font-bold md:text-2xl"
+                >
+                  What it is <span className={theme.accent}>about</span>
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-base-content/80 md:text-lg">
+                  {event.description}
+                </p>
+              </section>
+            ) : null}
 
-            <section
-              aria-labelledby="event-topics-heading"
-              className="mt-10 md:mt-12"
-            >
-              <h2
-                id="event-topics-heading"
-                className="text-xl font-bold md:text-2xl"
+            {is_sparse ? <PendingNote /> : null}
+
+            {topics.length === 0 ? null : (
+              <section
+                aria-labelledby="event-topics-heading"
+                className={event.description ? "mt-10 md:mt-12" : undefined}
               >
-                <span className={theme.accent}>Topics</span> covered
-              </h2>
-              <ul
-                role="list"
-                className="mt-4 flex flex-wrap gap-2 list-none p-0 m-0"
-              >
-                {event.topics?.map((topic) => (
-                  <li key={topic} className={cn(TOPIC_PILL_CLASS, theme.topic)}>
-                    {topic}
-                  </li>
-                ))}
-              </ul>
-            </section>
+                <h2
+                  id="event-topics-heading"
+                  className="text-xl font-bold md:text-2xl"
+                >
+                  <span className={theme.accent}>Topics</span> covered
+                </h2>
+                <ul
+                  role="list"
+                  className="mt-4 flex flex-wrap gap-2 list-none p-0 m-0"
+                >
+                  {topics.map((topic) => (
+                    <li
+                      key={topic}
+                      className={cn(TOPIC_PILL_CLASS, theme.topic)}
+                    >
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {related.length > 0 ? <RelatedEvents related={related} /> : null}
 
@@ -206,8 +233,10 @@ function FactsPanel({
   status: EventStatus;
   theme: StatusTheme;
 }) {
+  const date = format_event_date(event);
+  const location = format_event_location(event);
   const venue_address = format_venue_address(event);
-  const map_url = get_venue_map_url(event);
+  const map_url = get_venue_directions_url(event);
   const event_link = get_event_link(event, status);
   const primary = event_link
     ? { ...event_link, external: true }
@@ -219,6 +248,14 @@ function FactsPanel({
       };
   const show_map_link =
     map_url !== undefined && status !== "past" && primary.href !== map_url;
+  const has_when = date !== null || event.schedule !== undefined;
+  const has_where = event.venue !== undefined || location !== undefined;
+  /** A draft can know none of them — then the panel is the call to action alone */
+  const has_facts =
+    has_when ||
+    has_where ||
+    event.admission !== undefined ||
+    event.organizer !== undefined;
 
   return (
     <div
@@ -232,79 +269,89 @@ function FactsPanel({
         Key details
       </h2>
 
-      <dl className="flex flex-col gap-5">
-        <div>
-          <dt className={cn(LABEL_CLASS, theme.accent)}>When</dt>
-          <dd className="mt-2">
-            <DateBlock event={event} theme={theme} />
-            {event.schedule ? (
-              <span className={cn("mt-2 block", VALUE_CLASS)}>
-                <time dateTime={get_event_start_datetime(event)}>
-                  {event.schedule.startTime}
-                </time>
-                –
-                <time dateTime={get_event_end_datetime(event)}>
-                  {event.schedule.endTime}
-                </time>{" "}
-                {event.schedule.timeZoneLabel}
-              </span>
-            ) : null}
-          </dd>
-        </div>
-
-        <div>
-          <dt className={cn(LABEL_CLASS, theme.accent)}>Where</dt>
-          <dd className={cn("mt-1", VALUE_CLASS)}>
-            {event.venue ? <span>{event.venue.name}</span> : null}
-            {venue_address ? (
-              <span className="block text-xs font-normal text-base-content/70">
-                {venue_address}
-              </span>
-            ) : null}
-            <span className="block">
-              {event.city}, {event.country}
-            </span>
-          </dd>
-        </div>
-
-        {event.admission ? (
-          <div>
-            <dt className={cn(LABEL_CLASS, theme.accent)}>Admission</dt>
-            <dd className={cn("mt-1", VALUE_CLASS)}>
-              {/* Split of the one-line pill copy — the separator is the helper's own */}
-              {format_admission(event.admission)
-                .split(" · ")
-                .map((line) => (
-                  <span key={line} className="block first-letter:uppercase">
-                    {line}
-                  </span>
-                ))}
-            </dd>
-          </div>
-        ) : null}
-
-        {event.organizer ? (
-          <div>
-            <dt className={cn(LABEL_CLASS, theme.accent)}>Organizer</dt>
-            <dd className={cn("mt-1", VALUE_CLASS)}>
-              <a
-                href={event.organizer.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "font-semibold underline-offset-4 transition-colors duration-150 hover:underline",
-                  theme.link,
+      {has_facts ? (
+        <dl className="flex flex-col gap-5">
+          {has_when ? (
+            <div>
+              <dt className={cn(LABEL_CLASS, theme.accent)}>When</dt>
+              <dd className="mt-2">
+                {date === null ? null : (
+                  <DateBlock date={date} event={event} theme={theme} />
                 )}
-              >
-                {event.organizer.name}
-                <span className="sr-only"> {SR_NEW_TAB}</span>
-              </a>
-            </dd>
-          </div>
-        ) : null}
-      </dl>
+                {event.schedule ? (
+                  <span className={cn("mt-2 block", VALUE_CLASS)}>
+                    <time dateTime={get_event_start_datetime(event)}>
+                      {event.schedule.startTime}
+                    </time>
+                    –
+                    <time dateTime={get_event_end_datetime(event)}>
+                      {event.schedule.endTime}
+                    </time>{" "}
+                    {event.schedule.timeZoneLabel}
+                  </span>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
 
-      <div className="mt-6 border-t border-white/10 pt-5">
+          {has_where ? (
+            <div>
+              <dt className={cn(LABEL_CLASS, theme.accent)}>Where</dt>
+              <dd className={cn("mt-1", VALUE_CLASS)}>
+                {event.venue ? <span>{event.venue.name}</span> : null}
+                {venue_address ? (
+                  <span className="block text-xs font-normal text-base-content/70">
+                    {venue_address}
+                  </span>
+                ) : null}
+                {location === undefined ? null : (
+                  <span className="block">{location}</span>
+                )}
+              </dd>
+            </div>
+          ) : null}
+
+          {event.admission ? (
+            <div>
+              <dt className={cn(LABEL_CLASS, theme.accent)}>Admission</dt>
+              <dd className={cn("mt-1", VALUE_CLASS)}>
+                {/* Split of the one-line pill copy — the separator is the helper's own */}
+                {format_admission(event.admission)
+                  .split(" · ")
+                  .map((line) => (
+                    <span key={line} className="block first-letter:uppercase">
+                      {line}
+                    </span>
+                  ))}
+              </dd>
+            </div>
+          ) : null}
+
+          {event.organizer ? (
+            <div>
+              <dt className={cn(LABEL_CLASS, theme.accent)}>Organizer</dt>
+              <dd className={cn("mt-1", VALUE_CLASS)}>
+                <a
+                  href={event.organizer.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "font-semibold underline-offset-4 transition-colors duration-150 hover:underline",
+                    theme.link,
+                  )}
+                >
+                  {event.organizer.name}
+                  <span className="sr-only"> {SR_NEW_TAB}</span>
+                </a>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+
+      <div
+        className={has_facts ? "mt-6 border-t border-white/10 pt-5" : undefined}
+      >
         <a
           href={primary.href}
           className={cn(CTA_BASE, CTA_PRIMARY_CLASS[status])}
@@ -344,20 +391,24 @@ function FactsPanel({
   );
 }
 
+/**
+ * Stands in for the body of a draft — a panel, so the page keeps its shape instead of
+ * ending under the headline with nothing but the calls to action.
+ */
+function PendingNote() {
+  return <p className={PENDING_NOTE_CLASS}>{DETAILS_PENDING_LONG}</p>;
+}
+
 /** Date block of `EventCard`, stretched across the panel */
 function DateBlock({
+  date,
   event,
   theme,
 }: {
+  date: EventDateParts;
   event: TradeFairEvent;
   theme: StatusTheme;
 }) {
-  const date = format_event_date(event);
-
-  if (date === null) {
-    return null;
-  }
-
   return (
     <span
       className={cn(
@@ -394,6 +445,7 @@ function RelatedEvents({ related }: { related: RelatedEvent[] }) {
       <ul role="list" className="mt-4 flex flex-col gap-3 list-none p-0 m-0">
         {related.map(({ event, status }) => {
           const date = format_event_date(event);
+          const location = format_event_location(event);
 
           return (
             <li key={event.id}>
@@ -407,15 +459,18 @@ function RelatedEvents({ related }: { related: RelatedEvent[] }) {
                     STATUS_THEME[status].accent,
                   )}
                 >
-                  {date
-                    ? `${date.month} ${format_event_days(date)}, ${date.year}`
-                    : null}
+                  {/* A draft has no day to show, so its status stands in for one */}
+                  {date === null
+                    ? STATUS_THEME[status].label
+                    : `${date.month} ${format_event_days(date)}, ${date.year}`}
                 </span>
                 <span className="min-w-0 text-sm font-semibold text-base-content md:text-base">
                   {event.shortName ?? get_event_name(event)}
-                  <span className="block text-xs font-normal text-base-content/70">
-                    {event.city}, {event.country}
-                  </span>
+                  {location === undefined ? null : (
+                    <span className="block text-xs font-normal text-base-content/70">
+                      {location}
+                    </span>
+                  )}
                 </span>
               </a>
             </li>

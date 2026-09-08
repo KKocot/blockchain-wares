@@ -1,12 +1,20 @@
 import type {
   ClockTime,
   EventAdmission,
+  EventFact,
   EventKind,
+  EventLink,
   EventSchedule,
   EventVenue,
   TradeFairEvent,
   UtcOffset,
 } from "../../components/events-data";
+import {
+  ICON_KEYS,
+  MAX_EVENT_BADGES,
+  MAX_EVENT_FACTS,
+  MAX_EVENT_LINKS,
+} from "../../components/event-types";
 
 /** Odbicie wzorcow z backend-api `src/projects/blockchain-wares/constants.ts`. */
 const EVENT_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -70,6 +78,9 @@ export function parse_event(value: unknown): TradeFairEvent | null {
   const venue = optional(source.venue, read_venue);
   const admission = optional(source.admission, read_admission);
   const url = optional(source.url, (raw) => matched(raw, HTTP_URL));
+  const badges = read_badges(source.badges);
+  const facts = read_facts(source.facts);
+  const links = read_links(source.links);
 
   if (
     name === null ||
@@ -113,6 +124,9 @@ export function parse_event(value: unknown): TradeFairEvent | null {
     organizer,
     description,
     topics,
+    badges,
+    facts,
+    links,
   };
 }
 
@@ -262,6 +276,7 @@ function read_venue(value: unknown): EventVenue | null | undefined {
   const streetAddress = optional(source.streetAddress, text);
   const postalCode = optional(source.postalCode, text);
   const url = read_venue_url(source.url);
+  const note = read_venue_note(source.note);
 
   if (
     name === null ||
@@ -272,7 +287,12 @@ function read_venue(value: unknown): EventVenue | null | undefined {
     return null;
   }
 
-  return present({ name, room, streetAddress, postalCode, url });
+  return present({ name, room, streetAddress, postalCode, url, note });
+}
+
+/** Cosmetic like `url` above: a bad shape drops just this field, not the venue group. */
+function read_venue_note(value: unknown): string | undefined {
+  return text(value) ?? undefined;
 }
 
 /**
@@ -318,4 +338,94 @@ function read_admission(value: unknown): EventAdmission | null | undefined {
 
 function read_flag(value: unknown): boolean | null {
   return typeof value === "boolean" ? value : null;
+}
+
+/**
+ * Editorial labels, cosmetic like the three lists below: a bad element drops itself,
+ * not the record. Truncates to `MAX_EVENT_BADGES` valid entries rather than rejecting
+ * the whole list.
+ */
+function read_badges(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  const badges: string[] = [];
+  for (const entry of value) {
+    const badge = text(entry);
+    if (badge === null) continue;
+    badges.push(badge);
+    if (badges.length >= MAX_EVENT_BADGES) break;
+  }
+
+  return badges.length > 0 ? badges : undefined;
+}
+
+function read_facts(value: unknown): EventFact[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  const facts: EventFact[] = [];
+  for (const entry of value) {
+    const fact = read_fact(entry);
+    if (fact === null) continue;
+    facts.push(fact);
+    if (facts.length >= MAX_EVENT_FACTS) break;
+  }
+
+  return facts.length > 0 ? facts : undefined;
+}
+
+function read_fact(value: unknown): EventFact | null {
+  const source = as_record(value);
+  if (source === null) return null;
+
+  const icon = source.icon;
+  if (
+    typeof icon !== "string" ||
+    !(ICON_KEYS as readonly string[]).includes(icon)
+  ) {
+    return null;
+  }
+
+  const label = text(source.label);
+  if (label === null) return null;
+
+  return { icon: icon as EventFact["icon"], label };
+}
+
+function read_links(value: unknown): EventLink[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  const links: EventLink[] = [];
+  for (const entry of value) {
+    const link = read_link(entry);
+    if (link === null) continue;
+    links.push(link);
+    if (links.length >= MAX_EVENT_LINKS) break;
+  }
+
+  return links.length > 0 ? links : undefined;
+}
+
+/**
+ * Unlike `read_image()`/`read_venue_url()`, a bad `url` drops the whole link, not just
+ * the field — a link with no address is not a link. `matched()` already rejects
+ * non-`http(s)` schemes like `javascript:`/`data:`; `new URL()` catches shapes the
+ * backend's pattern lets through, e.g. `http://[`.
+ */
+function read_link(value: unknown): EventLink | null {
+  const source = as_record(value);
+  if (source === null) return null;
+
+  const label = text(source.label);
+  if (label === null) return null;
+
+  const url = matched(source.url, HTTP_URL);
+  if (url === null) return null;
+
+  try {
+    new URL(url);
+  } catch {
+    return null;
+  }
+
+  return { label, url };
 }

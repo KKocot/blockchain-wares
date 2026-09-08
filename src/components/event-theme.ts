@@ -180,6 +180,21 @@ export function has_venue_details(event: TradeFairEvent): boolean {
 }
 
 /**
+ * Footnote under the venue, e.g. "entrance from the courtyard" — the card and the panel
+ * render it only alongside the venue block it annotates, never on its own.
+ * Blank or whitespace-only text says nothing, so it is dropped like every other field here.
+ */
+export function get_venue_note(event: TradeFairEvent): string | undefined {
+  const note = event.venue?.note?.trim();
+
+  return note === "" ? undefined : note;
+}
+
+/** Shape of the venue footnote — muted small print, matching `VenuePlace`'s own detail line */
+export const VENUE_NOTE_CLASS =
+  "block text-xs font-normal text-base-content/70";
+
+/**
  * Own website when the event has one, otherwise directions to the venue we booked.
  * Directions are dropped once the event is over — nobody needs to get there any more.
  */

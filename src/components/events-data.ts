@@ -1,120 +1,32 @@
-/** Conferences we attend, workshops we host ourselves — drives the wording of the labels */
-export type EventKind = "conference" | "workshop";
-
-/** `HH:MM` in 24h — the template shape makes a typo a compile error, not a bad `dateTime` */
-export type ClockTime = `${number}:${number}`;
-
-/** Signed UTC offset, e.g. "+02:00" */
-export type UtcOffset = `${"+" | "-"}${number}:${number}`;
-
 /**
- * Clock times of a single-day event, kept apart from the date-only `startDate`/`endDate`.
- * Every part stands on its own: an event may be announced with an opening hour long
- * before anyone knows when it closes.
+ * Pure helpers over the event model — no data and no declarations of its own.
+ * The shapes live in `./event-types`, which is the contract the backend mirrors;
+ * they are re-exported here so every existing `from "./events-data"` import still resolves.
  */
-export interface EventSchedule {
-  /** Local start */
-  startTime?: ClockTime;
-  /** Local end */
-  endTime?: ClockTime;
-  /** UTC offset of both times — machine-readable half, goes into `dateTime` and JSON-LD */
-  utcOffset?: UtcOffset;
-  /** Zone name shown to readers next to the times, e.g. "CEST" */
-  timeZoneLabel?: string;
-}
+import type {
+  EventDateParts,
+  EventDays,
+  EventStatus,
+  TradeFairEvent,
+  UtcOffset,
+} from "./event-types";
 
-export interface EventVenue {
-  name?: string;
-  /**
-   * Room or floor inside the building, e.g. "Meeting Room 0.5+0.6, ground floor".
-   * Presentational only — it never reaches the JSON-LD `Place`, which describes the
-   * building, and it never reaches the map query, which searches the street.
-   */
-  room?: string;
-  /** Street and number as written locally, e.g. "Carrer de Cristóbal de Moura, 49" */
-  streetAddress?: string;
-  postalCode?: string;
-  /** Page of the building itself — the event's own page is `TradeFairEvent.url` */
-  url?: string;
-}
-
-/** What it takes to get in — drives the card pill and the JSON-LD `Offer` */
-export interface EventAdmission {
-  /** Decimal string, schema.org style; "0" reads as free entry */
-  price?: string;
-  /** ISO 4217 code, e.g. "EUR" */
-  priceCurrency?: string;
-  requiresRegistration?: boolean;
-  /** First day the offer holds, ISO `YYYY-MM-DD` — the day we announced it */
-  validFrom?: string;
-}
-
-/**
- * Nothing but `id` is required: a draft is saved the moment it has anything at all and
- * filled in later. `id` stays required because it drives `/markets/<id>` and
- * `get_event_by_id()` — the events module derives one from the name when a write omits it.
- */
-export interface TradeFairEvent {
-  /** Stable key + anchor id */
-  id: string;
-  /** Absent on a draft — read it through `get_event_name()`, never raw */
-  name?: string;
-  /** Compact label for tight layouts, e.g. "EBC 2026" — falls back to `name` */
-  shortName?: string;
-  /** Short edition marker, e.g. "EBC12" */
-  edition?: string;
-  /** Defaults to `"conference"` */
-  kind?: EventKind;
-  /**
-   * UTC offset the event's calendar days open and close in, e.g. "+02:00".
-   * `schedule` states it already and wins; spell it out for events without clock times,
-   * otherwise their days fall back to the zone of whoever renders the page.
-   */
-  utcOffset?: UtcOffset;
-  city?: string;
-  country?: string;
-  /** ISO 3166-1 alpha-2 code, used by the JSON-LD Event schema */
-  countryCode?: string;
-  /** First day, ISO `YYYY-MM-DD` */
-  startDate?: string;
-  /** Last day, ISO `YYYY-MM-DD` — equals `startDate` for one-day events */
-  endDate?: string;
-  schedule?: EventSchedule;
-  venue?: EventVenue;
-  /** Ticketing terms — absent for events we only attend, they are not ours to describe */
-  admission?: EventAdmission;
-  /** Event website — absent for events that have no public page of their own */
-  url?: string;
-  /**
-   * Site-relative or absolute image for the JSON-LD Event schema. Optional because the
-   * parser drops a shape it cannot resolve instead of the whole record — schema.org calls
-   * the field recommended, and an event with no picture still has to be reachable.
-   */
-  image?: string;
-  /** A name we can print, an address we can link, or either one on its own */
-  organizer?: {
-    name?: string;
-    url?: string;
-  };
-  description?: string;
-  topics?: string[];
-}
-
-/** `undated` is a draft with no day yet — it sits outside the timeline, not on its edges */
-export type EventStatus = "ongoing" | "upcoming" | "past" | "undated";
-
-export interface EventDateParts {
-  /** Day of the month the event starts on, e.g. "16" */
-  start_day: string;
-  /** Day of the month the event ends on, e.g. "17" */
-  end_day: string;
-  /** Short month or month range, e.g. "Sep" or "Sep–Oct" */
-  month: string;
-  /** Year or year range, e.g. "2026" or "2026–2027" */
-  year: string;
-  /** Spans more than one day — true source for the `start–end` dash */
-  is_range: boolean;
-}
+export type {
+  ClockTime,
+  EventAdmission,
+  EventDateParts,
+  EventDays,
+  EventFact,
+  EventKind,
+  EventLink,
+  EventOrganizer,
+  EventSchedule,
+  EventStatus,
+  EventVenue,
+  IconKey,
+  TradeFairEvent,
+  UtcOffset,
+} from "./event-types";
 
 /**
  * A duplicated id would silently let the first record of that slug win, so the whole
@@ -161,14 +73,6 @@ export const UNTITLED_EVENT_NAME = "Untitled event";
 /** Name to render — never empty, so a nameless draft is still listed and linkable */
 export function get_event_name(event: TradeFairEvent): string {
   return event.name ?? UNTITLED_EVENT_NAME;
-}
-
-/** Days an event actually runs on, both ends resolved */
-export interface EventDays {
-  /** ISO `YYYY-MM-DD` */
-  start: string;
-  /** ISO `YYYY-MM-DD` */
-  end: string;
 }
 
 /**

@@ -19,6 +19,7 @@ import {
   REGISTRATION_FIELD,
   type FieldKind,
 } from "../../src/components/admin/event_form_fields";
+import { ADVANCED_GROUPS } from "../../src/components/admin/event_form_groups";
 import { to_iso_day } from "../../src/components/events-data";
 import {
   ADMIN_EVENTS_PATH,
@@ -30,11 +31,22 @@ import type {
   EventFormErrorCode,
   EventFormErrorField,
   EventFormField,
+  SlotFormField,
 } from "../../src/lib/events/form_mapping";
 import { HARNESS_USER_AGENT } from "../fixtures/events";
 import { NAV_TIMEOUT } from "./admin";
+import {
+  expect_topics,
+  fill_topics,
+  parse_slot,
+  reveal_slot,
+} from "./admin_event_slots";
 
-/** Wspólne lokatory i kroki panelu wydarzeń — dzielone przez spece CRUD-a. */
+/**
+ * Wspólne lokatory i kroki panelu wydarzeń — dzielone przez spece CRUD-a. Grupy
+ * powtarzalne (wyróżniki, fakty, tematy, linki) mają własny moduł `admin_event_slots.ts`;
+ * ten woła po nie przy wypełnianiu formularza.
+ */
 
 export { ADMIN_EVENTS_PATH, DELETE_CONFIRM_FIELD, DELETE_CONFIRM_VALUE };
 
@@ -66,7 +78,29 @@ const FIELD_KIND: ReadonlyMap<EventFormField, FieldKind | undefined> = new Map(
   ),
 );
 
-export type EventFormValues = Partial<Record<EventFormField, string>>;
+/**
+ * Katalog `EventFormField` plus sloty grup powtarzalnych (`badges.0`, `facts.1.icon`),
+ * które stoją poza nim. `topics` zostaje jednym wpisem z listą po przecinku — spec mówi
+ * o temacie, nie o numerze chipsa, a rozbicie na osiem `topics.<i>` robi helper.
+ */
+export type EventFormValues = Partial<
+  Record<EventFormField | SlotFormField, string>
+>;
+
+/** Pola schowane w `<details data-advanced>` — Playwright ich nie widzi przed otwarciem. */
+const ADVANCED_FIELDS: ReadonlySet<string> = new Set<string>([
+  ...ADVANCED_GROUPS.flatMap((group) =>
+    group.fields.map((field) => field.name),
+  ),
+  REGISTRATION_FIELD,
+]);
+
+function is_select(field: string): boolean {
+  return (
+    FIELD_KIND.get(field as EventFormField) === "select" ||
+    field.endsWith(".icon")
+  );
+}
 
 export function edit_path(id: string): string {
   return `${ADMIN_EVENTS_PATH}/${encodeURIComponent(id)}/edit`;
@@ -147,8 +181,24 @@ export function sample_event_values(
   };
 }
 
-export function event_field(page: Page, field: EventFormField): Locator {
+export function event_field(
+  page: Page,
+  field: EventFormField | SlotFormField,
+): Locator {
   return page.locator(`#${field_id(field)}`);
+}
+
+export function advanced_section(page: Page): Locator {
+  return page.locator("details[data-advanced]");
+}
+
+/** `<details>` otwiera natywny klik w `<summary>` — tak samo w projekcie bez JavaScriptu. */
+export async function open_advanced(page: Page): Promise<void> {
+  const details = advanced_section(page);
+  if ((await details.getAttribute("open")) !== null) return;
+
+  await details.locator("summary").click();
+  await expect(details).toHaveAttribute("open", "");
 }
 
 export function registration_checkbox(page: Page): Locator {
@@ -186,18 +236,29 @@ export async function fill_event_form(
   page: Page,
   values: EventFormValues,
 ): Promise<void> {
-  const entries = Object.entries(values) as readonly [EventFormField, string][];
+  const entries = Object.entries(values) as readonly [string, string][];
+
+  // Pola „Zaawansowanych" są w DOM, ale schowane — wypełnia się je dopiero po otwarciu.
+  if (entries.some(([field]) => ADVANCED_FIELDS.has(field))) {
+    await open_advanced(page);
+  }
 
   for (const [field, value] of entries) {
     if (field === REGISTRATION_FIELD) {
       await registration_checkbox(page).setChecked(value !== "");
       continue;
     }
-    if (FIELD_KIND.get(field) === "select") {
-      await event_field(page, field).selectOption(value);
+    if (field === "topics") {
+      await fill_topics(page, value);
       continue;
     }
-    await event_field(page, field).fill(value);
+
+    const slot = parse_slot(field);
+    if (slot !== null) await reveal_slot(page, slot.group, slot.index);
+
+    const control = page.locator(`#${field_id(field)}`);
+    if (is_select(field)) await control.selectOption(value);
+    else await control.fill(value);
   }
 }
 
@@ -251,7 +312,7 @@ export async function expect_notice(
 /** Komunikat ma stać przy swoim inpucie i być z nim powiązany dla czytnika ekranu. */
 export async function expect_field_error(
   page: Page,
-  field: EventFormField,
+  field: EventFormField | SlotFormField,
   code: EventFormErrorCode,
 ): Promise<void> {
   await expect(event_field(page, field)).toHaveAttribute(
@@ -269,7 +330,7 @@ export async function expect_form_values(
   page: Page,
   values: EventFormValues,
 ): Promise<void> {
-  const entries = Object.entries(values) as readonly [EventFormField, string][];
+  const entries = Object.entries(values) as readonly [string, string][];
 
   for (const [field, value] of entries) {
     if (field === REGISTRATION_FIELD) {
@@ -278,7 +339,11 @@ export async function expect_form_values(
       });
       continue;
     }
-    await expect(event_field(page, field)).toHaveValue(value);
+    if (field === "topics") {
+      await expect_topics(page, value);
+      continue;
+    }
+    await expect(page.locator(`#${field_id(field)}`)).toHaveValue(value);
   }
 }
 

@@ -165,6 +165,15 @@ function build_image_url(
  * `null` for a draft with no date: `startDate` is the one property schema.org requires
  * of an Event, and markup Google rejects is worse than a page with no markup at all.
  * Callers must skip the `<script>` tag entirely rather than emit an empty one.
+ *
+ * `badges`, `facts`, `links` and `venue.note` never reach this schema — deliberately,
+ * not an oversight. schema.org has no field for freeform presentational labels or
+ * topical links; `sameAs` names profiles of this same entity (e.g. its own Facebook
+ * page), not arbitrary related links, so folding `links` into it would misrepresent
+ * the data. `venue.note` is presentational by its own doc comment in `event-types.ts`
+ * and is already kept out of the map link for the same reason. This follows the
+ * module's rule that an incomplete or unmappable block is better left out than
+ * emitted wrong (see `build_offer_schema`, `build_organizer_schema`).
  */
 export function build_event_schema(
   event: TradeFairEvent,

@@ -21,13 +21,19 @@ import {
   get_event_hours,
   get_event_link,
   get_status_badge_label,
+  get_venue_note,
   has_venue_details,
+  SR_NEW_TAB,
   STATUS_BADGE_CLASS,
   STATUS_THEME,
   TOPIC_PILL_CLASS,
+  VENUE_NOTE_CLASS,
   type StatusTheme,
 } from "./event-theme";
+import { EventBadges } from "./EventBadges";
+import { EventFacts } from "./EventFacts";
 import { EventHours } from "./EventHours";
+import { EventLinks } from "./EventLinks";
 import { RelatedEvents, type RelatedEvent } from "./RelatedEvents";
 import { VenuePlace } from "./VenuePlace";
 
@@ -43,7 +49,6 @@ interface EventDetailProps {
 }
 
 const CONTACT_PATH = "/#contact";
-const SR_NEW_TAB = "— opens in a new tab";
 
 /** Filled button per status; the text-only variants live in `STATUS_THEME.link` */
 const CTA_PRIMARY_CLASS: Record<EventStatus, string> = {
@@ -118,6 +123,8 @@ export function EventDetail({
               />
               {get_status_badge_label(event, status)}
             </span>
+
+            <EventBadges badges={event.badges} theme={theme} />
 
             {event.edition ? (
               <span
@@ -263,13 +270,23 @@ function FactsPanel({
     map_url !== undefined && status !== "past" && primary.href !== map_url;
   const hours = get_event_hours(event);
   const has_when = date !== null || hours !== null;
-  const has_where = has_venue_details(event) || location !== undefined;
+  const has_venue = has_venue_details(event);
+  const has_where = has_venue || location !== undefined;
+  const venue_note = get_venue_note(event);
+  const has_own_facts = (event.facts ?? []).some(
+    (fact) => fact.label.trim() !== "",
+  );
+  const has_own_links = (event.links ?? []).some(
+    (link) => link.label.trim() !== "",
+  );
   /** A draft can know none of them — then the panel is the call to action alone */
-  const has_facts =
+  const has_key_details =
     has_when ||
     has_where ||
     admission !== undefined ||
-    organizer_label !== undefined;
+    organizer_label !== undefined ||
+    has_own_facts ||
+    has_own_links;
 
   return (
     <div
@@ -283,7 +300,7 @@ function FactsPanel({
         Key details
       </h2>
 
-      {has_facts ? (
+      {has_key_details ? (
         <dl className="flex flex-col gap-5">
           {has_when ? (
             <div>
@@ -306,6 +323,9 @@ function FactsPanel({
               <dt className={cn(LABEL_CLASS, theme.accent)}>Where</dt>
               <dd className={cn("mt-1", VALUE_CLASS)}>
                 <VenuePlace event={event} theme={theme} />
+                {has_venue && venue_note ? (
+                  <span className={VENUE_NOTE_CLASS}>{venue_note}</span>
+                ) : null}
                 {location === undefined ? null : (
                   <span className="block">{location}</span>
                 )}
@@ -350,11 +370,31 @@ function FactsPanel({
               </dd>
             </div>
           ) : null}
+
+          {has_own_facts ? (
+            <div>
+              <dt className={cn(LABEL_CLASS, theme.accent)}>Good to know</dt>
+              <dd className="mt-2">
+                <EventFacts facts={event.facts} theme={theme} />
+              </dd>
+            </div>
+          ) : null}
+
+          {has_own_links ? (
+            <div>
+              <dt className={cn(LABEL_CLASS, theme.accent)}>Links</dt>
+              <dd className="mt-2">
+                <EventLinks links={event.links} theme={theme} />
+              </dd>
+            </div>
+          ) : null}
         </dl>
       ) : null}
 
       <div
-        className={has_facts ? "mt-6 border-t border-white/10 pt-5" : undefined}
+        className={
+          has_key_details ? "mt-6 border-t border-white/10 pt-5" : undefined
+        }
       >
         <a
           href={primary.href}

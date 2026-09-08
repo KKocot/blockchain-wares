@@ -199,6 +199,35 @@ test.describe("JSON-LD", () => {
     );
   });
 
+  test("badges, facts, links i notatka o miejscu nie przeciekają do schematu", () => {
+    // Wydarzenie z WSZYSTKIMI polami prezentacyjnymi wypełnionymi — to test na wyciek,
+    // nie tylko na brak klucza. Unikalne stringi muszą nie pojawić się nigdzie w JSON-LD.
+    const decorated = {
+      ...WORKSHOP,
+      venue: { ...WORKSHOP.venue, note: "UNIQUE_VENUE_NOTE_5a6c8f" },
+      badges: ["UNIQUE_BADGE_LABEL_9f3a21"],
+      facts: [{ icon: "info", label: "UNIQUE_FACT_LABEL_7c1b44" }],
+      links: [
+        {
+          label: "UNIQUE_LINK_LABEL_2e9d17",
+          url: "https://unique-link-target.invalid/8b4f",
+        },
+      ],
+    } satisfies TradeFairEvent;
+
+    const serialized = JSON.stringify(dated_schema(decorated, SITE));
+
+    expect(serialized).not.toContain("UNIQUE_VENUE_NOTE_5a6c8f");
+    expect(serialized).not.toContain("UNIQUE_BADGE_LABEL_9f3a21");
+    expect(serialized).not.toContain("UNIQUE_FACT_LABEL_7c1b44");
+    expect(serialized).not.toContain("UNIQUE_LINK_LABEL_2e9d17");
+    expect(serialized).not.toContain("unique-link-target.invalid");
+    expect(serialized).not.toContain('"badges"');
+    expect(serialized).not.toContain('"facts"');
+    expect(serialized).not.toContain('"links"');
+    expect(serialized).not.toContain('"note"');
+  });
+
   test("escapowanie nie zmienia danych — round-trip 1:1", () => {
     const schemas = SEED_EVENTS.map((event) => dated_schema(event, SITE));
     const serialized = to_json_ld(schemas);

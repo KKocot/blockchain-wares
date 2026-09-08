@@ -1,6 +1,10 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
-import { EventForm, EventPreview } from "../../../components/admin";
+import { EventForm, EventPreview, EVENT_FORM_ID } from "../../../components/admin";
+import {
+  ICON_PREVIEW_CSS,
+  SLOT_ADD_FULL_CSS,
+} from "../../../components/admin/EventFieldSlots";
 import PreviewFont from "../../../components/admin/PreviewFont.astro";
 import { BUTTON_CLASS } from "../../../components/admin/styles";
 import { to_iso_day } from "../../../components/events-data";
@@ -52,31 +56,75 @@ const today_iso = to_iso_day(new Date());
   </form>
 
   <PreviewFont slot="head" />
+  <style
+    slot="head"
+    is:inline
+    set:html={`${ICON_PREVIEW_CSS}\n${SLOT_ADD_FULL_CSS}`}
+  />
 
-  <div class="mx-auto w-full max-w-6xl">
+  <noscript slot="head">
+    <style is:inline>
+      /* Bez JS podglad jest schowany (AdminLayout), wiec jego tor w siatce zostalby
+         pusty, a skrot do formularza prowadzilby donikad. */
+      [data-editor-grid][data-editor-grid] {
+        display: block;
+      }
+
+      [data-skip-form][data-skip-form] {
+        display: none;
+      }
+    </style>
+  </noscript>
+
+  <div class="mx-auto w-full">
     <h1 class="text-lg font-semibold">Nowe wydarzenie</h1>
-    <p class="mt-1 mb-5 text-sm text-base-content/60">
+    <p class="mt-1 mb-5 max-w-3xl text-sm text-base-content/60">
       Nic nie jest wymagane: pusty formularz zapisze szkic, a identyfikator
       powstanie z nazwy wydarzenia. Panel odświeża listę zaraz po zapisie, więc
       wydarzenie pojawi się na stronie <span class="admin-mono">/markets</span> od
       razu.
     </p>
 
-    <EventPreview
-      client:load
-      initialFields={rejected?.values?.toString() ?? ""}
-      todayIso={today_iso}
-    />
+    <a
+      href={`#${EVENT_FORM_ID}`}
+      data-skip-form
+      class="sr-only focus:not-sr-only focus:mb-3 focus:inline-flex focus:rounded-md focus:border focus:border-secondary/60 focus:bg-base-200 focus:px-3 focus:py-1.5 focus:font-medium focus:outline-2 focus:outline-offset-2 focus:outline-secondary"
+    >
+      Przejdź do formularza
+    </a>
 
-    <div class="mx-auto w-full max-w-3xl">
-      <EventForm
-        mode="create"
-        action={NEW_EVENT_PATH}
-        cancelHref={ADMIN_EVENTS_PATH}
-        values={rejected?.values ?? null}
-        errors={rejected?.errors ?? []}
-        message={rejected?.message ?? null}
-      />
+    <div
+      data-editor-grid
+      class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,1fr)_26rem] 2xl:grid-cols-[minmax(0,1fr)_30rem]"
+    >
+      {/* `contents` ponizej lg: podglad zostaje bezposrednim dzieckiem siatki i plynie w
+          normalnym ukladzie nad formularzem — jego wlasny `sticky` dziala tylko od `lg`
+          (patrz `EventPreview.tsx`), inaczej przykleilby sie nad formularzem na telefonie.
+          Od lg wrapper jest kolumna i to on klei. */}
+      <div
+        class="contents min-w-0 lg:sticky lg:top-[4.5rem] lg:col-start-2 lg:row-start-1 lg:block lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto lg:overscroll-contain"
+      >
+        <EventPreview
+          client:load
+          initialFields={rejected?.values?.toString() ?? ""}
+          todayIso={today_iso}
+        />
+      </div>
+
+      <div class="min-w-0 lg:col-start-1 lg:row-start-1">
+        <EventForm
+          mode="create"
+          action={NEW_EVENT_PATH}
+          cancelHref={ADMIN_EVENTS_PATH}
+          values={rejected?.values ?? null}
+          errors={rejected?.errors ?? []}
+          message={rejected?.message ?? null}
+        />
+      </div>
     </div>
   </div>
+
+  <script>
+    import "../../../scripts/admin_slots";
+  </script>
 </AdminLayout>

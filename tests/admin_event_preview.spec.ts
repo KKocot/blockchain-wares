@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { FIELD_LABELS } from "../src/components/admin/event_form_fields";
 import { STATUS_THEME } from "../src/components/event-theme";
 import { UNTITLED_EVENT_NAME } from "../src/components/events-data";
 import { SEED_EVENTS, SEED_EVENT_IDS } from "./fixtures/events";
@@ -25,6 +26,14 @@ const FUTURE_MONTH = "Jun";
 const PREVIEW_NAME = "Podgląd na żywo";
 
 const BANNER_SKIPPED = /Wydarzenie bez daty nie trafia do banera/;
+
+/** Po jednym wpisie z każdej grupy powtarzalnej — podgląd czyta je tak jak zapis. */
+const SLOT_VALUES = {
+  badge: "Wyróżnik z podglądu",
+  fact: { icon: "clock", label: "Fakt z podglądu" },
+  topic: "Temat z podglądu",
+  link: { label: "Link z podglądu", url: "https://example.invalid/podglad" },
+};
 
 function preview(page: Page): Locator {
   return page.locator("[data-event-preview]");
@@ -135,6 +144,40 @@ test.describe("Panel wydarzeń — podgląd", () => {
     await event_field(page, "city").fill("Gliwice");
     await expect(stage(page)).toContainText(`Gliwice, ${seed?.country ?? ""}`);
     await expect(stage(page)).not.toContainText(place);
+  });
+
+  test("sloty wchodzą do podglądu tym samym mapperem, którym idzie zapis", async ({
+    page,
+  }) => {
+    const { badge, fact, topic, link } = SLOT_VALUES;
+
+    await open_new_form(page);
+    await fill_event_form(page, {
+      name: PREVIEW_NAME,
+      startDate: FUTURE_DAY,
+      "badges.0": badge,
+      "facts.0.icon": fact.icon,
+      "facts.0.label": fact.label,
+      topics: topic,
+      "links.0.label": link.label,
+      "links.0.url": link.url,
+    });
+
+    await expect(stage(page)).toContainText(badge);
+    await expect(stage(page)).toContainText(fact.label);
+    await expect(stage(page)).toContainText(topic);
+
+    // Nazwane linki mają swoje miejsce dopiero na stronie wydarzenia, nie na karcie.
+    await variant_button(page, "Strona").click();
+    await expect(stage(page)).toContainText(link.label);
+
+    // Drugiego mapowania nie ma: niepełna para jest błędem tak samo w podglądzie, jak
+    // przy zapisie. Podgląd zostaje wtedy na ostatnim stanie, który dało się złożyć.
+    await event_field(page, "facts.0.icon").selectOption("");
+    await expect(preview(page)).toContainText(
+      FIELD_LABELS.get("facts.0.icon") ?? "",
+    );
+    await expect(stage(page)).toContainText(fact.label);
   });
 
   // Odstępstwo od serwerowego panelu jest wąskie: podgląd liczy się z pól formularza

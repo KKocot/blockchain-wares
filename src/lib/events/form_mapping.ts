@@ -1,14 +1,45 @@
 import type {
   ClockTime,
   EventAdmission,
+  EventFact,
   EventKind,
+  EventLink,
   EventSchedule,
   EventVenue,
+  IconKey,
   TradeFairEvent,
   UtcOffset,
 } from "../../components/events-data";
+import {
+  ICON_KEYS,
+  MAX_EVENT_BADGES,
+  MAX_EVENT_FACTS,
+  MAX_EVENT_LINKS,
+} from "../../components/event-types";
 import type { EventDraft } from "./mutations";
 import { parse_event } from "./parse_event";
+import type { FormReader, Slot } from "./form_parsers";
+import {
+  ABSENT,
+  CHECKBOX_ON,
+  CLEAR,
+  CLOCK_TIME,
+  COUNTRY_CODE,
+  CURRENCY_CODE,
+  EVENT_ID,
+  HTTP_URL,
+  IMAGE_SRC,
+  INVALID,
+  ISO_DAY,
+  PRICE,
+  TOPIC_SEPARATOR,
+  absolute_url,
+  checkbox,
+  offset,
+  read_kind,
+  read_topics,
+  text,
+} from "./form_parsers";
 
 /**
  * Nazwa inputu w formularzu panelu — jednoczesnie sciezka w `TradeFairEvent`
@@ -17,10 +48,27 @@ import { parse_event } from "./parse_event";
  */
 export type EventFormField = keyof ReturnType<typeof form_values>;
 
+/**
+ * Pola grup powtarzalnych (`badges.<i>`, `facts.<i>.icon|label`, `links.<i>.label|url`)
+ * i `venue.note` — celowo poza `EventFormField`, ktorego katalog w `event_form_fields.ts`
+ * sprawdza wyczerpujaco (`UndeclaredEventFormField`). Adresy sa nadal odczytywalne przez
+ * `text()`/`absolute_url()` i zglaszalne w bledach — tylko bez wpisu w zamknietym katalogu.
+ */
+export type SlotFormField =
+  | "venue.note"
+  | `badges.${number}`
+  | `facts.${number}.icon`
+  | `facts.${number}.label`
+  | `links.${number}.label`
+  | `links.${number}.url`;
+
 /** Blad calego rekordu, nie pojedynczego inputu. */
 export const FORM_SCOPE = "form";
 
-export type EventFormErrorField = EventFormField | typeof FORM_SCOPE;
+export type EventFormErrorField =
+  | EventFormField
+  | SlotFormField
+  | typeof FORM_SCOPE;
 
 /** Zadne pole nie jest obowiazkowe: `required` zostalo dla pustego formularza (`FORM_SCOPE`). */
 export type EventFormErrorCode = "required" | "invalid";
@@ -56,6 +104,9 @@ export interface EventFormPatch {
   organizer?: TradeFairEvent["organizer"] | null;
   description?: string | null;
   topics?: string[] | null;
+  badges?: string[] | null;
+  facts?: EventFact[] | null;
+  links?: EventLink[] | null;
 }
 
 export type EventFormResult =
@@ -65,32 +116,6 @@ export type EventFormResult =
 export type EventPatchResult =
   | { ok: true; patch: EventFormPatch }
   | { ok: false; errors: EventFormError[] };
-
-/** Odbicie wzorcow z `parse_event.ts` — tam jest bramka ksztaltu, tu wskazanie pola. */
-const EVENT_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-const CLOCK_TIME = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
-const UTC_OFFSET = /^[+-](?:[01]\d|2[0-3]):[0-5]\d$/;
-const COUNTRY_CODE = /^[A-Z]{2}$/;
-const CURRENCY_CODE = /^[A-Z]{3}$/;
-const PRICE = /^\d+(?:\.\d{1,2})?$/;
-const HTTP_URL = /^https?:\/\/\S+$/;
-/** Sciezka od korzenia albo pelny adres — `parse_event` cicho zdejmuje reszte, a wpisany
- *  z bledem obraz ma wrocic do poprawki, nie zniknac po zapisie. */
-const IMAGE_SRC = /^(?:https?:\/\/\S+|\/[^/\s]\S*)$/;
-
-/** U+FFFD swiadczy o rozjechanym kodowaniu — wartosc jest juz wtedy uszkodzona. */
-const FORBIDDEN_CHARS = /[\u0000-\u001F\u007F\uFFFD]/;
-/** To samo z przepustka dla znaku nowej linii — opis jest jedynym polem textarea. */
-const FORBIDDEN_MULTILINE_CHARS = /[\u0000-\u0009\u000B-\u001F\u007F\uFFFD]/;
-const MULTILINE_FIELD = "description";
-
-/** Bez JS-a nie da sie dolozyc inputu, wiec tematy jada jedna lista po przecinku.
- *  Przecinek w samym temacie jest przez to nie do zapisania. */
-const TOPIC_SEPARATOR = ",";
-
-/** Wartosc zaznaczonego checkboxa bez atrybutu `value`. */
-const CHECKBOX_ON = "on";
 
 /** Slug zastepczy na czas sprawdzenia ksztaltu szkicu, ktory `id` zostawil backendowi. */
 const PLACEHOLDER_ID = "draft";
@@ -145,6 +170,9 @@ export function read_event_patch(fields: URLSearchParams): EventPatchResult {
 export function to_event_form_fields(event: TradeFairEvent): URLSearchParams {
   const fields = new URLSearchParams();
   for (const [field, value] of Object.entries(form_values(event))) {
+    fields.set(field, value);
+  }
+  for (const [field, value] of Object.entries(slot_form_values(event))) {
     fields.set(field, value);
   }
 
@@ -206,22 +234,29 @@ function form_values(event: TradeFairEvent) {
 }
 
 /**
- * `absent` = pola nie bylo w formularzu, `clear` = bylo puste, `invalid` = odrzucone
- * i juz zaraportowane. Rozroznienie dwoch pierwszych jest cala sola tego modulu.
+ * Prefill slotow grup powtarzalnych i `venue.note` — poza `form_values()`, bo ich liczba
+ * zalezy od dlugosci tablicy (indeksowana do MAX_EVENT_*), nie jest stalym ksztaltem jak
+ * reszta `TradeFairEvent`. Emituje kazdy slot az do limitu, takze pusty — tak samo jak
+ * `form_values()`, zeby round-trip mogl wyczyscic dowolny z nich.
  */
-type Slot<T> =
-  | { state: "absent" }
-  | { state: "clear" }
-  | { state: "invalid" }
-  | { state: "value"; value: T };
+function slot_form_values(event: TradeFairEvent): Record<string, string> {
+  const fields: Record<string, string> = {
+    "venue.note": event.venue?.note ?? "",
+  };
 
-const ABSENT = { state: "absent" } as const;
-const CLEAR = { state: "clear" } as const;
-const INVALID = { state: "invalid" } as const;
+  for (let index = 0; index < MAX_EVENT_BADGES; index += 1) {
+    fields[`badges.${index}`] = event.badges?.[index] ?? "";
+  }
+  for (let index = 0; index < MAX_EVENT_FACTS; index += 1) {
+    fields[`facts.${index}.icon`] = event.facts?.[index]?.icon ?? "";
+    fields[`facts.${index}.label`] = event.facts?.[index]?.label ?? "";
+  }
+  for (let index = 0; index < MAX_EVENT_LINKS; index += 1) {
+    fields[`links.${index}.label`] = event.links?.[index]?.label ?? "";
+    fields[`links.${index}.url`] = event.links?.[index]?.url ?? "";
+  }
 
-interface FormReader {
-  fields: URLSearchParams;
-  errors: EventFormError[];
+  return fields;
 }
 
 /** Jedno czytanie dla obu kierunkow — tworzenie to patch z kompletem pol. */
@@ -251,101 +286,12 @@ function build_patch(fields: URLSearchParams): {
     ...optional_entry("organizer", read_organizer(reader)),
     ...optional_entry("description", text(reader, "description")),
     ...optional_entry("topics", read_topics(reader)),
+    ...optional_entry("badges", read_badges(reader)),
+    ...optional_entry("facts", read_facts(reader)),
+    ...optional_entry("links", read_links(reader)),
   };
 
   return { patch, errors: reader.errors };
-}
-
-function text(
-  reader: FormReader,
-  field: EventFormField,
-  pattern?: RegExp,
-): Slot<string> {
-  const raw = reader.fields.get(field);
-  if (raw === null) return ABSENT;
-
-  const value = clean_text(raw, field === MULTILINE_FIELD);
-  if (value === null) return fail(reader, field);
-  if (value === "") return CLEAR;
-
-  return pattern === undefined || pattern.test(value)
-    ? { state: "value", value }
-    : fail(reader, field);
-}
-
-/** `null` = tresc odrzucona. CRLF z pola wieloliniowego normalizujemy przed testem. */
-function clean_text(raw: string, multiline: boolean): string | null {
-  const value = multiline ? raw.replace(/\r\n?/g, "\n") : raw;
-  const forbidden = multiline ? FORBIDDEN_MULTILINE_CHARS : FORBIDDEN_CHARS;
-
-  return forbidden.test(value) ? null : value.trim();
-}
-
-function fail(reader: FormReader, field: EventFormErrorField): Slot<never> {
-  reader.errors.push({ field, code: "invalid" });
-  return INVALID;
-}
-
-/**
- * Adres, ktory da sie zbudowac, nie tylko dopasowac: wzorzec przepuszcza `http://[`,
- * a `parse_event` cicho zdejmuje takie pole przy odczycie — prefill edycji pokazalby
- * puste, a kolejny zapis skasowalby wartosc na dobre. Ta sama luka zostaje przy
- * `image`, `url` i `organizer.url`; tu zamyka ja tylko pole obiektu.
- */
-function absolute_url(reader: FormReader, field: EventFormField): Slot<string> {
-  const slot = text(reader, field, HTTP_URL);
-  if (slot.state !== "value") return slot;
-
-  try {
-    new URL(slot.value);
-    return slot;
-  } catch {
-    return fail(reader, field);
-  }
-}
-
-/** Wzorzec jest juz sprawdzony, wiec zawezenie do typu szablonowego jest bezpieczne. */
-function offset(reader: FormReader, field: EventFormField): Slot<UtcOffset> {
-  const slot = text(reader, field, UTC_OFFSET);
-
-  return slot.state === "value"
-    ? { state: "value", value: slot.value as UtcOffset }
-    : slot;
-}
-
-function read_kind(reader: FormReader): Slot<EventKind> {
-  const slot = text(reader, "kind");
-  if (slot.state !== "value") return slot;
-
-  return slot.value === "conference" || slot.value === "workshop"
-    ? { state: "value", value: slot.value }
-    : fail(reader, "kind");
-}
-
-/**
- * Niezaznaczony checkbox nie wysyla pola w ogole, wiec o istnieniu grupy decyduja
- * pola tekstowe — sam checkbox nigdy nie powoluje `admission` do zycia.
- */
-function checkbox(reader: FormReader, field: EventFormField): boolean {
-  return reader.fields.getAll(field).some((raw) => raw.trim().length > 0);
-}
-
-function read_topics(reader: FormReader): Slot<string[]> {
-  const raw = reader.fields.getAll("topics");
-  if (raw.length === 0) return ABSENT;
-
-  const topics: string[] = [];
-  for (const entry of raw) {
-    const value = clean_text(entry, false);
-    if (value === null) return fail(reader, "topics");
-
-    for (const topic of value.split(TOPIC_SEPARATOR)) {
-      const trimmed = topic.trim();
-      if (trimmed.length > 0) topics.push(trimmed);
-    }
-  }
-
-  return topics.length === 0 ? CLEAR : { state: "value", value: topics };
 }
 
 function read_venue(reader: FormReader): Slot<EventVenue> {
@@ -354,13 +300,15 @@ function read_venue(reader: FormReader): Slot<EventVenue> {
   const street = text(reader, "venue.streetAddress");
   const postal = text(reader, "venue.postalCode");
   const url = absolute_url(reader, "venue.url");
+  const note = text(reader, "venue.note");
 
-  return group([name, room, street, postal, url], () => ({
+  return group([name, room, street, postal, url, note], () => ({
     name: value_of(name),
     room: value_of(room),
     streetAddress: value_of(street),
     postalCode: value_of(postal),
     url: value_of(url),
+    note: value_of(note),
   }));
 }
 
@@ -399,6 +347,107 @@ function read_organizer(reader: FormReader): Slot<TradeFairEvent["organizer"]> {
     name: value_of(name),
     url: value_of(url),
   }));
+}
+
+function read_badges(reader: FormReader): Slot<string[]> {
+  return read_repeated(MAX_EVENT_BADGES, (index) =>
+    text(reader, `badges.${index}`),
+  );
+}
+
+function read_facts(reader: FormReader): Slot<EventFact[]> {
+  return read_repeated(MAX_EVENT_FACTS, (index) => fact_slot(reader, index));
+}
+
+/**
+ * Ikona i tresc sa nierozerwalna para. Ikona spoza `ICON_KEYS` (select podmieniony poza
+ * formularzem) jest bledem tego pola, nie powodem do zdjecia wpisanej tresci.
+ */
+function fact_slot(reader: FormReader, index: number): Slot<EventFact> {
+  const icon_field: SlotFormField = `facts.${index}.icon`;
+  const pair = slot_pair(reader, [icon_field, `facts.${index}.label`]);
+  if (pair.state !== "value") return pair;
+
+  const [icon, label] = pair.value;
+  if (is_icon_key(icon)) return { state: "value", value: { icon, label } };
+
+  reader.errors.push({ field: icon_field, code: "invalid" });
+  return INVALID;
+}
+
+function is_icon_key(value: string): value is IconKey {
+  return (ICON_KEYS as readonly string[]).includes(value);
+}
+
+function read_links(reader: FormReader): Slot<EventLink[]> {
+  return read_repeated(MAX_EVENT_LINKS, (index) => link_slot(reader, index));
+}
+
+/** Etykieta i adres to jeden odnosnik: bez etykiety nie ma czego kliknac, bez adresu — dokad. */
+function link_slot(reader: FormReader, index: number): Slot<EventLink> {
+  const pair = slot_pair(
+    reader,
+    [`links.${index}.label`, `links.${index}.url`],
+    absolute_url,
+  );
+  if (pair.state !== "value") return pair;
+
+  const [label, url] = pair.value;
+  return { state: "value", value: { label, url } };
+}
+
+type SlotRead = (reader: FormReader, field: SlotFormField) => Slot<string>;
+
+/**
+ * Nierozerwalna para pol jednego wiersza. Wiersz pusty w calosci znika bez slowa (szkic
+ * w trakcie pisania), ale polowa wypelniona bez drugiej wraca bledem przy brakujacym polu:
+ * ciche pominiecie konczylo sie zapisem „udanym", z ktorego wpisana wartosc znikala.
+ */
+function slot_pair(
+  reader: FormReader,
+  fields: readonly [SlotFormField, SlotFormField],
+  read_second: SlotRead = text,
+): Slot<[string, string]> {
+  const first = text(reader, fields[0]);
+  const second = read_second(reader, fields[1]);
+
+  if (first.state === "invalid" || second.state === "invalid") return INVALID;
+  if (first.state === "absent" && second.state === "absent") return ABSENT;
+  if (first.state !== "value" && second.state !== "value") return CLEAR;
+
+  if (first.state !== "value" || second.state !== "value") {
+    reader.errors.push({
+      field: first.state === "value" ? fields[1] : fields[0],
+      code: "required",
+    });
+
+    return INVALID;
+  }
+
+  return { state: "value", value: [first.value, second.value] };
+}
+
+/**
+ * Kombinuje N niezaleznych slotow indeksowanych w jedna liste, w kolejnosci i bez dziur.
+ * Zaden slot obecny = bez zmian; cokolwiek obecne (nawet niekompletne) = grupa byla
+ * dotknieta — pusta reszta koncowo kasuje pole (`optional_entry` zmienia [] na `null`).
+ */
+function read_repeated<T>(
+  max: number,
+  slot_at: (index: number) => Slot<T>,
+): Slot<T[]> {
+  const items: T[] = [];
+  let touched = false;
+
+  for (let index = 0; index < max; index += 1) {
+    const slot = slot_at(index);
+    if (slot.state === "absent") continue;
+    touched = true;
+    if (slot.state === "value") items.push(slot.value);
+  }
+
+  if (!touched) return ABSENT;
+  return items.length === 0 ? CLEAR : { state: "value", value: items };
 }
 
 /**

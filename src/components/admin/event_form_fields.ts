@@ -4,7 +4,13 @@ import {
   type EventFormErrorCode,
   type EventFormErrorField,
   type EventFormField,
+  type SlotFormField,
 } from "../../lib/events/form_mapping";
+import {
+  MAX_EVENT_BADGES,
+  MAX_EVENT_FACTS,
+  MAX_EVENT_LINKS,
+} from "../event-types";
 
 /**
  * Kotwica formularza wydarzenia w DOM — podglad czyta z niego wartosci przez
@@ -271,11 +277,68 @@ const FIELD_SPECS: readonly FieldSpec[] = GROUPS.flatMap(
   (group) => group.fields,
 );
 
+/** Lookup dla `event_form_groups.ts` — przegrupowanie katalogu czyta specyfikacje
+ *  pol stad zamiast duplikowac etykiety/hinty/placeholdery drugi raz. */
+export const FIELD_SPEC_BY_NAME: ReadonlyMap<EventFormField, FieldSpec> =
+  new Map(FIELD_SPECS.map((spec) => [spec.name, spec] as const));
+
 /** Nazwy pol formularza — strona odsiewa nimi wlasne parametry z query po bledzie. */
 export const EVENT_FORM_FIELDS: readonly EventFormField[] = [
   ...FIELD_SPECS.map((spec) => spec.name),
   REGISTRATION_FIELD,
 ];
+
+interface SlotLabelSpec {
+  max: number;
+  fields: readonly {
+    address: (index: number) => SlotFormField;
+    label: string;
+  }[];
+}
+
+/**
+ * Etykiety pól slotów jako literały, nie import z `event_form_groups.ts`: tamten moduł
+ * czyta `FIELD_SPEC_BY_NAME` stąd, więc import w drugą stronę zamknąłby cykl.
+ */
+const SLOT_LABELS: readonly SlotLabelSpec[] = [
+  {
+    max: MAX_EVENT_BADGES,
+    fields: [{ address: (index) => `badges.${index}`, label: "Wyróżnik" }],
+  },
+  {
+    max: MAX_EVENT_FACTS,
+    fields: [
+      { address: (index) => `facts.${index}.icon`, label: "Ikona faktu" },
+      { address: (index) => `facts.${index}.label`, label: "Treść faktu" },
+    ],
+  },
+  {
+    max: MAX_EVENT_LINKS,
+    fields: [
+      { address: (index) => `links.${index}.label`, label: "Etykieta linku" },
+      { address: (index) => `links.${index}.url`, label: "Adres linku" },
+    ],
+  },
+];
+
+/** `links.2.url` -> „Adres linku 3": bez numeru podsumowanie wskazuje sześć takich samych pól. */
+function slot_labels(): readonly [SlotFormField, string][] {
+  const entries: [SlotFormField, string][] = [
+    ["venue.note", "Przypis pod lokalizacją"],
+  ];
+
+  for (const group of SLOT_LABELS) {
+    for (let index = 0; index < group.max; index += 1) {
+      for (const field of group.fields) {
+        entries.push([field.address(index), `${field.label} ${index + 1}`]);
+      }
+    }
+  }
+
+  return entries;
+}
+
+const SLOT_FIELDS = slot_labels();
 
 export const FIELD_LABELS = new Map<EventFormErrorField, string>([
   ...FIELD_SPECS.map((spec): [EventFormErrorField, string] => [
@@ -283,11 +346,12 @@ export const FIELD_LABELS = new Map<EventFormErrorField, string>([
     spec.label,
   ]),
   [REGISTRATION_FIELD, REGISTRATION_LABEL],
+  ...SLOT_FIELDS,
 ]);
 
 /**
- * Żadne pole nie jest obowiązkowe — `required` nie przychodzi już z żadnego z nich,
- * a wpis zostaje na wypadek kodu doklejonego do `?error=` ręcznie.
+ * `required` przychodzi wyłącznie z niepełnej pary slotu (fakt bez ikony, link bez
+ * adresu) — pojedyncze pole formularza obowiązkowe nie jest.
  */
 export const CODE_TEXT: Record<EventFormErrorCode, string> = {
   required: "Uzupełnij to pole.",
@@ -304,7 +368,11 @@ export const FORM_TEXT: Record<EventFormErrorCode, string> = {
 export const FALLBACK_TEXT =
   "Zapis odrzucony — sprawdź wartości i spróbuj ponownie.";
 
-export function field_id(field: EventFormErrorField): string {
+/**
+ * Parametr jest `string`, nie `EventFormErrorField` — `slot_address()` składa adres
+ * slotu z nazwy grupy i indeksu, więc jego wynik jest typowany szerzej niż katalog pól.
+ */
+export function field_id(field: string): string {
   return `event-field-${field.replaceAll(".", "-")}`;
 }
 
@@ -321,8 +389,10 @@ function code_for(
   return suffix === "required" || suffix === "invalid" ? suffix : null;
 }
 
+/** Sloty stoją poza `EVENT_FORM_FIELDS`, a błąd bez wpisu tutaj nie podświetli żadnego pola. */
 const ERROR_FIELDS: readonly EventFormErrorField[] = [
   ...EVENT_FORM_FIELDS,
+  ...SLOT_FIELDS.map(([field]) => field),
   FORM_SCOPE,
 ];
 

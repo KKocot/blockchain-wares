@@ -15,7 +15,8 @@ import {
   type EventKind,
   type TradeFairEvent,
 } from "./events-data";
-import { get_event_hours } from "./event-theme";
+import { get_event_hours, STATUS_THEME } from "./event-theme";
+import { EventBadges } from "./EventBadges";
 import { EventHours } from "./EventHours";
 
 const EASE: [number, number, number, number] = [0.44, 0, 0.56, 1];
@@ -190,6 +191,9 @@ function BannerEntry({
   is_first,
 }: BannerEntryProps) {
   const accent = is_ongoing ? ONGOING_ACCENT : UPCOMING_ACCENT;
+  // Same tokens the card and the detail page badge on — the banner has no `StatusTheme`
+  // of its own, only `ongoing`/`upcoming` ever reach a promoted entry
+  const badge_theme = STATUS_THEME[is_ongoing ? "ongoing" : "upcoming"];
   const date = format_event_date(event);
   // Unreachable: `get_promoted_events()` never hands over an event with no dates
   const event_label = event.shortName ?? get_event_name(event);
@@ -213,7 +217,7 @@ function BannerEntry({
       >
         <DiamondIcon className={accent.text} />
 
-        <span className="flex min-w-0 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-col gap-0.5">
           <span
             className={cn(
               "flex flex-wrap items-center gap-x-2 text-xs font-semibold uppercase tracking-wider",
@@ -229,6 +233,12 @@ function BannerEntry({
             ))}
           </span>
 
+          <EventBadges
+            badges={event.badges}
+            theme={badge_theme}
+            className="mt-1"
+          />
+
           <span className="sr-only">: </span>
 
           <span
@@ -242,7 +252,7 @@ function BannerEntry({
           >
             {get_banner_headline(event_label, event.kind, is_ongoing)}
           </span>
-        </span>
+        </div>
       </a>
     </span>
   );

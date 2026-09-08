@@ -18,12 +18,9 @@ import {
 import { EventBanner } from "../EventBanner";
 import { EventCard } from "../EventCard";
 import { EventDetail } from "../EventDetail";
-import {
-  FORM_SCOPE,
-  read_event_form,
-  type EventFormError,
-} from "../../lib/events/form_mapping";
+import { FORM_SCOPE, type EventFormError } from "../../lib/events/form_mapping";
 import { EVENT_FORM_ID, FIELD_LABELS } from "./event_form_fields";
+import { collect_fields, read_event_form } from "./read_event_form";
 import { BUTTON_CLASS } from "./styles";
 
 /**
@@ -153,7 +150,7 @@ export function EventPreview({
     <section
       data-event-preview={live ? "live" : "static"}
       aria-label="Podgląd wydarzenia"
-      className="sticky top-14 z-30 mb-5 rounded-md border border-base-300 bg-base-200 shadow-lg"
+      className="rounded-md border border-base-300 bg-base-200 shadow-lg lg:sticky lg:top-14 lg:z-30"
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-base-300 px-4 py-2.5">
         <h2 className="text-sm font-semibold">Podgląd</h2>
@@ -220,8 +217,7 @@ interface StageProps {
  */
 function Stage({ variant, event, now }: StageProps) {
   const status = get_event_status(event, now);
-  const promoted =
-    get_promoted_events(now, PROMOTED_LIMIT, [event]).length > 0;
+  const promoted = get_promoted_events(now, PROMOTED_LIMIT, [event]).length > 0;
   const note =
     variant !== "mini"
       ? null
@@ -288,17 +284,6 @@ function describe_field(error: EventFormError): string {
   return error.field === FORM_SCOPE
     ? "cały formularz"
     : (FIELD_LABELS.get(error.field) ?? error.field);
-}
-
-/** `FormData` zwraca też pliki; formularz wydarzenia ma same pola tekstowe. */
-function collect_fields(form: HTMLFormElement): URLSearchParams {
-  const fields = new URLSearchParams();
-
-  for (const [name, value] of new FormData(form).entries()) {
-    if (typeof value === "string") fields.append(name, value);
-  }
-
-  return fields;
 }
 
 function to_preview_event(draft: Partial<TradeFairEvent>): TradeFairEvent {

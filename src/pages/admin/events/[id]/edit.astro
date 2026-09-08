@@ -1,6 +1,14 @@
 ---
 import AdminLayout from "../../../../layouts/AdminLayout.astro";
-import { EventForm, EventPreview } from "../../../../components/admin";
+import {
+  EventForm,
+  EventPreview,
+  EVENT_FORM_ID,
+} from "../../../../components/admin";
+import {
+  ICON_PREVIEW_CSS,
+  SLOT_ADD_FULL_CSS,
+} from "../../../../components/admin/EventFieldSlots";
 import PreviewFont from "../../../../components/admin/PreviewFont.astro";
 import { BUTTON_CLASS, CARD_CLASS } from "../../../../components/admin/styles";
 import {
@@ -138,8 +146,27 @@ const today_iso = to_iso_day(new Date());
   </form>
 
   <PreviewFont slot="head" />
+  <style
+    slot="head"
+    is:inline
+    set:html={`${ICON_PREVIEW_CSS}\n${SLOT_ADD_FULL_CSS}`}
+  />
 
-  <div class="mx-auto w-full max-w-6xl">
+  <noscript slot="head">
+    <style is:inline>
+      /* Bez JS podglad jest schowany (AdminLayout), wiec jego tor w siatce zostalby
+         pusty, a skrot do formularza prowadzilby donikad. */
+      [data-editor-grid][data-editor-grid] {
+        display: block;
+      }
+
+      [data-skip-form][data-skip-form] {
+        display: none;
+      }
+    </style>
+  </noscript>
+
+  <div class="mx-auto w-full">
     {
       view.kind === "form" ? (
         <Fragment>
@@ -147,7 +174,7 @@ const today_iso = to_iso_day(new Date());
             {view.event?.name ?? "Edycja wydarzenia"}
           </h1>
 
-          <p class="mt-1 mb-5 text-sm text-base-content/60">
+          <p class="mt-1 mb-5 max-w-3xl text-sm text-base-content/60">
             {view.event === null ? (
               <Fragment>
                 Wydarzenie: <span class="admin-mono">{id}</span>
@@ -165,25 +192,44 @@ const today_iso = to_iso_day(new Date());
             )}
           </p>
 
-          <EventPreview
-            client:load
-            initialFields={view.values.toString()}
-            todayIso={today_iso}
-          />
+          <a
+            href={`#${EVENT_FORM_ID}`}
+            data-skip-form
+            class="sr-only focus:not-sr-only focus:mb-3 focus:inline-flex focus:rounded-md focus:border focus:border-secondary/60 focus:bg-base-200 focus:px-3 focus:py-1.5 focus:font-medium focus:outline-2 focus:outline-offset-2 focus:outline-secondary"
+          >
+            Przejdź do formularza
+          </a>
 
-          <div class="mx-auto w-full max-w-3xl">
-            <EventForm
-              mode="edit"
-              action={action}
-              cancelHref={ADMIN_EVENTS_PATH}
-              values={view.values}
-              errors={rejected?.errors ?? []}
-              message={rejected?.message ?? null}
-            />
+          <div
+            data-editor-grid
+            class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,1fr)_26rem] 2xl:grid-cols-[minmax(0,1fr)_30rem]"
+          >
+            {/* `contents` ponizej lg: podglad zostaje bezposrednim dzieckiem siatki i plynie
+                w normalnym ukladzie nad formularzem — jego wlasny `sticky` dziala tylko od
+                `lg` (patrz `EventPreview.tsx`), inaczej przykleilby sie nad formularzem na
+                telefonie. Od lg klei sam wrapper. */}
+            <div class="contents min-w-0 lg:sticky lg:top-[4.5rem] lg:col-start-2 lg:row-start-1 lg:block lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto lg:overscroll-contain">
+              <EventPreview
+                client:load
+                initialFields={view.values.toString()}
+                todayIso={today_iso}
+              />
+            </div>
+
+            <div class="min-w-0 lg:col-start-1 lg:row-start-1">
+              <EventForm
+                mode="edit"
+                action={action}
+                cancelHref={ADMIN_EVENTS_PATH}
+                values={view.values}
+                errors={rejected?.errors ?? []}
+                message={rejected?.message ?? null}
+              />
+            </div>
           </div>
         </Fragment>
       ) : (
-        <div class={CARD_CLASS}>
+        <div class:list={[CARD_CLASS, "mx-auto w-full max-w-3xl"]}>
           <h1 class="text-lg font-semibold">{view.failure.heading}</h1>
           <p class="mt-2 mb-4 text-sm text-base-content/70">
             {view.failure.body}
@@ -196,4 +242,8 @@ const today_iso = to_iso_day(new Date());
       )
     }
   </div>
+
+  <script>
+    import "../../../../scripts/admin_slots";
+  </script>
 </AdminLayout>

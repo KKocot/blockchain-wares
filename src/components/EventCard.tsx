@@ -17,12 +17,16 @@ import {
   get_event_hours,
   get_event_link,
   get_status_badge_label,
+  get_venue_note,
   has_venue_details,
   STATUS_BADGE_CLASS,
   STATUS_THEME,
   TOPIC_PILL_CLASS,
+  VENUE_NOTE_CLASS,
   type StatusTheme,
 } from "./event-theme";
+import { EventBadges } from "./EventBadges";
+import { EventFacts } from "./EventFacts";
 import { EventHours } from "./EventHours";
 import { VenuePlace } from "./VenuePlace";
 
@@ -45,6 +49,11 @@ export function EventCard({ event, status }: EventCardProps) {
   const admission = format_admission(event.admission);
   const has_hours = get_event_hours(event) !== null;
   const topics = event.topics ?? [];
+  const venue_note = get_venue_note(event);
+  const has_badges = (event.badges ?? []).some((badge) => badge.trim() !== "");
+  const has_facts = (event.facts ?? []).some(
+    (fact) => fact.label.trim() !== "",
+  );
   /**
    * A draft whose card would be a bare headline says so instead. Anything at all under
    * the title — a day, a place, a topic — already gives the card a body of its own.
@@ -55,7 +64,9 @@ export function EventCard({ event, status }: EventCardProps) {
     !has_venue &&
     !has_hours &&
     !event.description &&
-    topics.length === 0;
+    topics.length === 0 &&
+    !has_badges &&
+    !has_facts;
 
   return (
     <article
@@ -82,6 +93,8 @@ export function EventCard({ event, status }: EventCardProps) {
             />
             {badge_label}
           </span>
+
+          <EventBadges badges={event.badges} theme={theme} />
 
           {event.edition ? (
             <span
@@ -149,9 +162,14 @@ export function EventCard({ event, status }: EventCardProps) {
               <VenueIcon />
               <span className="min-w-0">
                 <VenuePlace event={event} theme={theme} />
+                {venue_note ? (
+                  <span className={VENUE_NOTE_CLASS}>{venue_note}</span>
+                ) : null}
               </span>
             </p>
           ) : null}
+
+          <EventFacts facts={event.facts} theme={theme} className="mt-1" />
         </div>
 
         {event.description ? (

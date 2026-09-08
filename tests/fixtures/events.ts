@@ -107,13 +107,29 @@ export function build_seed_events(now: Date = new Date()): TradeFairEvent[] {
         utcOffset: "+02:00",
         timeZoneLabel: "CEST",
       },
+      badges: ["Fixture badge alpha", "Fixture badge beta"],
       venue: {
         name: "Fixture Coworking Gdansk",
         room: "Meeting Room 0.5+0.6, ground floor",
         streetAddress: "Ulica Testowa 7",
         postalCode: "80-001",
         url: "https://example.invalid/fixture-coworking",
+        note: "Fixture note: entrance from the courtyard",
       },
+      facts: [
+        { icon: "clock", label: "Fixture fact: four hours" },
+        { icon: "attendees", label: "Fixture fact: twenty seats" },
+      ],
+      links: [
+        {
+          label: "Fixture agenda",
+          url: "https://example.invalid/fixture-agenda",
+        },
+        {
+          label: "Fixture signup",
+          url: "https://example.invalid/fixture-signup",
+        },
+      ],
       admission: {
         price: "0",
         priceCurrency: "PLN",
@@ -123,7 +139,7 @@ export function build_seed_events(now: Date = new Date()): TradeFairEvent[] {
       image: OG_IMAGE,
       organizer: BW_ORGANIZER,
       description:
-        "Fullest fixture shape: a workshop with clock times and a zone, a venue with a room, a street address and a page of its own, and free entry without registration. Covers the host wording and the admission pill.",
+        "Fullest fixture shape: a workshop with clock times and a zone, a venue with a room, a street address, a note and a page of its own, free entry without registration, plus the editorial slots — badges, facts and named links. Covers the host wording, the admission pill and the prefill of every repeatable group in the panel.",
       topics: ["Our scope of work", "Project demos", "Fixture full shape"],
     },
     {

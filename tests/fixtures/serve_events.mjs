@@ -268,6 +268,20 @@ async function handle_create(request, response) {
   send(response, 201, body);
 }
 
+/**
+ * `null` w patchu to `$unset` po stronie backendu: pole ma zniknac z rekordu, a nie
+ * zostac nullem. Bez tego test kasowania nie odroznilby jednego od drugiego.
+ */
+function apply_patch(stored, body) {
+  const merged = { ...stored, ...clone(body) };
+
+  for (const [key, value] of Object.entries(body)) {
+    if (value === null) delete merged[key];
+  }
+
+  return merged;
+}
+
 /** PATCH scala cialo z zapisanym wydarzeniem — pol pominietych w ciele nie kasuje. */
 async function handle_update(request, response, id) {
   const position = index_of(id);
@@ -286,7 +300,7 @@ async function handle_update(request, response, id) {
     return;
   }
 
-  const updated = { ...events[position], ...clone(body), id: next_id };
+  const updated = { ...apply_patch(events[position], body), id: next_id };
 
   events[position] = updated;
   send(response, 200, updated);

@@ -2,15 +2,18 @@ import {
   MAX_FORM_BODY_BYTES,
   is_same_site_request,
   read_form_body,
-  type FormBodyRejection,
 } from "../api";
+import {
+  body_rejection,
+  field_errors,
+  preserve_submitted_values,
+  request_rejection,
+} from "./admin_form_state";
 import {
   FORM_SCOPE,
   format_event_form_error,
   read_event_form,
   read_event_patch,
-  type EventFormError,
-  type EventFormField,
 } from "./form_mapping";
 import {
   create_event,
@@ -86,17 +89,6 @@ const NOTICE_EVENT_PARAM = "event";
 /** Guard prezentacyjny, nie regula ksztaltu `id` (ta zyje w `parse_event.ts`) — parametr
  *  wraca z adresu, ktory da sie przepisac recznie. */
 const NOTICE_ID_SHAPE = /^[a-z0-9-]{1,64}$/;
-
-const CHECKBOX_ON = "on";
-
-/**
- * Checkbox jedzie z ukrytym blizniakiem tej samej nazwy (`EventForm`), wiec w ciele sa dwie
- * wartosci: `""` i `"on"`. `get()` oddaje pierwsza — bez normalizacji zaznaczona zgoda
- * gasla przy kazdym powrocie formularza z bledem.
- */
-const CHECKBOX_FIELDS = [
-  "admission.requiresRegistration",
-] as const satisfies readonly EventFormField[];
 
 export async function create_event_from_form(
   request: Request,
@@ -238,20 +230,6 @@ async function accept_submission(
   };
 }
 
-/** Kopia jest wlasna, zeby odczyt pol i prezentacja nie dzielily jednego obiektu. */
-function preserve_submitted_values(fields: URLSearchParams): URLSearchParams {
-  const values = new URLSearchParams(fields);
-
-  for (const field of CHECKBOX_FIELDS) {
-    const checked = fields
-      .getAll(field)
-      .some((entry) => entry.trim().length > 0);
-    values.set(field, checked ? CHECKBOX_ON : "");
-  }
-
-  return values;
-}
-
 /**
  * `id` z rekordu oddanego przez API, nie z trasy: `build_event_path()` przyjmuje slug po
  * `trim()`, wiec `id` z bialym znakiem zapisuje poprawny rekord, ale nie przeszedlby przez
@@ -270,74 +248,7 @@ function accepted(kind: EventActionKind, id: string): EventActionAccepted {
   };
 }
 
-function field_errors(
-  values: URLSearchParams,
-  errors: readonly EventFormError[],
-): EventActionRejected {
-  return {
-    ok: false,
-    problem: "validation",
-    status: 422,
-    values,
-    errors: errors.map(format_event_form_error),
-    // Bez zbiorczego zdania: `EventForm` wypisuje te bledy przy samych polach.
-    message: null,
-  };
-}
-
-/** Odrzucone przed odczytem pol: `values` zostaje `null`, a strona wypelnia formularz tym,
- *  co ma (zapisanym rekordem albo niczym). */
-function request_rejection(
-  status: number,
-  message: string,
-): EventActionRejected {
-  return {
-    ok: false,
-    problem: "request",
-    status,
-    values: null,
-    errors: [],
-    message,
-  };
-}
-
-function body_rejection(
-  reason: FormBodyRejection,
-  max_bytes: number,
-  action: MutationAction,
-): EventActionRejected {
-  const limit = Math.round(max_bytes / 1024);
-
-  switch (reason) {
-    case "too_large":
-      // Strona potwierdzenia usuniecia nie ma pola do skrocenia, wiec tam to nie jest
-      // blad danych do poprawy, tylko zadanie, ktorego panel nie mial jak wyslac.
-      return action === "delete"
-        ? request_rejection(
-            413,
-            `Żądanie usunięcia jest większe niż ${limit} KiB, które panel przyjmuje. Nic nie zostało usunięte — otwórz stronę potwierdzenia ponownie.`,
-          )
-        : {
-            ...request_rejection(
-              413,
-              `Formularz jest większy niż ${limit} KiB, które panel przyjmuje, więc nic nie zostało zapisane. Skróć opis i wyślij go ponownie.`,
-            ),
-            problem: "validation",
-          };
-    case "unsupported_media_type":
-      return request_rejection(
-        415,
-        "Formularz przyszedł w formacie, którego panel nie przyjmuje. Otwórz go ponownie i wyślij jego własnym przyciskiem.",
-      );
-    default:
-      return request_rejection(
-        400,
-        "Formularz przyszedł pusty, więc nic nie zostało zapisane. Otwórz go ponownie i wyślij jeszcze raz.",
-      );
-  }
-}
-
-type MutationAction = "create" | "update" | "delete";
+export type MutationAction = "create" | "update" | "delete";
 
 /**
  * Tresc od backendu doklejamy pod wlasnym zdaniem, nie zamiast niego: przy 500

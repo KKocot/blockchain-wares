@@ -1,14 +1,20 @@
 import type { TradeFairEvent } from "../../components/events-data";
 import { get_events_api_key, get_events_api_url } from "../env";
 import { SSR_USER_AGENT } from "../net/user_agent";
+import {
+  MAX_BODY_BYTES,
+  byte_length,
+  serialize,
+  type EventDraft,
+  type EventPatch,
+} from "./mutation_payload";
 import { parse_event } from "./parse_event";
 import { invalidate_events_cache, load_events } from "./source";
 
+export type { EventDraft, EventPatch };
+
 /** Wiecej niz 5 s odczytu listy: tam poddanie sie kosztuje render, tutaj — przepisanie formularza. */
 const FETCH_TIMEOUT_MS = 15_000;
-
-/** Kontraktowy limit ciala mutacji (backend odpowiada 413) — sprawdzany przed wyslaniem. */
-const MAX_BODY_BYTES = 64 * 1024;
 
 const EVENTS_PATH = "/events";
 
@@ -84,19 +90,6 @@ const REJECTED_ID: EventMutationFailure = {
   code: "not_found",
   message: "The event id is missing or malformed.",
 };
-
-/** Klucze opcjonalne `TradeFairEvent` — tylko te wolno skasowac `null`-em. */
-type OptionalEventKey = {
-  [K in keyof TradeFairEvent]-?: {} extends Pick<TradeFairEvent, K> ? K : never;
-}[keyof TradeFairEvent];
-
-/** Pole pominiete zostaje bez zmian, `null` kasuje (`$unset`); wymagane nie sa nullowalne. */
-export type EventPatch = Partial<Omit<TradeFairEvent, OptionalEventKey>> & {
-  [K in OptionalEventKey]?: TradeFairEvent[K] | null;
-};
-
-/** Szkic do zapisu: bez `id` slug sklada backend z nazwy, a bez nazwy losuje go sam. */
-export type EventDraft = Partial<TradeFairEvent>;
 
 export function create_event(event: EventDraft): Promise<EventMutationResult> {
   return send("POST", EVENTS_PATH, event);
@@ -381,20 +374,6 @@ function build_event_path(id: string): string | null {
   return trimmed.length <= MAX_EVENT_ID_LENGTH && EVENT_ID.test(trimmed)
     ? `${EVENTS_PATH}/${encodeURIComponent(trimmed)}`
     : null;
-}
-
-function serialize(body: unknown): string | null {
-  try {
-    const json = JSON.stringify(body);
-    return typeof json === "string" ? json : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Limit kontraktu jest w bajtach, a opis wydarzenia bywa w UTF-8 szerszy niz w znakach. */
-function byte_length(payload: string): number {
-  return new TextEncoder().encode(payload).byteLength;
 }
 
 /** `null` zamiast wyjatku: cialo bledu bywa HTML-em z proxy, a status i tak juz mamy. */
